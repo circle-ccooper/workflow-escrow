@@ -6,7 +6,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@circle-fin/developer-controlled-wallets": "^4.5.1",
+    "@circle-fin/developer-controlled-wallets": "^4.6.0",
     "@circle-fin/smart-contract-platform": "^4.3.0",
     "@circle-fin/user-controlled-wallets": "^4.5.0",
     "@radix-ui/react-checkbox": "^1.1.1",
