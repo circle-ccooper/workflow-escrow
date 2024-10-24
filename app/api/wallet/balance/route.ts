@@ -38,6 +38,10 @@ export async function POST(req: NextRequest) {
 
     const balance = response.data?.tokenBalances?.find(({ token }) => token.name === "USDC")?.amount;
 
+    if (balance === undefined) {
+      return NextResponse.json({ error: "USDC balance not found" }, { status: 404 });
+    }
+
     return NextResponse.json({ balance });
   } catch (error) {
     if (error instanceof z.ZodError) {
