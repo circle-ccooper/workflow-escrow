@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
-import { v4 as uuidv4 } from 'uuid';
 
 const client = initiateDeveloperControlledWalletsClient({
-  apiKey: process.env.CIRCLE_API_KEY!,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET!,
+  apiKey: process.env.CIRCLE_API_KEY,
+  entitySecret: process.env.CIRCLE_ENTITY_SECRET,
 });
 
 export async function POST(req: NextRequest) {
@@ -16,8 +15,7 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await client.createWalletSet({
-      name: entityName,      
-      
+      name: entityName
     });
 
     return NextResponse.json(response.data, { status: 201 });
