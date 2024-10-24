@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
-import { v4 as uuidv4 } from 'uuid';
+
+if (!process.env.CIRCLE_API_KEY || !process.env.CIRCLE_ENTITY_SECRET) {
+  throw new Error(
+    "Missing required environment variables: CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET must be defined"
+  );
+}
 
 const client = initiateDeveloperControlledWalletsClient({
-  apiKey: process.env.CIRCLE_API_KEY!,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET!,
+  apiKey: process.env.CIRCLE_API_KEY,
+  entitySecret: process.env.CIRCLE_ENTITY_SECRET,
 });
 
 export async function POST(req: NextRequest) {
@@ -16,16 +21,15 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await client.createWalletSet({
-      name: entityName,      
-      
+      name: entityName
     });
 
     return NextResponse.json(response.data, { status: 201 });
 
   } catch (error: any) {
-    console.error('Error creating wallet set:', error.message || 'An unknown error occurred');
+    console.error("Error creating wallet set:", error.message || "An unknown error occurred");
 
     // Send only a simple error message in the response to avoid circular JSON issues
-    return NextResponse.json({ error: 'An error occurred while creating the wallet set' }, { status: 500 });
+    return NextResponse.json({ error: "An error occurred while creating the wallet set" }, { status: 500 });
   }
 }

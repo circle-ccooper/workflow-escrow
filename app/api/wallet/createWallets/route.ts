@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 
+if (!process.env.CIRCLE_API_KEY || !process.env.CIRCLE_ENTITY_SECRET) {
+  throw new Error(
+    "Missing required environment variables: CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET must be defined"
+  );
+}
+
 const client = initiateDeveloperControlledWalletsClient({
-  apiKey: process.env.CIRCLE_API_KEY!,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET!,
+  apiKey: process.env.CIRCLE_API_KEY,
+  entitySecret: process.env.CIRCLE_ENTITY_SECRET,
 });
 
 export async function POST(req: NextRequest) {
