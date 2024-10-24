@@ -15,12 +15,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "entityName is required" }, { status: 400 });
     }
 
-    // Generate a unique idempotency key for this request
-    const idempotencyKey = uuidv4();
-
     const response = await client.createWalletSet({
-      name: entityName,
-      idempotencyKey,
+      name: entityName,      
       
     });
 
