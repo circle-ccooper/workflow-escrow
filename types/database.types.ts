@@ -55,7 +55,7 @@ export interface DisputeResolution {
   resolved_at: string;
 }
 
-export type Database = {
+export interface Database {
   public: {
     Tables: {
       users: {
