@@ -28,9 +28,6 @@ export async function POST(req: NextRequest) {
 
     const { walletId } = parseResult.data;
 
-    if (!walletId) {
-      return NextResponse.json({ error: "walletId is required" }, { status: 400 });
-    }
 
     const response = await client.getWalletTokenBalance({
       id: walletId
