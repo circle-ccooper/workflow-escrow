@@ -17,7 +17,7 @@ export const createWallet = async (walletSetId: string) => {
       accountType: "SCA",
       blockchains: ["MATIC-AMOY"],
       count: 1,
-      walletSetId,
+      walletSetId
     });
 
     if (!response.data) {
