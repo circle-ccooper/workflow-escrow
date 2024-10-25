@@ -11,7 +11,7 @@ const ResponseSchema = z.object({
     .array(
       z.object({
         id: z.string(),
-        amount: z.string(),
+        amount: z.array(z.string()),
         status: z.string(),
         createDate: z.string(),
       })
@@ -67,7 +67,7 @@ export async function POST(
     return NextResponse.json({
       transactions: response.data.transactions.map((tx) => ({
         id: tx.id,
-        amount: tx.amounts ? tx.amounts.join(", ") : "",
+        amount: tx.amounts || [],
         status: tx.state,
         createDate: tx.createDate,
       })),
