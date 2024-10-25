@@ -1,32 +1,40 @@
-import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
+import type { Blockchain } from "@circle-fin/developer-controlled-wallets";
+import { circleClient } from "@/utils/circleClient";
 
-if (!process.env.CIRCLE_API_KEY || !process.env.CIRCLE_ENTITY_SECRET) {
-  throw new Error(
-    "Missing required environment variables: CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET must be defined"
-  );
-}
+const client = circleClient();
 
-const client = initiateDeveloperControlledWalletsClient({
-  apiKey: process.env.CIRCLE_API_KEY,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET,
-});
+type WalletOptions = {
+  accountType?: "SCA"
+  blockchain?: Blockchain
+  count?: number
+  walletSetId: string
+};
 
-export const createWallet = async (walletSetId: string) => {
+export const createWallet = async ({
+  accountType = "SCA",
+  blockchain = "MATIC-AMOY",
+  count = 1,
+  walletSetId
+}: WalletOptions) => {
+  if (!walletSetId?.trim()) {
+    throw new Error("walletSetId is required");
+  }
+
   try {
     const response = await client.createWallets({
-      accountType: "SCA",
-      blockchains: ["MATIC-AMOY"],
-      count: 1,
+      accountType,
+      blockchains: [blockchain],
+      count,
       walletSetId
     });
 
-    if (!response.data) {
-      throw new Error("The response did not include a valid wallet");
+    if (!response.data?.wallets?.length) {
+      throw new Error("No wallets were created");
     }
 
     return response.data.wallets;
   } catch (error) {
-    console.error(error);
-    throw new Error("An error occurred when trying to create a wallet");
+    const message = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to create wallet: ${message}`);
   }
-}
+};

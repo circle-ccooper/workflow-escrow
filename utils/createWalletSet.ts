@@ -1,20 +1,19 @@
-import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
+import { circleClient } from "@/utils/circleClient";
 
-if (!process.env.CIRCLE_API_KEY || !process.env.CIRCLE_ENTITY_SECRET) {
-  throw new Error(
-    "Missing required environment variables: CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET must be defined"
-  );
+const client = circleClient();
+
+interface CircleWalletSet {
+  id: string
 }
 
-const client = initiateDeveloperControlledWalletsClient({
-  apiKey: process.env.CIRCLE_API_KEY,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET,
-});
+export const createWalletSet = async (entityName: string): Promise<CircleWalletSet> => {
+  if (!entityName?.trim()) {
+    throw new Error("Entity name is required");
+  }
 
-export const createWalletSet = async (entityName: string) => {
   try {
     const response = await client.createWalletSet({
-      name: entityName
+      name: entityName.trim()
     });
 
     if (!response.data) {
@@ -23,7 +22,8 @@ export const createWalletSet = async (entityName: string) => {
 
     return response.data.walletSet;
   } catch (error) {
-    console.error(error);
-    throw new Error("An error occurred while creating the wallet set")
+    // Keep error handling consistent with other files in the codebase
+    const message = error instanceof Error ? error.message : "Unknown error";
+    throw new Error(`Failed to create wallet set: ${message}`);
   }
 }

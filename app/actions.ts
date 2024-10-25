@@ -32,7 +32,7 @@ export const signUpAction = async (formData: FormData) => {
 
   try {
     const createdWalletSet = await createWalletSet(email);
-    const [createdWallet] = await createWallet(createdWalletSet.id);
+    const [createdWallet] = await createWallet({ walletSetId: createdWalletSet.id });
 
     // The code below is a temporary workaround due to the current "users" table being duplicated on
     // both the "auth" and "public" schemas, the first being from Supabase itself, while the former
@@ -57,6 +57,11 @@ export const signUpAction = async (formData: FormData) => {
 
     const [createdUser] = userResult.data;
 
+    if (!createdUser) {
+      console.error("User creation returned no data");
+      return { error: "User creation returned no data" }
+    }
+
     const walletResult = await supabase
       .schema("public")
       .from("wallets")
@@ -65,11 +70,17 @@ export const signUpAction = async (formData: FormData) => {
         circle_wallet_id: createdWallet.id,
         wallet_type: createdWallet.custodyType,
         currency: "USDC"
-      });
+      })
+      .select();
 
     if (walletResult.error) {
       console.error("Error while attempting to create user's wallet:", walletResult.error);
       return { error: "Could not create wallet" }
+    }
+
+    if (!walletResult.data || walletResult.data.length === 0) {
+      console.error("Wallet creation returned no data");
+      return { error: "Wallet creation failed" };
     }
   } catch (error: any) {
     console.error(error.message)

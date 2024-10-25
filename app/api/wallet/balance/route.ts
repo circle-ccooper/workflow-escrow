@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 import { z } from "zod";
+import { circleClient } from "@/utils/circleClient";
 
 const WalletIdSchema = z.object({
   walletId: z.string().uuid()
@@ -13,16 +13,7 @@ const ResponseSchema = z.object({
 
 type WalletBalanceResponse = z.infer<typeof ResponseSchema>;
 
-if (!process.env.CIRCLE_API_KEY || !process.env.CIRCLE_ENTITY_SECRET) {
-  throw new Error(
-    "Missing required environment variables: CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET must be defined"
-  );
-}
-
-const client = initiateDeveloperControlledWalletsClient({
-  apiKey: process.env.CIRCLE_API_KEY,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET
-});
+const client = circleClient();
 
 export async function POST(req: NextRequest): Promise<NextResponse<WalletBalanceResponse>> {
   try {

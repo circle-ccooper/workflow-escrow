@@ -9,10 +9,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "entityName is required" }, { status: 400 });
     }
 
-    const data = createWalletSet(entityName);
+    const data = await createWalletSet(entityName);
     return NextResponse.json(data, { status: 201 });
   } catch (error: any) {
-    console.error(error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error(`Wallet set creation failed: ${error.message}`);
+    return NextResponse.json({ error: "Failed to create wallet set" }, { status: 500 });
   }
 }
