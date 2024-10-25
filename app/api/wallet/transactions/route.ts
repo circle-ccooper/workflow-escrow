@@ -80,7 +80,7 @@ export async function POST(
       );
     }
 
-    // console.error("Error fetching transactions from wallet:", error);
+    console.error("Error fetching transactions from wallet:", error);
 
     if (error instanceof Error && error.message.includes("not found")) {
       return NextResponse.json({ error: "Wallet not found" }, { status: 404 });
