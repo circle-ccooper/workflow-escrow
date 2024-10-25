@@ -16,10 +16,6 @@ export const createWallet = async ({
   count = 1,
   walletSetId
 }: WalletOptions) => {
-  if (!walletSetId?.trim()) {
-    throw new Error("walletSetId is required");
-  }
-
   try {
     const response = await client.createWallets({
       accountType,

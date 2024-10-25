@@ -57,11 +57,6 @@ export const signUpAction = async (formData: FormData) => {
 
     const [createdUser] = userResult.data;
 
-    if (!createdUser) {
-      console.error("User creation returned no data");
-      return { error: "User creation returned no data" }
-    }
-
     const walletResult = await supabase
       .schema("public")
       .from("wallets")
@@ -76,11 +71,6 @@ export const signUpAction = async (formData: FormData) => {
     if (walletResult.error) {
       console.error("Error while attempting to create user's wallet:", walletResult.error);
       return { error: "Could not create wallet" }
-    }
-
-    if (!walletResult.data || walletResult.data.length === 0) {
-      console.error("Wallet creation returned no data");
-      return { error: "Wallet creation failed" };
     }
   } catch (error: any) {
     console.error(error.message);
