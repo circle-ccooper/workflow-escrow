@@ -21,15 +21,12 @@ export interface Wallet {
 
 export interface Transaction {
   id: string;
-  wallet_id: string;
-  user_id: string;
-  circle_transaction_id: string;
-  transaction_type: string;
-  amount: number;
-  currency: string;
-  status: string;
-  created_at: string;
-  description: string;
+  amounts?: Array<string>;
+  state: string;
+  createDate: string;
+  blockchain: string;
+  transactionType: string;
+  updateDate: string;
 }
 
 export interface EscrowAgreement {
@@ -60,29 +57,29 @@ export interface Database {
     Tables: {
       users: {
         Row: User;
-        Insert: Omit<User, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<User, 'id'>>;
+        Insert: Omit<User, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<User, "id">>;
       };
       wallets: {
         Row: Wallet;
-        Insert: Omit<Wallet, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Wallet, 'id'>>;
+        Insert: Omit<Wallet, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<Wallet, "id">>;
       };
       transactions: {
         Row: Transaction;
-        Insert: Omit<Transaction, 'id' | 'created_at'>;
-        Update: Partial<Omit<Transaction, 'id'>>;
+        Insert: Omit<Transaction, "id" | "created_at">;
+        Update: Partial<Omit<Transaction, "id">>;
       };
       escrow_agreements: {
         Row: EscrowAgreement;
-        Insert: Omit<EscrowAgreement, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<EscrowAgreement, 'id'>>;
+        Insert: Omit<EscrowAgreement, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<EscrowAgreement, "id">>;
       };
       dispute_resolutions: {
         Row: DisputeResolution;
-        Insert: Omit<DisputeResolution, 'id' | 'created_at' | 'resolved_at'>;
-        Update: Partial<Omit<DisputeResolution, 'id'>>;
+        Insert: Omit<DisputeResolution, "id" | "created_at" | "resolved_at">;
+        Update: Partial<Omit<DisputeResolution, "id">>;
       };
     };
   };
-};
+}
