@@ -50,6 +50,17 @@ export async function GET(
       id: params.id,
     });
 
+    const parseResult = ResponseSchema.safeParse({
+      transaction: response.data?.transaction,
+    });
+    if (!parseResult.success) {
+      console.error("Response validation failed:", parseResult.error);
+      return NextResponse.json(
+        { error: "Invalid response from Circle API" },
+        { status: 500 }
+      );
+    }
+
     if (!response.data || response.data.transaction === undefined) {
       return NextResponse.json(
         { error: "Transaction not found" },
