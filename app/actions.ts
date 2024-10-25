@@ -83,11 +83,11 @@ export const signUpAction = async (formData: FormData) => {
       return { error: "Wallet creation failed" };
     }
   } catch (error: any) {
-    console.error(error.message)
-    return { error: error.message }
+    console.error(error.message);
+    return { error: error.message };
   }
 
-  return redirect("/protected");
+  return redirect("/protected")
 };
 
 export const signInAction = async (formData: FormData) => {
