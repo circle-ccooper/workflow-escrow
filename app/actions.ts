@@ -5,7 +5,6 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createWalletSet } from "@/utils/createWalletSet";
-import { createWallet } from "@/utils/createWallet";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -32,7 +31,18 @@ export const signUpAction = async (formData: FormData) => {
 
   try {
     const createdWalletSet = await createWalletSet(email);
-    const [createdWallet] = await createWallet({ walletSetId: createdWalletSet.id });
+
+    const createdWalletResponse = await fetch("http://localhost:3000/api/wallet", {
+      method: "PUT",
+      body: JSON.stringify({
+        walletSetId: createdWalletSet.id
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    const createdWallet = await createdWalletResponse.json();
 
     const userResult = await supabase
       .schema("public")
