@@ -22,7 +22,7 @@ export async function PUT(req: NextRequest) {
     });
 
     if (!response.data?.wallets?.length) {
-      throw new Error("No wallets were created");
+      return NextResponse.json({ error: "No wallets were created" }, { status: 500 });
     }
 
     const [createdWallet] = response.data.wallets;
@@ -30,6 +30,6 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json(createdWallet, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to create wallet: ${message}`);
+    return NextResponse.json({ error: `Failed to create wallet: ${message}` }, { status: 500 });
   }
 }
