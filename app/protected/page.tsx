@@ -27,6 +27,19 @@ export default async function ProtectedPage() {
     .eq("user_id", temporaryUser?.id)
     .single();
 
+  const transactionsResponse = await fetch("http://localhost:3000/api/wallet/transactions", {
+    method: "POST",
+    body: JSON.stringify({
+      walletId: "a177f8f6-a55d-5f4f-aa1f-16554ec03b77"
+    }),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  });
+
+  const parsedTransactions = await transactionsResponse.json();
+  const transactions = parsedTransactions.error ? [] : parsedTransactions.transactions
+
   return (
     <div className="flex-1 w-full flex flex-col gap-12">
       <div className="w-full">
@@ -39,7 +52,11 @@ export default async function ProtectedPage() {
       <div className="flex flex-col gap-2 items-start">
         <h2 className="font-bold text-2xl mb-4">Your user details</h2>
         <pre className="text-xs font-mono p-3 rounded border max-h-128 overflow-auto">
-          {JSON.stringify({ ...user, wallet_id: wallet?.circle_wallet_id }, null, 2)}
+          {JSON.stringify({
+            ...user,
+            wallet_id: wallet?.circle_wallet_id,
+            transactions
+          }, null, 2)}
         </pre>
       </div>
     </div>
