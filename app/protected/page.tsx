@@ -1,6 +1,8 @@
+import type { WalletTransactionsResponse } from "@/app/api/wallet/transactions/route";
 import { createClient } from "@/utils/supabase/server";
 import { InfoIcon } from "lucide-react";
 import { redirect } from "next/navigation";
+import { Transactions } from "@/components/transactions";
 
 export default async function ProtectedPage() {
   const supabase = createClient();
@@ -37,7 +39,7 @@ export default async function ProtectedPage() {
     }
   });
 
-  const parsedTransactions = await transactionsResponse.json();
+  const parsedTransactions: WalletTransactionsResponse = await transactionsResponse.json();
   const transactions = parsedTransactions.error ? [] : parsedTransactions.transactions
 
   return (
@@ -50,8 +52,14 @@ export default async function ProtectedPage() {
         </div>
       </div>
       <div className="flex flex-col gap-2 items-start">
+        <h2 className="font-bold text-2xl mb-4">Your wallet</h2>
+        <p className="text-xl text-muted-foreground cursor-pointer mb-4">
+          {wallet?.circle_wallet_id}
+        </p>
+        <h2 className="font-bold text-2xl mb-4">Your transactions</h2>
+        <Transactions data={transactions} />
         <h2 className="font-bold text-2xl mb-4">Your user details</h2>
-        <pre className="text-xs font-mono p-3 rounded border max-h-128 overflow-auto">
+        <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
           {JSON.stringify({
             ...user,
             wallet_id: wallet?.circle_wallet_id,
