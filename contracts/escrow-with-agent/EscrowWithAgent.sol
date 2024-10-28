@@ -83,7 +83,7 @@ contract EscrowWithAgent {
     function release() public {
         require(msg.sender == agent, "Only agent can release funds");
         require(currentStage == Stages.ONGOING);
-        beneficiary.transfer(amount);
+        beneficiary.transfer(address(this).balance);
         currentStage = Stages.CLOSED;
         emit stageChange(currentStage);
         emit released(amount, currentStage);
