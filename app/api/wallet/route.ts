@@ -4,16 +4,16 @@ import { circleClient } from "@/utils/circleClient";
 const client = circleClient();
 
 export async function PUT(req: NextRequest) {
-  const { walletSetId } = await req.json();
-
-  if (!walletSetId) {
-    return NextResponse.json(
-      { error: "walletSetId is required" },
-      { status: 400 }
-    );
-  }
-
   try {
+    const { walletSetId } = await req.json();
+
+    if (!walletSetId) {
+      return NextResponse.json(
+        { error: "walletSetId is required" },
+        { status: 400 }
+      );
+    }
+
     const response = await client.createWallets({
       accountType: "SCA",
       blockchains: ["MATIC-AMOY"],

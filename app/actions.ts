@@ -4,7 +4,6 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createWalletSet } from "@/utils/createWalletSet";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -30,7 +29,17 @@ export const signUpAction = async (formData: FormData) => {
   }
 
   try {
-    const createdWalletSet = await createWalletSet(email);
+    const createdWalletSetResponse = await fetch("http://localhost:3000/api/wallet-set", {
+      method: "PUT",
+      body: JSON.stringify({
+        entityName: email
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    const createdWalletSet = await createdWalletSetResponse.json();
 
     const createdWalletResponse = await fetch("http://localhost:3000/api/wallet", {
       method: "PUT",
