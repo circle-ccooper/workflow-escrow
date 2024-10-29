@@ -22,30 +22,19 @@ contract EscrowWithAgent {
         CLOSED
     }
 
-    address private deployer;
-
-    modifier onlyDeployer() {
-        require(msg.sender == deployer, "Only the contract deployer can call this function");
-        _;
-    }
-
-    constructor() {
-        deployer = msg.sender;
-    }
-
     function init(
         address payable _depositor,
         address payable _beneficiary,
         address _agent,
         uint256 _amount
-    ) public onlyDeployer {
+    ) public {
         require(currentStage == Stages(0), "Already initialized"); // ensure it's only called once
         depositor = _depositor;
         beneficiary = _beneficiary;
         agent = _agent;
         amount = _amount;
         currentStage = Stages.OPEN;
-        emit StageChange(currentStage);
+        emit stageChange(currentStage);
     }
 
     function deposit() public payable {
