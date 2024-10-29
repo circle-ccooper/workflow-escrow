@@ -146,6 +146,11 @@ contract EscrowFactory {
         address _agent,
         uint256 _amount
     ) public returns (uint256) {
+        require(_depositor != address(0), "Invalid depositor address");
+        require(_beneficiary != address(0), "Invalid beneficiary address");
+        require(_agent != address(0), "Invalid agent address");
+        require(_amount > 0, "Escrow amount must be greater than zero");
+
         EscrowWithAgent newEscrow = new EscrowWithAgent();
         newEscrow.init(_depositor, _beneficiary, _agent, _amount);
 
