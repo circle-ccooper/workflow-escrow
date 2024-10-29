@@ -100,10 +100,12 @@ contract EscrowWithAgent {
             currentStage == Stages.LOCKED || currentStage == Stages.OPEN,
             "Cannot revert at this stage"
         );
-        depositor.transfer(amount);
+        uint256 amountToRevert = amount;
         currentStage = Stages.CLOSED;
-        emit stageChange(currentStage);
-        emit reverted(amount, currentStage);
+        emit StageChange(currentStage);
+        emit Reverted(amountToRevert, currentStage);
+        (bool success, ) = depositor.call{value: amountToRevert}("");
+        require(success, "Transfer to depositor failed");
     }
 
     function stageOf() public view returns (Stages) {
