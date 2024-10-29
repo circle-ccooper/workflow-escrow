@@ -5,6 +5,10 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+const baseUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "http://localhost:3000";
+
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
@@ -29,7 +33,7 @@ export const signUpAction = async (formData: FormData) => {
   }
 
   try {
-    const createdWalletSetResponse = await fetch("http://localhost:3000/api/wallet-set", {
+    const createdWalletSetResponse = await fetch(`${baseUrl}/api/wallet-set`, {
       method: "PUT",
       body: JSON.stringify({
         entityName: email
@@ -41,7 +45,7 @@ export const signUpAction = async (formData: FormData) => {
 
     const createdWalletSet = await createdWalletSetResponse.json();
 
-    const createdWalletResponse = await fetch("http://localhost:3000/api/wallet", {
+    const createdWalletResponse = await fetch(`${baseUrl}/api/wallet`, {
       method: "PUT",
       body: JSON.stringify({
         walletSetId: createdWalletSet.id

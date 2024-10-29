@@ -4,6 +4,10 @@ import { InfoIcon } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Transactions } from "@/components/transactions";
 
+const baseUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "http://localhost:3000";
+
 export default async function ProtectedPage() {
   const supabase = createClient();
 
@@ -29,7 +33,7 @@ export default async function ProtectedPage() {
     .eq("user_id", temporaryUser?.id)
     .single();
 
-  const transactionsResponse = await fetch("http://localhost:3000/api/wallet/transactions", {
+  const transactionsResponse = await fetch(`${baseUrl}/api/wallet/transactions`, {
     method: "POST",
     body: JSON.stringify({
       walletId: "a177f8f6-a55d-5f4f-aa1f-16554ec03b77"

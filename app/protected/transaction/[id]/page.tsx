@@ -1,5 +1,9 @@
+const baseUrl = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "http://localhost:3000";
+
 export default async function Transaction({ params }: { params: { id: string } }) {
-  const response = await fetch(`http://localhost:3000/api/wallet/transactions/${params.id}`);
+  const response = await fetch(`${baseUrl}/api/wallet/transactions/${params.id}`);
   const parsedResponse = await response.json();
 
   if (parsedResponse.error) {
