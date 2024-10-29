@@ -5,31 +5,11 @@ pragma solidity >=0.5.8 <0.9.0;
 /// @author Anthony Kelani
 /// @notice This contract holds some tokens from a depositor and keeps it until the third-party agent decides to send the ether to the beneficiary
 contract EscrowWithAgent {
-    address payable private depositor;
-    address payable private beneficiary;
-    address private agent;
-    uint256 private amount;
-    Stages private currentStage;
-
-    function getDepositor() public view returns (address payable) {
-        return depositor;
-    }
-
-    function getBeneficiary() public view returns (address payable) {
-        return beneficiary;
-    }
-
-    function getAgent() public view returns (address) {
-        return agent;
-    }
-
-    function getAmount() public view returns (uint256) {
-        return amount;
-    }
-
-    function getCurrentStage() public view returns (Stages) {
-        return currentStage;
-    }
+    address payable public depositor;
+    address payable public beneficiary;
+    address public agent;
+    uint256 public amount;
+    Stages public currentStage;
 
     event deposited(uint256 amount, Stages currentStage);
     event released(uint256 amount, Stages currentStage);
