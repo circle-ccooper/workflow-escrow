@@ -86,12 +86,10 @@ contract EscrowWithAgent {
     function release() public {
         require(msg.sender == agent, "Only agent can release funds");
         require(currentStage == Stages.LOCKED, "Funds not in escrow yet");
-        uint256 amountToRelease = amount;
+        beneficiary.transfer(amount);
         currentStage = Stages.CLOSED;
-        emit StageChange(currentStage);
-        emit Released(amountToRelease, currentStage);
-        (bool success, ) = beneficiary.call{value: amountToRelease}("");
-        require(success, "Transfer to beneficiary failed");
+        emit stageChange(currentStage);
+        emit released(amount, currentStage);
     }
 
     function revertEscrow() public {
