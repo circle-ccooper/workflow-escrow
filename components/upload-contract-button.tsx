@@ -68,6 +68,10 @@ export const UploadContractButton = () => {
       }
     } finally {
       setUploading(false);
+
+      if (hiddenFileInput.current) {
+        hiddenFileInput.current.value = "";
+      }
     }
   };
 
