@@ -14,7 +14,7 @@ const ResponseSchema = z.object({
         amount: z.array(z.string()),
         status: z.string(),
         createDate: z.string(),
-      })
+      }),
     )
     .optional(),
   error: z.string().optional(),
@@ -24,7 +24,7 @@ export type WalletTransactionsResponse = z.infer<typeof ResponseSchema>;
 
 if (!process.env.CIRCLE_API_KEY || !process.env.CIRCLE_ENTITY_SECRET) {
   throw new Error(
-    "Missing required environment variables: CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET must be defined"
+    "Missing required environment variables: CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET must be defined",
   );
 }
 
@@ -34,7 +34,7 @@ const client = initiateDeveloperControlledWalletsClient({
 });
 
 export async function POST(
-  req: NextRequest
+  req: NextRequest,
 ): Promise<NextResponse<WalletTransactionsResponse>> {
   try {
     const body = await req.json();
@@ -43,7 +43,7 @@ export async function POST(
     if (!parseResult.success) {
       return NextResponse.json(
         { error: "Invalid walletId format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -60,7 +60,7 @@ export async function POST(
     ) {
       return NextResponse.json(
         { error: "No transactions found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -76,7 +76,7 @@ export async function POST(
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid request format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -88,7 +88,7 @@ export async function POST(
 
     return NextResponse.json(
       { error: "Internal server error while fetching transactions" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

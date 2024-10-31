@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { Transactions } from "@/components/transactions";
 
 const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
+  ? process.env.VERCEL_URL
   : "http://localhost:3000";
 
 export default async function ProtectedPage() {
@@ -33,18 +33,24 @@ export default async function ProtectedPage() {
     .eq("user_id", temporaryUser?.id)
     .single();
 
-  const transactionsResponse = await fetch(`${baseUrl}/api/wallet/transactions`, {
-    method: "POST",
-    body: JSON.stringify({
-      walletId: "a177f8f6-a55d-5f4f-aa1f-16554ec03b77"
-    }),
-    headers: {
-      "Content-Type": "application/json"
-    }
-  });
+  const transactionsResponse = await fetch(
+    `${baseUrl}/api/wallet/transactions`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        walletId: wallet?.circle_wallet_id,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
 
-  const parsedTransactions: WalletTransactionsResponse = await transactionsResponse.json();
-  const transactions = parsedTransactions.error ? [] : parsedTransactions.transactions
+  const parsedTransactions: WalletTransactionsResponse =
+    await transactionsResponse.json();
+  const transactions = parsedTransactions.error
+    ? []
+    : parsedTransactions.transactions;
 
   return (
     <div className="flex-1 w-full flex flex-col gap-12">
@@ -58,17 +64,21 @@ export default async function ProtectedPage() {
       <div className="flex flex-col gap-2 items-start">
         <h2 className="font-bold text-2xl mb-4">Your wallet</h2>
         <p className="text-xl text-muted-foreground cursor-pointer mb-4">
-          {wallet?.circle_wallet_id}
+          {wallet?.circle_wallet_id || "No wallet found"}
         </p>
         <h2 className="font-bold text-2xl mb-4">Your transactions</h2>
         <Transactions data={transactions} />
         <h2 className="font-bold text-2xl mb-4">Your user details</h2>
         <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
-          {JSON.stringify({
-            ...user,
-            wallet_id: wallet?.circle_wallet_id,
-            transactions
-          }, null, 2)}
+          {JSON.stringify(
+            {
+              ...user,
+              wallet_id: wallet?.circle_wallet_id,
+              transactions,
+            },
+            null,
+            2,
+          )}
         </pre>
       </div>
     </div>

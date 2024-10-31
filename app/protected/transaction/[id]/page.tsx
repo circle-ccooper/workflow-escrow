@@ -1,9 +1,15 @@
 const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
+  ? process.env.VERCEL_URL
   : "http://localhost:3000";
 
-export default async function Transaction({ params }: { params: { id: string } }) {
-  const response = await fetch(`${baseUrl}/api/wallet/transactions/${params.id}`);
+export default async function Transaction({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const response = await fetch(
+    `${baseUrl}/api/wallet/transactions/${params.id}`,
+  );
   const parsedResponse = await response.json();
 
   if (parsedResponse.error) {
@@ -11,14 +17,18 @@ export default async function Transaction({ params }: { params: { id: string } }
       <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
         Invalid transaction
       </h2>
-    )
+    );
   }
 
-  const transactionCreationTimestamp = new Date(parsedResponse.transaction.createDate);
+  const transactionCreationTimestamp = new Date(
+    parsedResponse.transaction.createDate,
+  );
   const creationDate = transactionCreationTimestamp.toLocaleDateString();
   const creationTime = transactionCreationTimestamp.toLocaleTimeString();
 
-  const transactionLastUpdateTimestamp = new Date(parsedResponse.transaction.updateDate);
+  const transactionLastUpdateTimestamp = new Date(
+    parsedResponse.transaction.updateDate,
+  );
   const lastUpdateDate = transactionLastUpdateTimestamp.toLocaleDateString();
   const lastUpdateTime = transactionLastUpdateTimestamp.toLocaleTimeString();
 
@@ -27,9 +37,7 @@ export default async function Transaction({ params }: { params: { id: string } }
       <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight mb-4 first:mt-0">
         Transaction details
       </h2>
-      <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-        ID
-      </h3>
+      <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">ID</h3>
       <p className="text-sm text-muted-foreground mb-4">
         {parsedResponse.transaction.id}
       </p>
@@ -70,5 +78,5 @@ export default async function Transaction({ params }: { params: { id: string } }
         {lastUpdateDate} {lastUpdateTime}
       </p>
     </>
-  )
-};
+  );
+}

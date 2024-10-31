@@ -22,7 +22,7 @@ type TransactionResponse = z.infer<typeof ResponseSchema>;
 
 if (!process.env.CIRCLE_API_KEY || !process.env.CIRCLE_ENTITY_SECRET) {
   throw new Error(
-    "Missing required environment variables: CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET must be defined"
+    "Missing required environment variables: CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET must be defined",
   );
 }
 
@@ -33,7 +33,7 @@ const client = initiateDeveloperControlledWalletsClient({
 
 export async function GET(
   _: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ): Promise<NextResponse<TransactionResponse>> {
   try {
     // Validate the transaction ID is a Circle's transaction IDs
@@ -42,7 +42,7 @@ export async function GET(
     if (!uuidRegex.test(params.id)) {
       return NextResponse.json(
         { error: "Invalid transaction ID format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -57,14 +57,14 @@ export async function GET(
       console.error("Response validation failed:", parseResult.error);
       return NextResponse.json(
         { error: "Invalid response from Circle API" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     if (!response.data || response.data.transaction === undefined) {
       return NextResponse.json(
         { error: "Transaction not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -85,13 +85,13 @@ export async function GET(
     if (error instanceof Error && error.message.includes("not found")) {
       return NextResponse.json(
         { error: "Transaction not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     return NextResponse.json(
       { error: "Internal server error while fetching transaction" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

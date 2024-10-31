@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
+  ? process.env.VERCEL_URL
   : "http://localhost:3000";
 
 export const signUpAction = async (formData: FormData) => {
@@ -36,11 +36,11 @@ export const signUpAction = async (formData: FormData) => {
     const createdWalletSetResponse = await fetch(`${baseUrl}/api/wallet-set`, {
       method: "PUT",
       body: JSON.stringify({
-        entityName: email
+        entityName: email,
       }),
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     });
 
     const createdWalletSet = await createdWalletSetResponse.json();
@@ -48,11 +48,11 @@ export const signUpAction = async (formData: FormData) => {
     const createdWalletResponse = await fetch(`${baseUrl}/api/wallet`, {
       method: "PUT",
       body: JSON.stringify({
-        walletSetId: createdWalletSet.id
+        walletSetId: createdWalletSet.id,
       }),
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     });
 
     const createdWallet = await createdWalletResponse.json();
@@ -62,13 +62,13 @@ export const signUpAction = async (formData: FormData) => {
       .from("users")
       .insert({
         email,
-        name: "User"
+        name: "User",
       })
       .select();
 
     if (userResult.error) {
       console.error("Error while attempting to create user:", userResult.error);
-      return { error: "Could not create user" }
+      return { error: "Could not create user" };
     }
 
     const [createdUser] = userResult.data;
@@ -80,20 +80,23 @@ export const signUpAction = async (formData: FormData) => {
         user_id: createdUser.id,
         circle_wallet_id: createdWallet.id,
         wallet_type: createdWallet.custodyType,
-        currency: "USDC"
+        currency: "USDC",
       })
       .select();
 
     if (walletResult.error) {
-      console.error("Error while attempting to create user's wallet:", walletResult.error);
-      return { error: "Could not create wallet" }
+      console.error(
+        "Error while attempting to create user's wallet:",
+        walletResult.error,
+      );
+      return { error: "Could not create wallet" };
     }
   } catch (error: any) {
     console.error(error.message);
     return { error: error.message };
   }
 
-  return redirect("/protected")
+  return redirect("/protected");
 };
 
 export const signInAction = async (formData: FormData) => {
