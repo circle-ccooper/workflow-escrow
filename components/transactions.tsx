@@ -25,6 +25,14 @@ interface Props {
 export const Transactions: FunctionComponent<Props> = props => {
   const router = useRouter();
 
+  if (props.data && props.data.length < 1) {
+    return (
+      <p className="text-xl text-muted-foreground cursor-pointer mb-4">
+        No transactions found
+      </p>
+    )
+  }
+
   return (
     <Table className="mb-4">
       <TableHeader>
