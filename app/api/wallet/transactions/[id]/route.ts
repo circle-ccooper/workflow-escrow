@@ -32,7 +32,7 @@ const client = initiateDeveloperControlledWalletsClient({
 });
 
 export async function GET(
-  req: NextRequest,
+  _: NextRequest,
   { params }: { params: { id: string } }
 ): Promise<NextResponse<TransactionResponse>> {
   try {

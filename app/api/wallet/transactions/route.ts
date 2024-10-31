@@ -20,7 +20,7 @@ const ResponseSchema = z.object({
   error: z.string().optional(),
 });
 
-type WalletTransactionsResponse = z.infer<typeof ResponseSchema>;
+export type WalletTransactionsResponse = z.infer<typeof ResponseSchema>;
 
 if (!process.env.CIRCLE_API_KEY || !process.env.CIRCLE_ENTITY_SECRET) {
   throw new Error(
