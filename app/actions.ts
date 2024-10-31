@@ -19,7 +19,7 @@ export const signUpAction = async (formData: FormData) => {
     return { error: "Email and password are required" };
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { error, data: authData } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -46,7 +46,7 @@ export const signUpAction = async (formData: FormData) => {
     const createdWalletSet = await createdWalletSetResponse.json();
 
     const createdWalletResponse = await fetch(`${baseUrl}/api/wallet`, {
-      method: "PUT",
+      method: "POST",
       body: JSON.stringify({
         walletSetId: createdWalletSet.id,
       }),
@@ -57,27 +57,22 @@ export const signUpAction = async (formData: FormData) => {
 
     const createdWallet = await createdWalletResponse.json();
 
-    const userResult = await supabase
-      .schema("public")
-      .from("users")
-      .insert({
-        email,
-        name: "User",
-      })
-      .select();
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select()
+      .eq("auth_user_id", authData.user?.id)
+      .single();
 
-    if (userResult.error) {
-      console.error("Error while attempting to create user:", userResult.error);
+    if (profileError) {
+      console.error("Error while attempting to create user:", profileError);
       return { error: "Could not create user" };
     }
-
-    const [createdUser] = userResult.data;
 
     const walletResult = await supabase
       .schema("public")
       .from("wallets")
       .insert({
-        user_id: createdUser.id,
+        profile_id: profileData.id,
         circle_wallet_id: createdWallet.id,
         wallet_type: createdWallet.custodyType,
         currency: "USDC",
@@ -87,7 +82,7 @@ export const signUpAction = async (formData: FormData) => {
     if (walletResult.error) {
       console.error(
         "Error while attempting to create user's wallet:",
-        walletResult.error,
+        walletResult.error
       );
       return { error: "Could not create wallet" };
     }
@@ -135,7 +130,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
     return encodedRedirect(
       "error",
       "/forgot-password",
-      "Could not reset password",
+      "Could not reset password"
     );
   }
 
@@ -146,7 +141,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   return encodedRedirect(
     "success",
     "/forgot-password",
-    "Check your email for a link to reset your password.",
+    "Check your email for a link to reset your password."
   );
 };
 
@@ -160,7 +155,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Password and confirm password are required",
+      "Password and confirm password are required"
     );
   }
 
@@ -168,7 +163,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Passwords do not match",
+      "Passwords do not match"
     );
   }
 
@@ -180,7 +175,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Password update failed",
+      "Password update failed"
     );
   }
 
