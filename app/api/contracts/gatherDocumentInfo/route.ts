@@ -86,10 +86,9 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify({
           content: `Please analyze the uploaded document and extract:
-1. All monetary amounts (with currency), what they are for, and where they appear
-2. All tasks, deliverables, and obligations (including descriptions, due dates, responsible parties, and details)
-
-Format your response as JSON with 'amounts' and 'tasks' arrays.`,
+                    1. All monetary amounts (with currency), what they are for, and where they appear
+                    2. All tasks, deliverables, and obligations (including descriptions, due dates, responsible parties, and details)
+                    Format your response as JSON with 'amounts' and 'tasks' arrays.`,
         }),
       }
     );
