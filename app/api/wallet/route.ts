@@ -3,7 +3,7 @@ import { circleClient } from "@/utils/circleClient";
 
 const client = circleClient();
 
-export async function PUT(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     const { walletSetId } = await req.json();
 

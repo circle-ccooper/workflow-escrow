@@ -19,19 +19,18 @@ export default async function ProtectedPage() {
     return redirect("/sign-in");
   }
 
-  const { data: temporaryUser } = await supabase
-    .schema("public")
-    .from("users")
+  const { data: profile } = await supabase
+    .from("profiles")
     .select("id")
-    .eq("email", user.email)
-    .single();
+    .eq("auth_user_id", user.id)
+    .single();  
 
   const { data: wallet } = await supabase
     .schema("public")
     .from("wallets")
     .select("circle_wallet_id")
-    .eq("user_id", temporaryUser?.id)
-    .single();
+    .eq("profile_id", profile?.id)
+    .single();  
 
   const transactionsResponse = await fetch(
     `${baseUrl}/api/wallet/transactions`,
@@ -43,7 +42,7 @@ export default async function ProtectedPage() {
       headers: {
         "Content-Type": "application/json",
       },
-    },
+    }
   );
 
   const parsedTransactions: WalletTransactionsResponse =
@@ -77,7 +76,7 @@ export default async function ProtectedPage() {
               transactions,
             },
             null,
-            2,
+            2
           )}
         </pre>
       </div>
