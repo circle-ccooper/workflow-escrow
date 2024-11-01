@@ -63,11 +63,15 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
    NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
    CIRCLE_API_KEY=[INSERT CIRCLE API KEY]
    CIRCLE_ENTITY_SECRET=[INSERT CIRCLE ENTITY SECRET]
+   GOOGLE_CLIENT_ID=[INSERT GOOGLE CLIENT ID]
+   GOOGLE_CLIENT_SECRET=[INSERT GOOGLE CLIENT SECRET]
    ```
 
    Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api)
 
    `CIRCLE_API_KEY` can be found in the [API Keys](https://console.circle.com/api-keys) section of Circle's console, while `CIRCLE_ENTITY_SECRET` must be shared, or rotated [here](https://console.circle.com/wallets/dev/configurator/entity-secret) in case it's lost.
+
+   Lastly, `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are located in the [Google Cloud Developer Console](https://console.cloud.google.com/apis/credentials?project=workflow-escrow) of the project (APIs & Services > Credentials > Web)
 
 5. Then start a local instance of the Supabase server:
 
@@ -75,13 +79,15 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
    npx supabase start
    ```
 
+> If that's your first time running the project, consider executing the migrations with `npx supabase migration up`
+
 6. You can now run the Next.js local development server:
 
    ```bash
    npm run dev
    ```
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+   The starter kit should now be running on [127.0.0.1:3000](http://127.0.0.1:3000/).
 
 7. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
 

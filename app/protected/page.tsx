@@ -1,15 +1,15 @@
 import type { WalletTransactionsResponse } from "@/app/api/wallet/transactions/route";
-import { createClient } from "@/utils/supabase/server";
 import { InfoIcon } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Transactions } from "@/components/transactions";
+import { createSupabaseServerComponentClient } from "@/lib/supabase/server-client";
 
 const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
-  : "http://localhost:3000";
+  : "http://127.0.0.1:3000";
 
 export default async function ProtectedPage() {
-  const supabase = createClient();
+  const supabase = createSupabaseServerComponentClient();
 
   const {
     data: { user },
@@ -23,14 +23,14 @@ export default async function ProtectedPage() {
     .from("profiles")
     .select("id")
     .eq("auth_user_id", user.id)
-    .single();  
+    .single();
 
   const { data: wallet } = await supabase
     .schema("public")
     .from("wallets")
     .select("circle_wallet_id")
     .eq("profile_id", profile?.id)
-    .single();  
+    .single();
 
   const transactionsResponse = await fetch(
     `${baseUrl}/api/wallet/transactions`,

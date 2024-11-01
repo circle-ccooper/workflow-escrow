@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 
 function getBaseUrl(requestHeaders: Headers): string {
   const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
-  const host = requestHeaders.get("host") || "localhost:3000";
+  const host = requestHeaders.get("host") || "127.0.0.1:3000";
   return `${protocol}://${host}`;
 }
 
