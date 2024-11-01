@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { UploadContractButton } from "@/components/upload-contract-button";
+import { Skeleton } from "./skeleton";
 
 interface Wallet {
   id: string;
@@ -203,69 +204,85 @@ export const CreateAgreementPage = () => {
   return (
     <Card className="grow">
       <CardHeader>
-        <CardTitle>Create new agreement</CardTitle>
+        {loading
+          ? <Skeleton className="w-[250px] h-[24px] rounded-full" />
+          : <CardTitle>Create new agreement</CardTitle>}
       </CardHeader>
       <CardContent className={formError ? "pb-2" : ""}>
         <div className="grid w-full items-left gap-4">
           <div className="flex flex-col space-y-1.5">
-            <Label>Beneficiary</Label>
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  className="w-[300px] justify-between w-full"
-                >
-                  {selectedBeneficiary
-                    ? selectedBeneficiary.name
-                    : "Select beneficiary..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              {formError && <Label className="text-red-500">{formError}</Label>}
-              <PopoverContent className="w-[300px] p-0">
-                <Command>
-                  <CommandInput
-                    className="w-full"
-                    placeholder="Search beneficiary..."
-                  />
-                  <CommandList>
-                    <CommandEmpty>No beneficiaries found.</CommandEmpty>
-                    <CommandGroup>
-                      {beneficiaries.map((beneficiary) => (
-                        <CommandItem
-                          key={beneficiary.id}
-                          value={beneficiary.name}
-                          onSelect={handleBeneficiarySelect}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedBeneficiary?.id === beneficiary.id
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {beneficiary.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            {loading
+              ? <Skeleton className="w-[76px] h-[14px] rounded-full" />
+              : <Label>Beneficiary</Label>}
+            {loading
+              ? <Skeleton className="w-[434px] h-[40px]" />
+              : (
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="w-[300px] justify-between w-full"
+                    >
+                      {selectedBeneficiary
+                        ? selectedBeneficiary.name
+                        : "Select beneficiary..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  {formError && (
+                    <Label className="text-red-500">
+                      {formError}
+                    </Label>
+                  )}
+                  <PopoverContent className="w-[300px] p-0">
+                    <Command>
+                      <CommandInput
+                        className="w-full"
+                        placeholder="Search beneficiary..."
+                      />
+                      <CommandList>
+                        <CommandEmpty>No beneficiaries found.</CommandEmpty>
+                        <CommandGroup>
+                          {beneficiaries.map(beneficiary => (
+                            <CommandItem
+                              key={beneficiary.id}
+                              value={beneficiary.name}
+                              onSelect={handleBeneficiarySelect}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedBeneficiary?.id === beneficiary.id
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {beneficiary.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
           </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <UploadContractButton
-          beneficiaryWalletId={selectedBeneficiary?.wallets[0]?.id}
-          depositorWalletId={currentUserProfile.wallets[0].id}
-          userId={userId!}
-          userProfileId={currentUserProfile.id}
-          onAnalysisComplete={handleAnalysisComplete}
-        />
+        {loading
+          ? <Skeleton className="w-[163px] h-[40px]" />
+          : (
+              <UploadContractButton
+                beneficiaryWalletId={selectedBeneficiary?.wallets[0]?.id}
+                depositorWalletId={currentUserProfile.wallets[0].id}
+                userId={userId!}
+                userProfileId={currentUserProfile.id}
+                onAnalysisComplete={handleAnalysisComplete}
+              />
+          )}
       </CardFooter>
     </Card>
   );
