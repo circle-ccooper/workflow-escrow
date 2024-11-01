@@ -1,14 +1,30 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.8 <0.9.0;
 
-/// @title An escrow contract with a third-party agent
-/// @author Anthony Kelani
-/// @notice This contract holds some tokens from a depositor and keeps it until the third-party agent decides to send the ether to the beneficiary
+/// @title An escrow contract with a third-party agent for USDC
+/// @notice This contract holds USDC tokens from a depositor and keeps it until the third-party agent decides to send the tokens to the beneficiary
+interface USDC {
+    function transfer(
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
+
+    function balanceOf(address account) external view returns (uint256);
+}
+
 contract EscrowWithAgent {
-    address payable public depositor;
-    address payable public beneficiary;
+    address public factoryAddress;
+    address public depositor;
+    address public beneficiary;
     address public agent;
     uint256 public amount;
+    USDC public usdcToken;
     Stages public currentStage;
 
     event deposited(uint256 amount, Stages currentStage);
@@ -22,30 +38,40 @@ contract EscrowWithAgent {
         CLOSED
     }
 
+    // Constructor to set the factory address
+    constructor(address _factoryAddress) {
+        factoryAddress = _factoryAddress;
+    }
+
     function init(
-        address payable _depositor,
-        address payable _beneficiary,
+        address _depositor,
+        address _beneficiary,
         address _agent,
-        uint256 _amount
+        uint256 _amount,
+        address _usdcTokenAddress
     ) public {
+        require(msg.sender == factoryAddress, "Only factory can initialize"); // ensure only the factory contract can call this function
         require(currentStage == Stages(0), "Already initialized"); // ensure it's only called once
         depositor = _depositor;
         beneficiary = _beneficiary;
         agent = _agent;
         amount = _amount;
+        usdcToken = USDC(_usdcTokenAddress);
         currentStage = Stages.OPEN;
         emit stageChange(currentStage);
     }
 
-    function deposit() public payable {
+    function deposit() public {
         require(msg.sender == depositor, "Sender must be the depositor");
         require(currentStage == Stages.OPEN, "Wrong stage");
         require(
-            address(this).balance <= amount,
+            usdcToken.balanceOf(address(this)) <= amount,
             "Can't send more than specified amount"
         );
 
-        if (address(this).balance >= amount) {
+        usdcToken.transferFrom(depositor, address(this), amount);
+
+        if (usdcToken.balanceOf(address(this)) >= amount) {
             currentStage = Stages.LOCKED;
             emit stageChange(currentStage);
         }
@@ -55,7 +81,7 @@ contract EscrowWithAgent {
     function release() public {
         require(msg.sender == agent, "Only agent can release funds");
         require(currentStage == Stages.LOCKED, "Funds not in escrow yet");
-        beneficiary.transfer(amount);
+        usdcToken.transfer(beneficiary, amount);
         currentStage = Stages.CLOSED;
         emit stageChange(currentStage);
         emit released(amount, currentStage);
@@ -67,7 +93,7 @@ contract EscrowWithAgent {
             currentStage == Stages.LOCKED || currentStage == Stages.OPEN,
             "Cannot revert at this stage"
         );
-        depositor.transfer(amount);
+        usdcToken.transfer(depositor, amount);
         currentStage = Stages.CLOSED;
         emit stageChange(currentStage);
         emit reverted(amount, currentStage);
@@ -78,7 +104,7 @@ contract EscrowWithAgent {
     }
 
     function balanceOf() public view returns (uint256) {
-        return address(this).balance;
+        return usdcToken.balanceOf(address(this));
     }
 }
 
@@ -106,13 +132,20 @@ contract EscrowFactory {
     );
 
     function createEscrow(
-        address payable _depositor,
-        address payable _beneficiary,
+        address _depositor,
+        address _beneficiary,
         address _agent,
-        uint256 _amount
+        uint256 _amount,
+        address _usdcTokenAddress
     ) public returns (uint256) {
-        EscrowWithAgent newEscrow = new EscrowWithAgent();
-        newEscrow.init(_depositor, _beneficiary, _agent, _amount);
+        EscrowWithAgent newEscrow = new EscrowWithAgent(address(this));
+        newEscrow.init(
+            _depositor,
+            _beneficiary,
+            _agent,
+            _amount,
+            _usdcTokenAddress
+        );
 
         // Increment the counter to get a new unique ID
         escrowCounter++;
