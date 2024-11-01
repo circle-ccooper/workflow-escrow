@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 
 const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
-  : "http://localhost:3000";
+  : "http://127.0.0.1:3000";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();

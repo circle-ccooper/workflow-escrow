@@ -7,12 +7,12 @@ import { GeistSans } from "geist/font/sans";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner"
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
+import { createSupabaseServerComponentClient } from "@/lib/supabase/server-client";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
-  : "http://localhost:3000";
+  : "http://127.0.0.1:3000";
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
@@ -25,9 +25,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = createSupabaseServerComponentClient();
+
   const {
     data: { user },
-  } = await createClient().auth.getUser();
+  } = await supabase.auth.getUser();
 
   return (
     <html lang="en" className={GeistSans.className} suppressHydrationWarning>

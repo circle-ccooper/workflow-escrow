@@ -3,12 +3,14 @@ import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import Link from "next/link";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { createClient } from "@/utils/supabase/server";
+import { createSupabaseServerComponentClient } from "@/lib/supabase/server-client";
 
 export default async function AuthButton() {
+  const supabase = createSupabaseServerComponentClient();
+
   const {
     data: { user },
-  } = await createClient().auth.getUser();
+  } = await supabase.auth.getUser();
 
   if (!hasEnvVars) {
     return (
