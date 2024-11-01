@@ -67,7 +67,7 @@ export const signUpAction = async (formData: FormData) => {
       console.error("Error while attempting to create user:", profileError);
       return { error: "Could not create user" };
     }
-    
+
     const walletResult = await supabase
       .schema("public")
       .from("wallets")
