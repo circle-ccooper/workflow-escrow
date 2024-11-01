@@ -1,6 +1,10 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { NextResponse } from "next/server";
 
+const baseUrl = process.env.VERCEL_URL
+  ? process.env.VERCEL_URL
+  : "http://127.0.0.1:3000";
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
@@ -14,9 +18,9 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      return NextResponse.redirect(`http://127.0.0.1:3000/${nextUrl}`);
+      return NextResponse.redirect(`${baseUrl}/${nextUrl}`);
     }
   }
 
-  return NextResponse.redirect(`http://127.0.0.1:3000/auth/auth-error`);
+  return NextResponse.redirect(`${baseUrl}/auth/auth-error`);
 }
