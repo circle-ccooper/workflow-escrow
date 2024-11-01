@@ -71,7 +71,7 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
    `CIRCLE_API_KEY` can be found in the [API Keys](https://console.circle.com/api-keys) section of Circle's console, while `CIRCLE_ENTITY_SECRET` must be shared, or rotated [here](https://console.circle.com/wallets/dev/configurator/entity-secret) in case it's lost.
 
-   Lastly, `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are located in the [Google Cloud Developer Console](https://console.cloud.google.com/apis/credentials/oauthclient/835514128497-762n4akbf0a48koviao8vmfgeg9svd2k.apps.googleusercontent.com?project=workflow-escrow) of the project (APIs & Services > Credentials > Web)
+   Lastly, `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are located in the [Google Cloud Developer Console](https://console.cloud.google.com/apis/credentials?project=workflow-escrow) of the project (APIs & Services > Credentials > Web)
 
 5. Then start a local instance of the Supabase server:
 
