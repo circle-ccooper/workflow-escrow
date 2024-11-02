@@ -24,7 +24,8 @@ export const createFileService = (supabase: SupabaseClient) => ({
 
   async uploadToTemp(file: File, userId: string): Promise<string> {
     const tempFolderId = uuidv4();
-    const tempPath = `temp/${userId}/${tempFolderId}/${file.name}`;
+        const safeFileName = encodeURIComponent(file.name);
+        const tempPath = `temp/${userId}/${tempFolderId}/${safeFileName}`;
 
     const { error } = await supabase.storage
       .from(FILE_CONSTANTS.BUCKET_NAME)
