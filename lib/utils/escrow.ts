@@ -1,13 +1,14 @@
 import { AgreementStatus } from "@/types/escrow";
 
+const STATUS_COLORS: Record<AgreementStatus, string> = {
+  PENDING: "text-yellow-500 bg-yellow-500/10",
+  ACTIVE: "text-green-500 bg-green-500/10",
+  COMPLETED: "text-blue-500 bg-blue-500/10",
+  CANCELLED: "text-destructive bg-destructive/10",
+};
+
 export const getStatusColor = (status: AgreementStatus) => {
-  const colors = {
-    PENDING: "text-yellow-500 bg-yellow-500/10",
-    ACTIVE: "text-green-500 bg-green-500/10",
-    COMPLETED: "text-blue-500 bg-blue-500/10",
-    CANCELLED: "text-destructive bg-destructive/10",
-  };
-  return colors[status] || "text-muted-foreground bg-muted";
+  return STATUS_COLORS[status] ?? "text-muted-foreground bg-muted";
 };
 
 export const formatAmount = (amount: number, currency: string) => {
