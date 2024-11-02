@@ -6,7 +6,7 @@ import { CreateAgreementPage } from "@/components/ui/createAgreementPage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/copy-button";
-import { WalletTransactionsResponse } from "../api/wallet/transactions/route";
+import { WalletTransactionsResponse } from "@/app/api/wallet/transactions/route";
 import { EscrowAgreements } from "@/components/EscrowAgreements";
 
 const baseUrl = process.env.VERCEL_URL
