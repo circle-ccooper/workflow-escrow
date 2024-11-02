@@ -76,7 +76,8 @@ export const createAgreementService = (supabase: SupabaseClient) => ({
         supabase.from("transactions").delete().eq("id", transactionId),
       ]);
     } catch (error) {
-      throw new Error(`Failed to delete agreement and transaction: ${error.message}`);
+      const errorMessage = (error as any).message || "Unknown error";
+      throw new Error(`Failed to delete agreement and transaction: ${errorMessage}`);
     }
   },
 });

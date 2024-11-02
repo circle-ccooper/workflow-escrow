@@ -70,10 +70,10 @@ export const useFileUpload = (props: CreateAgreementProps) => {
       await fileService.deleteTempFile(tempPath);
 
       // Get public URL and update agreement
-      const publicUrl = fileService.getPublicUrl(finalPath);
+      const signedUrl = await fileService.getSignedUrl(finalPath);
       await agreementService.updateAgreementTerms(agreement.id, {
         ...analysis,
-        documentUrl: publicUrl,
+        documentUrl: signedUrl,
         originalFileName: file.name,
       });
 
@@ -86,7 +86,7 @@ export const useFileUpload = (props: CreateAgreementProps) => {
         ...agreement,
         terms: {
           ...analysis,
-          documentUrl: publicUrl,
+          documentUrl: signedUrl,
           originalFileName: file.name,
         },
       });

@@ -24,8 +24,8 @@ export const createFileService = (supabase: SupabaseClient) => ({
 
   async uploadToTemp(file: File, userId: string): Promise<string> {
     const tempFolderId = uuidv4();
-        const safeFileName = encodeURIComponent(file.name);
-        const tempPath = `temp/${userId}/${tempFolderId}/${safeFileName}`;
+    const safeFileName = encodeURIComponent(file.name);
+    const tempPath = `temp/${userId}/${tempFolderId}/${safeFileName}`;
 
     const { error } = await supabase.storage
       .from(FILE_CONSTANTS.BUCKET_NAME)
@@ -48,8 +48,8 @@ export const createFileService = (supabase: SupabaseClient) => ({
       throw new Error(`Failed to download file: ${downloadError?.message}`);
     }
 
-        const safeFileName = encodeURIComponent(file.name);
-        const finalPath = `${agreementId}/${safeFileName}`;
+    const safeFileName = encodeURIComponent(file.name);
+    const finalPath = `${agreementId}/${safeFileName}`;
     const newFile = new File([data], file.name, { type: file.type });
 
     const { error: uploadError } = await supabase.storage
@@ -66,18 +66,24 @@ export const createFileService = (supabase: SupabaseClient) => ({
   },
 
   async deleteTempFile(path: string): Promise<void> {
-    const { error } = await supabase.storage.from(FILE_CONSTANTS.BUCKET_NAME).remove([path]);
+    const { error } = await supabase.storage
+      .from(FILE_CONSTANTS.BUCKET_NAME)
+      .remove([path]);
     if (error) {
       throw new Error(`Failed to delete temporary file: ${error.message}`);
     }
   },
 
-  getPublicUrl(path: string): string {
-    const { data, error } = supabase.storage.from(FILE_CONSTANTS.BUCKET_NAME).getPublicUrl(path);
-    if (error || !data.publicUrl) {
-      throw new Error(`Failed to get public URL: ${error?.message}`);
+  async getSignedUrl(path: string): Promise<string> {
+    const { data, error } = await supabase.storage
+      .from(FILE_CONSTANTS.BUCKET_NAME)
+      .createSignedUrl(path, 7 * 24 * 60 * 60); // 7 days
+
+    if (error || !data?.signedUrl) {
+      throw new Error(`Failed to get signed URL: ${error?.message}`);
     }
-    return data.publicUrl;
+
+    return data.signedUrl;
   },
 
   async analyzeDocument(file: File): Promise<DocumentAnalysis> {
@@ -100,11 +106,11 @@ export const createFileService = (supabase: SupabaseClient) => ({
       throw new Error(errorMessage);
     }
 
-        try {
-          const data = await response.json();
-          return data;
-        } catch {
-          throw new Error("Failed to parse response data");
-        }
+    try {
+      const data = await response.json();
+      return data;
+    } catch {
+      throw new Error("Failed to parse response data");
+    }
   },
 });
