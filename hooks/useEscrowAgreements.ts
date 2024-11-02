@@ -15,17 +15,38 @@ export const useEscrowAgreements = ({ profileId }: EscrowListProps) => {
   const supabase = useMemo(() => createClient(), []);
   const escrowService = useMemo(() => createEscrowService(supabase), [supabase]);
 
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000;
+
+  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
   const loadAgreements = async () => {
+    let retries = 0;
     try {
       setLoading(true);
-      const data = await escrowService.getAgreements(profileId);
-      setAgreements(data);
-      setError(null);
+      while (retries < MAX_RETRIES) {
+        try {
+          const data = await escrowService.getAgreements(profileId);
+          setAgreements(data);
+          setError(null);
+          break;
+        } catch (err) {
+          if (retries === MAX_RETRIES - 1) throw err;
+          retries++;
+          await sleep(RETRY_DELAY * retries);
+        }
+      }
     } catch (err) {
       console.error("Error loading agreements:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to load agreements"
-      );
+      if (err instanceof TypeError) {
+        setError("Network error. Please check your connection.");
+      } else if (err instanceof Response) {
+        setError(`Server error: ${err.statusText}`);
+      } else {
+        setError(
+          err instanceof Error ? err.message : "Failed to load agreements"
+        );
+      }
       toast.error("Error loading agreements");
     } finally {
       setLoading(false);
