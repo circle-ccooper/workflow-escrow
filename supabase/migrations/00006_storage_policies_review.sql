@@ -1,23 +1,34 @@
 -- migration_name: adjust_storage_policies_for_agreement_documents_with_temp
 -- description: Update storage policies to handle temporary file uploads for agreements
--- First, disable RLS on the bucket temporarily
+BEGIN;
 ALTER TABLE storage.objects DISABLE ROW LEVEL SECURITY;
--- Drop ALL existing policies
+
 DO $$
-DECLARE policy_name text;
-BEGIN FOR policy_name IN (
+DECLARE 
+  policy_name text;
+  v_count int := 0;
+BEGIN 
+  -- Count existing policies for logging
+  SELECT COUNT(*) INTO v_count
+  FROM pg_policies 
+  WHERE tablename = 'objects' AND schemaname = 'storage';
+
+  RAISE NOTICE 'Found % policies to remove', v_count;
+
+  FOR policy_name IN (
     SELECT pol.policyname
     FROM pg_policies pol
-    WHERE pol.tablename = 'objects'
-        AND pol.schemaname = 'storage'
-) LOOP EXECUTE format(
-    'DROP POLICY IF EXISTS %I ON storage.objects',
-    policy_name
-);
-END LOOP;
+    WHERE pol.tablename = 'objects' AND pol.schemaname = 'storage'
+  ) LOOP
+    RAISE NOTICE 'Dropping policy: %', policy_name;
+    EXECUTE format('DROP POLICY IF EXISTS %I ON storage.objects', policy_name);
+  END LOOP;
+EXCEPTION WHEN OTHERS THEN
+  RAISE EXCEPTION 'Failed to clean up policies: %', SQLERRM;
 END $$;
--- Re-enable RLS
+
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+COMMIT;
 -- Create new simplified policies
 -- Policy for uploads (both temp and final locations)
 CREATE POLICY "Enable upload for authenticated users" ON storage.objects FOR
