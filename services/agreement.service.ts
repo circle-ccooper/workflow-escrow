@@ -70,9 +70,13 @@ export const createAgreementService = (supabase: SupabaseClient) => ({
     agreementId: string,
     transactionId: string
   ): Promise<void> {
-    await Promise.all([
-      supabase.from("escrow_agreements").delete().eq("id", agreementId),
-      supabase.from("transactions").delete().eq("id", transactionId),
-    ]);
+    try {
+      await Promise.all([
+        supabase.from("escrow_agreements").delete().eq("id", agreementId),
+        supabase.from("transactions").delete().eq("id", transactionId),
+      ]);
+    } catch (error) {
+      throw new Error(`Failed to delete agreement and transaction: ${error.message}`);
+    }
   },
 });
