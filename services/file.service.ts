@@ -73,10 +73,11 @@ export const createFileService = (supabase: SupabaseClient) => ({
   },
 
   getPublicUrl(path: string): string {
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(FILE_CONSTANTS.BUCKET_NAME).getPublicUrl(path);
-    return publicUrl;
+    const { data, error } = supabase.storage.from(FILE_CONSTANTS.BUCKET_NAME).getPublicUrl(path);
+    if (error || !data.publicUrl) {
+      throw new Error(`Failed to get public URL: ${error?.message}`);
+    }
+    return data.publicUrl;
   },
 
   async analyzeDocument(file: File): Promise<DocumentAnalysis> {
