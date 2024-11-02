@@ -1,5 +1,3 @@
-// Add these to your existing types
-
 import { EscrowAgreement } from "./agreements";
 
 export interface EscrowAgreementWithDetails extends EscrowAgreement {
