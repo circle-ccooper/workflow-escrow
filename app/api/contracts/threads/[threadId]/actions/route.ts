@@ -1,4 +1,4 @@
-import { openai } from "@/utils/openAIClient";
+import { openai } from "@/lib/utils/openAIClient";
 
 // Send a new message to a thread
 interface RequestParams {
@@ -19,7 +19,10 @@ interface RequestBody {
   runId: string;
 }
 
-export async function POST(request: Request, { params: { threadId } }: RequestParams) {
+export async function POST(
+  request: Request,
+  { params: { threadId } }: RequestParams
+) {
   const { toolCallOutputs, runId }: RequestBody = await request.json();
 
   const stream = openai.beta.threads.runs.submitToolOutputsStream(

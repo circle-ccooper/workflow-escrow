@@ -1,0 +1,93 @@
+import { SupabaseClient } from "@supabase/supabase-js";
+import { v4 as uuidv4 } from "uuid";
+import { FILE_CONSTANTS } from "@/lib/constants";
+import { DocumentAnalysis } from "@/types/agreements";
+
+export const createFileService = (supabase: SupabaseClient) => ({
+  validateFile(file: File): void {
+    if (!file) throw new Error("No file provided");
+
+    if (
+      !FILE_CONSTANTS.VALID_TYPES.includes(
+        file.type as
+          | "application/pdf"
+          | "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      )
+    ) {
+      throw new Error("Only PDF and DOCX contracts are allowed");
+    }
+
+    if (file.size > FILE_CONSTANTS.MAX_SIZE_5MB) {
+      throw new Error("Please upload a contract smaller than 5 MB");
+    }
+  },
+
+  async uploadToTemp(file: File, userId: string): Promise<string> {
+    const tempFolderId = uuidv4();
+    const tempPath = `temp/${userId}/${tempFolderId}/${file.name}`;
+
+    const { error } = await supabase.storage
+      .from(FILE_CONSTANTS.BUCKET_NAME)
+      .upload(tempPath, file);
+
+    if (error) throw new Error(`Failed to upload file: ${error.message}`);
+    return tempPath;
+  },
+
+  async downloadAndUploadToFinal(
+    tempPath: string,
+    file: File,
+    agreementId: string
+  ): Promise<string> {
+    const { data, error: downloadError } = await supabase.storage
+      .from(FILE_CONSTANTS.BUCKET_NAME)
+      .download(tempPath);
+
+    if (downloadError || !data) {
+      throw new Error(`Failed to download file: ${downloadError?.message}`);
+    }
+
+    const finalPath = `${agreementId}/${file.name}`;
+    const newFile = new File([data], file.name, { type: file.type });
+
+    const { error: uploadError } = await supabase.storage
+      .from(FILE_CONSTANTS.BUCKET_NAME)
+      .upload(finalPath, newFile);
+
+    if (uploadError) {
+      throw new Error(
+        `Failed to upload to final location: ${uploadError.message}`
+      );
+    }
+
+    return finalPath;
+  },
+
+  async deleteTempFile(path: string): Promise<void> {
+    await supabase.storage.from(FILE_CONSTANTS.BUCKET_NAME).remove([path]);
+  },
+
+  getPublicUrl(path: string): string {
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(FILE_CONSTANTS.BUCKET_NAME).getPublicUrl(path);
+    return publicUrl;
+  },
+
+  async analyzeDocument(file: File): Promise<DocumentAnalysis> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/contracts/gatherDocumentInfo", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || "Failed to process document");
+    }
+
+    return response.json();
+  },
+});

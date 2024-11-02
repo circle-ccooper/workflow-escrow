@@ -9,20 +9,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { sleep } from "@/utils/sleep";
+import { sleep } from "@/lib/utils/sleep";
 
 interface Props {
-  text: string
+  text: string;
 }
 
-export const CopyButton: FunctionComponent<Props> = props => {
+export const CopyButton: FunctionComponent<Props> = (props) => {
   const [shouldShowTooltip, setShouldShowTooltip] = useState(false);
 
   const simulateTooltipOpening = async () => {
     setShouldShowTooltip(true);
     await sleep(700);
     setShouldShowTooltip(false);
-  }
+  };
 
   return (
     <TooltipProvider>
@@ -40,5 +40,5 @@ export const CopyButton: FunctionComponent<Props> = props => {
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  )
-}
+  );
+};

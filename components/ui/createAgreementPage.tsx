@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/lib/utils/supabase/client";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import {
   Card,
@@ -29,57 +29,152 @@ import { Button } from "@/components/ui/button";
 import { UploadContractButton } from "@/components/upload-contract-button";
 
 interface Wallet {
-  circle_wallet_id: string;
+  id: string;
+  wallet_address: string;
+  profile_id: string;
 }
 
-interface Beneficiary {
+interface Profile {
   id: string;
   name: string;
+  auth_user_id: string;
   wallets: Wallet[];
+}
+
+interface DocumentAnalysis {
+  amounts: Array<{
+    full_amount: string;
+    payment_for: string;
+    location: string;
+  }>;
+  tasks: Array<{
+    task_description: string;
+    due_date: string | null;
+    responsible_party: string;
+    additional_details: string;
+  }>;
+}
+
+interface EscrowAgreement {
+  id: string;
+  beneficiary_wallet_id: string;
+  depositor_wallet_id: string;
+  transaction_id: string;
+  status: string;
+  terms: any;
+  created_at: string;
+  updated_at: string;
 }
 
 export const CreateAgreementPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
+  const [beneficiaries, setBeneficiaries] = useState<Profile[]>([]);
   const [open, setOpen] = useState(false);
-  const [selectedBeneficiary, setSelectedBeneficiary] = useState("");
-  const [formError, setFormError] = useState("Please select a beneficiary before uploading a contract");
+  const [selectedBeneficiary, setSelectedBeneficiary] =
+    useState<Profile | null>(null);
+  const [formError, setFormError] = useState(
+    "Please select a beneficiary before uploading a contract"
+  );
+  const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(
+    null
+  );
+  const [userId, setUserId] = useState<string | null>(null);
 
   const supabase = createClient();
 
   useEffect(() => {
-    const loadProfiles = async () => {
+    const loadData = async () => {
       try {
+        // Get current user
         const {
           data: { user },
+          error: userError,
         } = await supabase.auth.getUser();
 
-        if (!user) {
-          throw new Error("Not authenticated");
-        }
+        if (userError) throw userError;
+        if (!user) throw new Error("Not authenticated");
 
-        // Get all profiles except current user, including their wallets
-        const { data: beneficiaries, error } = await supabase
+        setUserId(user.id);
+
+        // Get current user's profile with wallet
+        const { data: currentProfile, error: profileError } = await supabase
           .from("profiles")
-          .select("id, name, is_active, wallets (circle_wallet_id, is_active)")
-          .neq("auth_user_id", user.id)
+          .select(
+            `
+            id,
+            name,
+            auth_user_id,
+            wallets (
+              id,
+              wallet_address,
+              profile_id
+            )
+          `
+          )
+          .eq("auth_user_id", user.id)
+          .single();
 
-        if (error) {
-          throw error;
-        }
+        if (profileError) throw profileError;
+        setCurrentUserProfile(currentProfile);
 
-        setBeneficiaries(beneficiaries);
+        // Get all other profiles with their wallets
+        const { data: beneficiaryProfiles, error: beneficiariesError } =
+          await supabase
+            .from("profiles")
+            .select(
+              `
+            id,
+            name,
+            auth_user_id,
+            wallets (
+              id,
+              wallet_address,
+              profile_id
+            )
+          `
+            )
+            .neq("auth_user_id", user.id);
+
+        if (beneficiariesError) throw beneficiariesError;
+
+        // Filter out profiles without wallets
+        const validBeneficiaries = beneficiaryProfiles.filter(
+          (profile) => profile.wallets && profile.wallets.length > 0
+        );
+        setBeneficiaries(validBeneficiaries);
       } catch (error) {
-        console.error("Error loading profiles:", error);
-        setError(error instanceof Error ? error.message : "Failed to load profiles");
+        console.error("Error loading data:", error);
+        setError(
+          error instanceof Error ? error.message : "Failed to load profiles"
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    loadProfiles();
+    loadData();
   }, []);
+
+  const handleBeneficiarySelect = (beneficiaryName: string) => {
+    const beneficiary = beneficiaries.find((b) => b.name === beneficiaryName);
+    setSelectedBeneficiary(beneficiary || null);
+    setFormError(
+      beneficiary
+        ? ""
+        : "Please select a beneficiary before uploading a contract"
+    );
+    setOpen(false);
+  };
+
+  const handleAnalysisComplete = (
+    analysis: DocumentAnalysis,
+    agreement: EscrowAgreement
+  ) => {
+    console.log("Document analysis completed:", analysis);
+    console.log("Agreement created:", agreement);
+    // Add any additional handling here
+  };
 
   if (loading) {
     return (
@@ -97,13 +192,21 @@ export const CreateAgreementPage = () => {
     );
   }
 
+  if (!currentUserProfile?.wallets?.[0]) {
+    return (
+      <div className="text-center text-red-500 p-4">
+        <p>No wallet found for current user</p>
+      </div>
+    );
+  }
+
   return (
     <Card className="grow">
       <CardHeader>
         <CardTitle>Create new agreement</CardTitle>
       </CardHeader>
       <CardContent className={formError ? "pb-2" : ""}>
-        <div className="grid w-full items-lef gap-4">
+        <div className="grid w-full items-left gap-4">
           <div className="flex flex-col space-y-1.5">
             <Label>Beneficiary</Label>
             <Popover open={open} onOpenChange={setOpen}>
@@ -115,38 +218,33 @@ export const CreateAgreementPage = () => {
                   className="w-[300px] justify-between w-full"
                 >
                   {selectedBeneficiary
-                    ? beneficiaries.find(beneficiary => beneficiary.name === selectedBeneficiary)?.name
+                    ? selectedBeneficiary.name
                     : "Select beneficiary..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <Label className="text-red-500">
-                {formError}
-              </Label>
+              {formError && <Label className="text-red-500">{formError}</Label>}
               <PopoverContent className="w-[300px] p-0">
                 <Command>
-                  <CommandInput className="w-full" placeholder="Search beneficiary..." />
+                  <CommandInput
+                    className="w-full"
+                    placeholder="Search beneficiary..."
+                  />
                   <CommandList>
                     <CommandEmpty>No beneficiaries found.</CommandEmpty>
                     <CommandGroup>
-                      {beneficiaries.map(beneficiary => (
+                      {beneficiaries.map((beneficiary) => (
                         <CommandItem
                           key={beneficiary.id}
                           value={beneficiary.name}
-                          onSelect={currentValue => {
-                            setFormError(
-                              selectedBeneficiary
-                                ? "Please select a beneficiary before uploading a contract"
-                                : ""
-                              );
-                            setSelectedBeneficiary(currentValue === selectedBeneficiary ? "" : currentValue);
-                            setOpen(false);
-                          }}
+                          onSelect={handleBeneficiarySelect}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              selectedBeneficiary === beneficiary.name ? "opacity-100" : "opacity-0"
+                              selectedBeneficiary?.id === beneficiary.id
+                                ? "opacity-100"
+                                : "opacity-0"
                             )}
                           />
                           {beneficiary.name}
@@ -161,7 +259,13 @@ export const CreateAgreementPage = () => {
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <UploadContractButton beneficiaryWalletId={selectedBeneficiary} />
+        <UploadContractButton
+          beneficiaryWalletId={selectedBeneficiary?.wallets[0]?.id}
+          depositorWalletId={currentUserProfile.wallets[0].id}
+          userId={userId!}
+          userProfileId={currentUserProfile.id}
+          onAnalysisComplete={handleAnalysisComplete}
+        />
       </CardFooter>
     </Card>
   );

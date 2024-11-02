@@ -1,18 +1,13 @@
-import type { WalletTransactionsResponse } from "@/app/api/wallet/transactions/route";
 import { createSupabaseServerComponentClient } from "@/lib/supabase/server-client";
 import { redirect } from "next/navigation";
 import { Transactions } from "@/components/transactions";
 import { CreateAgreementPage } from "@/components/ui/createAgreementPage";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Copy } from "lucide-react";
 import { CopyButton } from "@/components/copy-button";
+import { WalletTransactionsResponse } from "../api/wallet/transactions/route";
+import { EscrowAgreements } from "@/components/EscrowAgreements";
 
 const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
@@ -63,6 +58,7 @@ export default async function ProtectedPage() {
 
   return (
     <div className="columns-2 gap-4">
+      {/* Wallet Card */}
       <Card className="break-inside-avoid mb-4 w-full">
         <CardHeader>
           <CardTitle>Your wallet</CardTitle>
@@ -99,10 +95,17 @@ export default async function ProtectedPage() {
         </CardContent>
       </Card>
 
+      {/* Create Agreement Section */}
       <div className="break-inside-avoid mb-4">
         <CreateAgreementPage />
       </div>
 
+      {/* Agreements Section */}
+      <div className="break-inside-avoid mb-4">
+        <EscrowAgreements userId={user.id} profileId={profile?.id} />
+      </div>
+
+      {/* Transactions Section */}
       <div className="break-inside-avoid mb-4">
         <div className="flex flex-col gap-2 items-start">
           <Card className="break-inside-avoid mb-4 w-full">

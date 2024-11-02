@@ -1,0 +1,30 @@
+import { AgreementStatus } from "@/types/escrow";
+
+export const getStatusColor = (status: AgreementStatus) => {
+  const colors = {
+    PENDING: "text-yellow-500 bg-yellow-500/10",
+    ACTIVE: "text-green-500 bg-green-500/10",
+    COMPLETED: "text-blue-500 bg-blue-500/10",
+    CANCELLED: "text-destructive bg-destructive/10",
+  };
+  return colors[status] || "text-muted-foreground bg-muted";
+};
+
+export const formatAmount = (amount: number, currency: string) => {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
+
+// export const formatDate = (date: string) => {
+//   return new Intl.DateTimeFormat("en-US", {
+//     year: "numeric",
+//     month: "short",
+//     day: "numeric",
+//     hour: "2-digit",
+//     minute: "2-digit",
+//   }).format(new Date(date));
+// };

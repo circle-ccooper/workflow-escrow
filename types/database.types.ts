@@ -1,32 +1,31 @@
-export interface User {
+export interface Profile {
   id: string;
-  email: string;
+  auth_user_id: string;
   name: string;
   created_at: string;
-  updated_at: string;
-  is_active: boolean;
 }
 
 export interface Wallet {
   id: string;
-  user_id: string;
+  profile_id: string;
+  wallet_address: string;
   circle_wallet_id: string;
-  wallet_type: string;
-  balance: number;
-  currency: string;
+  blockchain: string;
   created_at: string;
-  updated_at: string;
-  is_active: boolean;
+  profile?: Profile;
 }
 
 export interface Transaction {
   id: string;
-  amounts?: Array<string>;
-  state: string;
-  createDate: string;
-  blockchain: string;
-  transactionType: string;
-  updateDate: string;
+  wallet_id: string;
+  profile_id: string;
+  circle_transaction_id: string;
+  transaction_type: string;
+  amount: number;
+  currency: string;
+  status: string;
+  description: string;
+  created_at: string;
 }
 
 export interface EscrowAgreement {
@@ -35,51 +34,55 @@ export interface EscrowAgreement {
   depositor_wallet_id: string;
   transaction_id: string;
   status: string;
-  disbursement_date: string;
-  terms: Record<string, any>;
+  terms: {
+    amounts: Array<{
+      full_amount: string;
+      payment_for: string;
+      location: string;
+    }>;
+    tasks: Array<{
+      task_description: string;
+      due_date: string | null;
+      responsible_party: string;
+      additional_details: string;
+    }>;
+    documentUrl?: string;
+    originalFileName?: string;
+  };
   created_at: string;
   updated_at: string;
+  beneficiary_wallet?: Wallet & {
+    profile?: Profile;
+  };
+  depositor_wallet?: Wallet & {
+    profile?: Profile;
+  };
+  transaction?: Transaction;
 }
 
-export interface DisputeResolution {
-  id: string;
-  escrow_agreement_id: string;
-  resolver_user_id: string;
-  status: string;
-  resolution_type: string;
-  description: string;
-  created_at: string;
-  resolved_at: string;
-}
-
-export interface Database {
+export type Database = {
   public: {
     Tables: {
-      users: {
-        Row: User;
-        Insert: Omit<User, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<User, "id">>;
+      profiles: {
+        Row: Profile;
+        Insert: Omit<Profile, 'created_at'>;
+        Update: Partial<Omit<Profile, 'created_at'>>;
       };
       wallets: {
         Row: Wallet;
-        Insert: Omit<Wallet, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<Wallet, "id">>;
+        Insert: Omit<Wallet, 'created_at'>;
+        Update: Partial<Omit<Wallet, 'created_at'>>;
       };
       transactions: {
         Row: Transaction;
-        Insert: Omit<Transaction, "id" | "created_at">;
-        Update: Partial<Omit<Transaction, "id">>;
+        Insert: Omit<Transaction, 'created_at'>;
+        Update: Partial<Omit<Transaction, 'created_at'>>;
       };
       escrow_agreements: {
         Row: EscrowAgreement;
-        Insert: Omit<EscrowAgreement, "id" | "created_at" | "updated_at">;
-        Update: Partial<Omit<EscrowAgreement, "id">>;
-      };
-      dispute_resolutions: {
-        Row: DisputeResolution;
-        Insert: Omit<DisputeResolution, "id" | "created_at" | "resolved_at">;
-        Update: Partial<Omit<DisputeResolution, "id">>;
+        Insert: Omit<EscrowAgreement, 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<EscrowAgreement, 'created_at' | 'updated_at'>>;
       };
     };
   };
-}
+};

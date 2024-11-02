@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { circleClient } from "@/utils/circleClient";
+import { circleClient } from "@/lib/utils/circleClient";
 
 const client = circleClient();
 
@@ -18,11 +18,14 @@ export async function POST(req: NextRequest) {
       accountType: "SCA",
       blockchains: ["MATIC-AMOY"],
       count: 1,
-      walletSetId
+      walletSetId,
     });
 
     if (!response.data?.wallets?.length) {
-      return NextResponse.json({ error: "No wallets were created" }, { status: 500 });
+      return NextResponse.json(
+        { error: "No wallets were created" },
+        { status: 500 }
+      );
     }
 
     const [createdWallet] = response.data.wallets;
@@ -30,6 +33,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(createdWallet, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: `Failed to create wallet: ${message}` }, { status: 500 });
+    return NextResponse.json(
+      { error: `Failed to create wallet: ${message}` },
+      { status: 500 }
+    );
   }
 }
