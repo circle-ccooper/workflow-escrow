@@ -32,12 +32,14 @@ export const EscrowAgreements = (props: EscrowListProps) => {
   return (
     <Card className="break-inside-avoid mb-4 w-full">
       <CardHeader className="flex flex-row items-center justify-between">
-        {loading
-          ? <Skeleton className="w-[250px] h-[24px] rounded-full" />
-          : <CardTitle>Escrow Agreements</CardTitle>}
-        {loading
-          ? <Skeleton className="w-[32px] h-[32px] rounded-full" />
-          : (
+        {loading ? (
+          <Skeleton className="w-[250px] h-[24px] rounded-full" />
+        ) : (
+          <CardTitle>Escrow Agreements</CardTitle>
+        )}
+        {loading ? (
+          <Skeleton className="w-[32px] h-[32px] rounded-full" />
+        ) : (
           <Button variant="ghost" size="icon" onClick={refresh}>
             <RotateCw className="h-4 w-4" />
           </Button>
@@ -46,9 +48,11 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       <CardContent>
         {agreements.length === 0 ? (
           <div className="text-center text-muted-foreground py-4">
-            {loading
-              ? <Skeleton className="w-[160px] h-[24px] rounded-full" />
-              : <p>No agreements found</p>}
+            {loading ? (
+              <Skeleton className="w-[160px] h-[24px] rounded-full" />
+            ) : (
+              <p>No agreements found</p>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -61,10 +65,10 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                   <div>
                     <h3 className="font-medium">
                       Agreement with{" "}
-                      {agreement.beneficiary_wallet_id || "Unknown"}
+                      {agreement.beneficiary_wallet.profiles.name || "Unknown"}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Created {agreement.created_at}
+                      Created {new Date(agreement.created_at).toLocaleString()}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -77,7 +81,6 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                     </span>
                   </div>
                 </div>
-
                 <div className="mt-2">
                   {agreement.terms.documentUrl && (
                     <a
@@ -92,7 +95,29 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                     </a>
                   )}
                 </div>
-
+                {agreement.terms.amounts?.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Amounts ({agreement.terms.amounts.length})
+                    </p>
+                    <ul className="mt-1 space-y-1">
+                      {agreement.terms.amounts.map(
+                        (
+                          amount: { payment_for: string; full_amount: string },
+                          index: number
+                        ) => (
+                          <li
+                            key={index}
+                            className="text-sm text-muted-foreground"
+                          >
+                            {/* improve analisys • {amount.payment_for} - {amount.full_amount} */}
+                            • Full delivery - {amount.full_amount}
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  </div>
+                )}
                 {agreement.terms.tasks?.length > 0 && (
                   <div className="mt-3">
                     <p className="text-sm font-medium text-muted-foreground">
