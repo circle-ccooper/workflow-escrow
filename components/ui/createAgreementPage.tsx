@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/utils/supabase/client";
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -177,14 +177,6 @@ export const CreateAgreementPage = () => {
     // Add any additional handling here
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[200px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="text-center text-red-500 p-4">
@@ -193,7 +185,7 @@ export const CreateAgreementPage = () => {
     );
   }
 
-  if (!currentUserProfile?.wallets?.[0]) {
+  if (!loading && !currentUserProfile?.wallets?.[0]) {
     return (
       <div className="text-center text-red-500 p-4">
         <p>No wallet found for current user</p>

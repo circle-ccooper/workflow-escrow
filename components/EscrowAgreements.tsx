@@ -1,27 +1,15 @@
 "use client";
 
-import { Loader2, FileText, ExternalLink } from "lucide-react";
+import { Loader2, FileText, ExternalLink, RotateCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEscrowAgreements } from "@/hooks/useEscrowAgreements";
 import { EscrowListProps } from "@/types/escrow";
-import { getStatusColor, formatAmount } from "@/lib/utils/escrow";
+import { getStatusColor } from "@/lib/utils/escrow";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const EscrowAgreements = (props: EscrowListProps) => {
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
-
-  if (loading) {
-    return (
-      <Card className="break-inside-avoid mb-4 w-full">
-        <CardHeader>
-          <CardTitle>Escrow Agreements</CardTitle>
-        </CardHeader>
-        <CardContent className="flex justify-center py-6">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </CardContent>
-      </Card>
-    );
-  }
 
   if (error) {
     return (
@@ -44,20 +32,23 @@ export const EscrowAgreements = (props: EscrowListProps) => {
   return (
     <Card className="break-inside-avoid mb-4 w-full">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Escrow Agreements</CardTitle>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={refresh}
-          className="h-8 w-8 p-0"
-        >
-          <Loader2 className="h-4 w-4" />
-        </Button>
+        {loading
+          ? <Skeleton className="w-[250px] h-[24px] rounded-full" />
+          : <CardTitle>Escrow Agreements</CardTitle>}
+        {loading
+          ? <Skeleton className="w-[32px] h-[32px] rounded-full" />
+          : (
+          <Button variant="ghost" size="icon" onClick={refresh}>
+            <RotateCw className="h-4 w-4" />
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         {agreements.length === 0 ? (
           <div className="text-center text-muted-foreground py-4">
-            <p>No agreements found</p>
+            {loading
+              ? <Skeleton className="w-[160px] h-[24px] rounded-full" />
+              : <p>No agreements found</p>}
           </div>
         ) : (
           <div className="space-y-4">
@@ -88,9 +79,6 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                 </div>
 
                 <div className="mt-2">
-                  {/* <p className="text-sm text-muted-foreground">
-                    Amount: {formatAmount(agreement.transaction.amount, agreement.transaction.currency)}
-                  </p> */}
                   {agreement.terms.documentUrl && (
                     <a
                       href={agreement.terms.documentUrl}
