@@ -139,6 +139,10 @@ export const CreateAgreementPage = () => {
 
         if (beneficiariesError) throw beneficiariesError;
 
+        if (!beneficiaryProfiles) {
+          throw new Error("No beneficiary profiles found.");
+        }
+
         // Filter out profiles without wallets
         const validBeneficiaries = beneficiaryProfiles.filter(
           (profile) => profile.wallets && profile.wallets.length > 0
