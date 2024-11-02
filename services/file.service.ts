@@ -47,7 +47,8 @@ export const createFileService = (supabase: SupabaseClient) => ({
       throw new Error(`Failed to download file: ${downloadError?.message}`);
     }
 
-    const finalPath = `${agreementId}/${file.name}`;
+        const safeFileName = encodeURIComponent(file.name);
+        const finalPath = `${agreementId}/${safeFileName}`;
     const newFile = new File([data], file.name, { type: file.type });
 
     const { error: uploadError } = await supabase.storage
