@@ -11,12 +11,22 @@ export const getStatusColor = (status: AgreementStatus) => {
 };
 
 export const formatAmount = (amount: number, currency: string) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+  if (!Number.isFinite(amount)) {
+    throw new Error('Amount must be a valid number');
+  }
+  if (amount < 0) {
+    throw new Error('Amount cannot be negative');
+  }
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch (error) {
+    throw new Error(`Invalid currency code: ${currency}`);
+  }
 };
 
 // export const formatDate = (date: string) => {
