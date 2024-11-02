@@ -90,6 +90,11 @@ export const createFileService = (supabase: SupabaseClient) => ({
       throw new Error(error.details || "Failed to process document");
     }
 
-    return response.json();
+        try {
+          const data = await response.json();
+          return data;
+        } catch {
+          throw new Error("Failed to parse response data");
+        }
   },
 });
