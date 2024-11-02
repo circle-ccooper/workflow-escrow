@@ -79,7 +79,7 @@ export const useFileUpload = (props: CreateAgreementProps) => {
 
       toast.success("Document processed successfully", {
         id: toastId,
-        description: `Found ${analysis.amounts.length} amounts and ${analysis.tasks.length} tasks`,
+        description: `Found ${analysis.amounts.length} amounts and ${analysis.tasks?.length || 0} tasks`,
       });
 
       props.onAnalysisComplete?.(analysis, {
