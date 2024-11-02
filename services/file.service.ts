@@ -66,7 +66,10 @@ export const createFileService = (supabase: SupabaseClient) => ({
   },
 
   async deleteTempFile(path: string): Promise<void> {
-    await supabase.storage.from(FILE_CONSTANTS.BUCKET_NAME).remove([path]);
+    const { error } = await supabase.storage.from(FILE_CONSTANTS.BUCKET_NAME).remove([path]);
+    if (error) {
+      throw new Error(`Failed to delete temporary file: ${error.message}`);
+    }
   },
 
   getPublicUrl(path: string): string {
