@@ -106,7 +106,7 @@ export const useFileUpload = (props: CreateAgreementProps) => {
       toast.error("Process failed", {
         id: toastId,
         description:
-          error instanceof Error ? error.message : "Unknown error occurred",
+          "An error occurred while processing the document. Please try again later.",
       });
     } finally {
       setUploading(false);
