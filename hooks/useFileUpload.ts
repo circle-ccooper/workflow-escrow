@@ -96,7 +96,11 @@ export const useFileUpload = (props: CreateAgreementProps) => {
       console.error("Process error:", error);
 
       if (tempPath) {
-        await fileService.deleteTempFile(tempPath);
+        try {
+          await fileService.deleteTempFile(tempPath);
+        } catch (deleteError) {
+          console.error("Failed to delete temporary file:", deleteError);
+        }
       }
 
       toast.error("Process failed", {
