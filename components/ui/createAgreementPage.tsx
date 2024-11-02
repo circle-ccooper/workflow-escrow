@@ -184,7 +184,7 @@ export const CreateAgreementPage = () => {
   if (error) {
     return (
       <div className="text-center text-red-500 p-4">
-        <p>Error loading profiles: {error}</p>
+        <p>There was an error loading profiles. Please try again later.</p>
       </div>
     );
   }
