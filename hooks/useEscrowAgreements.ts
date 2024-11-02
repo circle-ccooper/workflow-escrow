@@ -12,8 +12,8 @@ export const useEscrowAgreements = ({ profileId }: EscrowListProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const supabase = createClient();
-  const escrowService = createEscrowService(supabase);
+  const supabase = useMemo(() => createClient(), []);
+  const escrowService = useMemo(() => createEscrowService(supabase), [supabase]);
 
   const loadAgreements = async () => {
     try {
