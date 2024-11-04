@@ -27,7 +27,7 @@ export const Transactions: FunctionComponent<Props> = props => {
 
   if (props.data && props.data.length < 1) {
     return (
-      <p className="text-xl text-muted-foreground cursor-pointer mb-4">
+      <p className="text-xl text-muted-foreground cursor-pointer">
         No transactions found
       </p>
     )

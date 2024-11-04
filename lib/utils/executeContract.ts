@@ -1,5 +1,5 @@
 import { FeeLevel } from "@circle-fin/developer-controlled-wallets";
-import { circleClient } from "@/utils/circleClient";
+import { circleClient } from "@/lib/utils/circleClient";
 
 const client = circleClient();
 
