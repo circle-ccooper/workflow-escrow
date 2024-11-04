@@ -273,9 +273,9 @@ export const CreateAgreementPage = () => {
           : (
               <UploadContractButton
                 beneficiaryWalletId={selectedBeneficiary?.wallets[0]?.id}
-                depositorWalletId={currentUserProfile.wallets[0].id}
+                depositorWalletId={currentUserProfile?.wallets[0].id}
                 userId={userId!}
-                userProfileId={currentUserProfile.id}
+                userProfileId={currentUserProfile?.id}
                 onAnalysisComplete={handleAnalysisComplete}
               />
           )}

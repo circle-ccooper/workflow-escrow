@@ -39,11 +39,11 @@ export interface EscrowAgreement {
 /** Properties required to create a new escrow agreement */
 export interface CreateAgreementProps {
   beneficiaryWalletId?: string;
-  depositorWalletId: string;
+  depositorWalletId?: string;
   userId: string; // ID of the user creating the agreement
-  userProfileId: string; // Profile ID associated with the creating user
+  userProfileId?: string; // Profile ID associated with the creating user
   onAnalysisComplete?: (
     analysis: DocumentAnalysis,
     agreement: EscrowAgreement
-  ) => Promise<void>; // Called after successful document analysis and agreement creation
+  ) => void; // Called after successful document analysis and agreement creation
 }
