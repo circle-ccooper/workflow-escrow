@@ -45,7 +45,7 @@ const parseAmount = (amountStr: string): number => {
   return amount;
 };
 
-export const useFileUpload = (props: CreateAgreementProps) => {
+export const useContractUpload = (props: CreateAgreementProps) => {
   const [uploading, setUploading] = useState(false);
   const supabase = createClient();
   const fileService = createFileService(supabase);
