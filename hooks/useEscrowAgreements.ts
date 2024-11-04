@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 
 import { createEscrowService } from "@/services/escrow.service";
@@ -13,14 +13,18 @@ export const useEscrowAgreements = ({ profileId }: EscrowListProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const supabase = useMemo(() => createClient(), []);
-  const escrowService = useMemo(() => createEscrowService(supabase), [supabase]);
+  const escrowService = useMemo(
+    () => createEscrowService(supabase),
+    [supabase]
+  );
 
   const MAX_RETRIES = 3;
   const RETRY_DELAY = 1000;
 
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  const sleep = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
-  const loadAgreements = async () => {
+  const loadAgreements = useCallback(async () => {
     let retries = 0;
     try {
       setLoading(true);
@@ -51,11 +55,11 @@ export const useEscrowAgreements = ({ profileId }: EscrowListProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [escrowService, profileId]);
 
   useEffect(() => {
     loadAgreements();
-  }, [profileId]);
+  }, [profileId, loadAgreements]);
 
   return {
     agreements,
