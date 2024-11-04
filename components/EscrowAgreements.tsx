@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, FileText, ExternalLink, RotateCw } from "lucide-react";
+import { FileText, ExternalLink, RotateCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEscrowAgreements } from "@/hooks/useEscrowAgreements";
@@ -78,7 +78,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                   <div>
                     <h3 className="font-medium">
                       Agreement with{" "}
-                      {agreement.beneficiary_wallet.profiles.name || "Unknown"}
+                      {agreement.depositor_wallet?.profiles.name || agreement.beneficiary_wallet.profiles.name}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Created {new Date(agreement.created_at).toLocaleString()}

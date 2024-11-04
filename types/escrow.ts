@@ -3,6 +3,9 @@ import { EscrowAgreement } from "./agreements";
 export interface EscrowAgreementWithDetails extends EscrowAgreement {
   depositor_wallet: {
     profile_id: string;
+    profiles: {
+      name: string;
+    }
   };
   beneficiary_wallet: {
     profile_id: string;

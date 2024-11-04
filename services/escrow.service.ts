@@ -26,7 +26,10 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
       .select(`
         *,
         depositor_wallet:wallets!escrow_agreements_depositor_wallet_id_fkey (
-          profile_id
+          profile_id,
+          profiles!wallets_profile_id_fkey (
+            name
+          )
         ),
         beneficiary_wallet:wallets!escrow_agreements_beneficiary_wallet_id_fkey (
           profile_id,
@@ -39,16 +42,23 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
           currency,
           status
         )
-      `)
-      .or([
-        { depositor_wallet_id: profileWallet.id },
-        { beneficiary_wallet_id: profileWallet.id }
-      ]);
+      `);
 
     if (error) {
       throw new Error(`Failed to fetch agreements: ${error.message}`);
     }
 
-    return data || [];
+    const filteredData = data?.map((agreement) => {
+      const isDepositor = agreement.depositor_wallet?.profile_id === profileId;
+      const isBeneficiary = agreement.beneficiary_wallet?.profile_id === profileId;
+
+      return {
+        ...agreement,
+        depositor_wallet: isDepositor ? agreement.beneficiary_wallet : null,
+        beneficiary_wallet: isBeneficiary ? agreement.depositor_wallet : null,
+      };
+    });
+
+    return filteredData || [];
   },
 });
