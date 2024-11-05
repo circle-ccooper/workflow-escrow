@@ -4,11 +4,11 @@ import { useRef } from "react";
 import { FileUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreateAgreementProps } from "@/types/agreements";
-import { useFileUpload } from "@/hooks/useFileUpload";
+import { useContractUpload } from "@/hooks/useContractUpload";
 
 export const UploadContractButton = (props: CreateAgreementProps) => {
   const hiddenFileInput = useRef<HTMLInputElement>(null);
-  const { handleFileUpload, uploading } = useFileUpload(props);
+  const { handleFileUpload, uploading } = useContractUpload(props);
 
   const handleClick = () => {
     hiddenFileInput.current?.click();

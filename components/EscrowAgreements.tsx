@@ -1,12 +1,14 @@
 "use client";
 
-import { Loader2, FileText, ExternalLink, RotateCw } from "lucide-react";
+import { useRef, useState } from "react";
+import { FileText, ExternalLink, RotateCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEscrowAgreements } from "@/hooks/useEscrowAgreements";
 import { EscrowListProps, AgreementStatus } from "@/types/escrow";
 import { getStatusColor } from "@/lib/utils/escrow";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 interface Task {
   description: string;
@@ -21,8 +23,53 @@ interface Amount {
   location: string;
 }
 
+const baseUrl = process.env.VERCEL_URL
+  ? process.env.VERCEL_URL
+  : "http://127.0.0.1:3000";
+
 export const EscrowAgreements = (props: EscrowListProps) => {
+  const hiddenFileInput = useRef<HTMLInputElement>(null);
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
+  const [uploading, setUploading] = useState(false);
+
+  const handleClick = () => {
+    hiddenFileInput.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+
+    if (!files) return;
+
+    setUploading(true);
+
+    const formData = new FormData();
+    formData.append("file", files[0]);
+    event.target.value = "";
+
+    try {
+      const response = await fetch(`${baseUrl}/api/contracts/validateWork`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const parsedResponse = await response.json();
+
+      if (parsedResponse.error) {
+        return toast("Failed work validation", {
+          description: parsedResponse.error
+        });
+      }
+
+      toast("Successful work validation", {
+        description: parsedResponse.message
+      });
+    } catch (error) {
+      console.error("Error during image upload:", error);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   if (error) {
     return (
@@ -72,13 +119,13 @@ export const EscrowAgreements = (props: EscrowListProps) => {
             {agreements.map((agreement) => (
               <div
                 key={agreement.id}
-                className="rounded-lg border p-4 hover:bg-accent transition-colors"
+                className="rounded-lg border p-4"
               >
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h3 className="font-medium">
                       Agreement with{" "}
-                      {agreement.beneficiary_wallet.profiles.name || "Unknown"}
+                      {agreement.depositor_wallet?.profiles.name || agreement.beneficiary_wallet.profiles.name}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Created {new Date(agreement.created_at).toLocaleString()}
@@ -94,23 +141,21 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                     </span>
                   </div>
                 </div>
-                <div className="mt-2">
-                  {agreement.terms.documentUrl && (
-                    <a
-                      href={agreement.terms.documentUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/90 mt-2"
-                    >
-                      <FileText className="h-4 w-4" />
-                      {agreement.terms.originalFileName}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                </div>
+                {agreement.terms.documentUrl && (
+                  <a
+                    href={agreement.terms.documentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/90 mt-3"
+                  >
+                    <FileText className="h-4 w-4" />
+                    {agreement.terms.originalFileName}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
                 {agreement.terms.amounts?.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-sm font-medium text-muted-foreground">
+                  <>
+                    <p className="text-sm font-medium text-muted-foreground mt-3">
                       Amounts ({agreement.terms.amounts.length})
                     </p>
                     <ul className="mt-1 space-y-1">
@@ -128,11 +173,11 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                         )
                       )}
                     </ul>
-                  </div>
+                  </>
                 )}
                 {agreement.terms.tasks?.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-sm font-medium text-muted-foreground">
+                  <>
+                    <p className="text-sm font-medium text-muted-foreground mt-3">
                       Tasks ({agreement.terms.tasks.length})
                     </p>
                     <ul className="mt-1 space-y-1">
@@ -147,12 +192,26 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                               <span className="ml-1 text-xs">
                                 (Due: {task.due_date})
                               </span>
-                            )}                            
+                            )}
                           </li>
                         )
                       )}
                     </ul>
-                  </div>
+                  </>
+                )}
+                {!agreement.depositor_wallet?.profiles.name && (
+                  <>
+                    <input
+                      ref={hiddenFileInput}
+                      type="file"
+                      accept=".png,.jpg,.jpeg"
+                      onChange={handleFileChange}
+                      hidden
+                    />
+                    <Button className="mt-3" onClick={handleClick} disabled={uploading}>
+                      {uploading ? "Uploading..." : "Submit work"}
+                    </Button>
+                  </>
                 )}
               </div>
             ))}
