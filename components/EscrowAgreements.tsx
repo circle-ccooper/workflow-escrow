@@ -4,9 +4,22 @@ import { Loader2, FileText, ExternalLink, RotateCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEscrowAgreements } from "@/hooks/useEscrowAgreements";
-import { EscrowListProps } from "@/types/escrow";
+import { EscrowListProps, AgreementStatus } from "@/types/escrow";
 import { getStatusColor } from "@/lib/utils/escrow";
 import { Skeleton } from "@/components/ui/skeleton";
+
+interface Task {
+  description: string;
+  due_date: string;
+  responsible_party: string;
+  details: string[];
+}
+
+interface Amount {
+  for: string;
+  amount: string;
+  location: string;
+}
 
 export const EscrowAgreements = (props: EscrowListProps) => {
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
@@ -74,7 +87,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                   <div className="flex items-center gap-2">
                     <span
                       className={`px-2 py-1 rounded text-sm font-medium ${getStatusColor(
-                        agreement.status as any
+                        agreement.status as AgreementStatus
                       )}`}
                     >
                       {agreement.status}
@@ -102,16 +115,15 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                     </p>
                     <ul className="mt-1 space-y-1">
                       {agreement.terms.amounts.map(
-                        (
-                          amount: { payment_for: string; full_amount: string },
-                          index: number
-                        ) => (
+                        (amount: Amount, index: number) => (
                           <li
                             key={index}
                             className="text-sm text-muted-foreground"
                           >
-                            {/* improve analisys • {amount.payment_for} - {amount.full_amount} */}
-                            • Full delivery - {amount.full_amount}
+                            • {amount.for} - {amount.amount}
+                            <span className="text-xs ml-1">
+                              ({amount.location})
+                            </span>
                           </li>
                         )
                       )}
@@ -124,19 +136,21 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                       Tasks ({agreement.terms.tasks.length})
                     </p>
                     <ul className="mt-1 space-y-1">
-                      {agreement.terms.tasks.map((task: any, index: number) => (
-                        <li
-                          key={index}
-                          className="text-sm text-muted-foreground"
-                        >
-                          • {task.task_description}
-                          {task.due_date && (
-                            <span className="ml-1 text-xs">
-                              (Due: {task.due_date})
-                            </span>
-                          )}
-                        </li>
-                      ))}
+                      {agreement.terms.tasks.map(
+                        (task: Task, index: number) => (
+                          <li
+                            key={index}
+                            className="text-sm text-muted-foreground"
+                          >
+                            • {task.description}
+                            {task.due_date && (
+                              <span className="ml-1 text-xs">
+                                (Due: {task.due_date})
+                              </span>
+                            )}                            
+                          </li>
+                        )
+                      )}
                     </ul>
                   </div>
                 )}
