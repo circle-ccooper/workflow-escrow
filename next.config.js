@@ -9,6 +9,10 @@ if (!CIRCLE_ENTITY_SECRET?.trim()) {
 }
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ["pdf-parse"],
+  },
+};
 
 module.exports = nextConfig;
