@@ -141,7 +141,9 @@ export async function POST(request: Request) {
       throw new Error(`Failed to upload file: ${uploadError.message}`);
     }
 
-    if (!parsedPromptAnswerContent.valid) {
+    const workMeetsRequirements = parsedPromptAnswerContent.valid && parsedPromptAnswerContent.confidence === "HIGH"
+
+    if (workMeetsRequirements) {
       return NextResponse.json({ error: "Image does not meet all requirements" });
     }
 
