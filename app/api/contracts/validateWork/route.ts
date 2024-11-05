@@ -1,9 +1,8 @@
 import type { EscrowAgreement } from "@/types/database.types"
+import type { PostgrestError } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import { createClient, PostgrestError } from "@supabase/supabase-js";
 import { openai } from "@/lib/utils/openAIClient";
-
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 
 interface ImageValidationResult {
   valid: boolean
@@ -11,6 +10,16 @@ interface ImageValidationResult {
 }
 
 export async function POST(request: Request) {
+  const supabase = createSupabaseServerClient();
+
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "You are not logged in" }, { status: 401 })
+  }
+
   try {
     const formData = await request.formData();
     const imageFile = formData.get("file");
@@ -19,11 +28,32 @@ export async function POST(request: Request) {
       throw new Error("Image file is missing or invalid");
     }
 
-    // Retrieve requirements from Supabase
+    // "user.id" is required instead of "user.auth_user_id"
+    const { data: authUser, error: authUserError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("auth_user_id", user.id)
+      .single();
+
+    if (authUserError) {
+      return NextResponse.json({ error: "Could not retrieve user ID" }, { status: 500 })
+    }
+
+    const { data: beneficiaryWallet, error: beneficiaryWalletError } = await supabase
+      .schema("public")
+      .from("wallets")
+      .select("id")
+      .eq("profile_id", authUser.id)
+      .single();
+
+    if (beneficiaryWalletError) {
+      return NextResponse.json({ error: "Could not find the beneficiary wallet ID" }, { status: 500 });
+    }
+
     const { data: agreement, error: fetchError } = await supabase
       .from("escrow_agreements")
-      .select("*")
-      .limit(1)
+      .select()
+      .eq("beneficiary_wallet_id", beneficiaryWallet.id)
       .single() as { data: EscrowAgreement, error: PostgrestError | null };
 
     if (fetchError || !agreement) {
@@ -94,6 +124,22 @@ export async function POST(request: Request) {
     }
 
     const parsedPromptAnswerContent: ImageValidationResult = JSON.parse(promptAnswerContent);
+
+    const timestamp = Date.now();
+    const originalFileName = imageFile.name || "uploaded-file";
+    const fileName = `${!parsedPromptAnswerContent.valid ? "in" : ""}valid-${timestamp}-${originalFileName}`;
+    const filePath = `${agreement.id}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("agreement-documents")
+      .upload(filePath, imageFile, {
+        contentType: imageFile.type || "application/octet-stream",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw new Error(`Failed to upload file: ${uploadError.message}`);
+    }
 
     if (!parsedPromptAnswerContent.valid) {
       return NextResponse.json({ error: "Image does not meet all requirements" });

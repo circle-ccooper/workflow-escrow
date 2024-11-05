@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { DocumentAnalysis, EscrowAgreement } from "@/types/agreements";
+import { EscrowAgreement } from "@/types/agreements";
 
 export const createAgreementService = (supabase: SupabaseClient) => ({
   async createTransaction(params: {
