@@ -28,32 +28,15 @@ export async function POST(request: Request) {
       throw new Error("Image file is missing or invalid");
     }
 
-    // "user.id" is required instead of "user.auth_user_id"
-    const { data: authUser, error: authUserError } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth_user_id", user.id)
-      .single();
-
-    if (authUserError) {
-      return NextResponse.json({ error: "Could not retrieve user ID" }, { status: 500 })
-    }
-
-    const { data: beneficiaryWallet, error: beneficiaryWalletError } = await supabase
-      .schema("public")
-      .from("wallets")
-      .select("id")
-      .eq("profile_id", authUser.id)
-      .single();
-
-    if (beneficiaryWalletError) {
-      return NextResponse.json({ error: "Could not find the beneficiary wallet ID" }, { status: 500 });
-    }
-
     const { data: agreement, error: fetchError } = await supabase
       .from("escrow_agreements")
-      .select()
-      .eq("beneficiary_wallet_id", beneficiaryWallet.id)
+      .select(`
+        *,
+        beneficiary_wallet:wallets!inner(
+          profile:profiles!inner(auth_user_id)
+        )
+      `)
+      .eq("beneficiary_wallet.profile.auth_user_id", user.id)
       .single() as { data: EscrowAgreement, error: PostgrestError | null };
 
     if (fetchError || !agreement) {
@@ -80,7 +63,7 @@ export async function POST(request: Request) {
 
       Where "valid" is a boolean and "confidence" is a string that can be either:
 
-      - "LOW": You don't think the given image match the requirements.
+      - "LOW": You don"t think the given image match the requirements.
       - "MEDIUM": You are unsure or the image loosely match some requirements but not all.
       - "HIGH": You are absolutely certain that the provided image strictly fulfills all the requirements.
 
@@ -143,7 +126,7 @@ export async function POST(request: Request) {
 
     const workMeetsRequirements = parsedPromptAnswerContent.valid && parsedPromptAnswerContent.confidence === "HIGH"
 
-    if (workMeetsRequirements) {
+    if (!workMeetsRequirements) {
       return NextResponse.json({ error: "Image does not meet all requirements" });
     }
 

@@ -17,7 +17,7 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
     }
 
     if (!profileWallet) {
-      console.log("No wallets found for the current user.");
+      console.error("No wallets found for the current user.");
       throw new Error("No wallets found for the current user");
     }
 
@@ -42,7 +42,8 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
           currency,
           status
         )
-      `);
+      `)
+      .or(`depositor_wallet_id.in.(${profileWallet.id}),beneficiary_wallet_id.in.(${profileWallet.id})`);
 
     if (error) {
       throw new Error(`Failed to fetch agreements: ${error.message}`);

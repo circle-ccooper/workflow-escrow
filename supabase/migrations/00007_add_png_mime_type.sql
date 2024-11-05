@@ -26,9 +26,10 @@ BEGIN
     false,
     10485760,  -- 10MB limit
     ARRAY[
+      'image/png',
+      'image/jpeg',
       'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'image/png'
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ]
   )
   ON CONFLICT (id) DO UPDATE SET
