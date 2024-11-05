@@ -40,7 +40,10 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
           status
         )
       `)
-      .or(`depositor_wallet_id.in.(${profileWallet.id}),beneficiary_wallet_id.in.(${profileWallet.id})`);
+      .or([
+        { depositor_wallet_id: profileWallet.id },
+        { beneficiary_wallet_id: profileWallet.id }
+      ]);
 
     if (error) {
       throw new Error(`Failed to fetch agreements: ${error.message}`);
