@@ -1,22 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
-import { Interface } from "@ethersproject/abi";
 
-// Constants
-const USDC_CONTRACT_ADDRESS = "0x41e94eb019c0762f9bfcf9fb1e58725bfb0e7582"; // Polygon PoS Amoy
-const ESCROW_FACTORY_ADDRESS = "0xc8aFDC71eF9eF45B6Cb608390Cc57C10d4fE05E9";
+// Environment variable validation
+const requiredEnvVars = [
+  "CIRCLE_API_KEY",
+  "CIRCLE_ENTITY_SECRET",
+  "USDC_CONTRACT_ADDRESS",
+  "ESCROW_FACTORY_ADDRESS",
+] as const;
 
-// ABI fragment for the EscrowCreated event
-const ESCROW_FACTORY_ABI = [
-  "event EscrowCreated(uint256 escrowId, address escrowAddress, address depositor, address beneficiary, address agent, uint256 amount)",
-];
+// Type for environment variables
+interface EnvVariables {
+  CIRCLE_API_KEY: string;
+  CIRCLE_ENTITY_SECRET: string;
+  USDC_CONTRACT_ADDRESS: string;
+  ESCROW_FACTORY_ADDRESS: string;
+}
 
-const escrowInterface = new Interface(ESCROW_FACTORY_ABI);
+// Validate and get environment variables
+function getEnvVariables(): EnvVariables {
+  const missingVars = requiredEnvVars.filter(
+    (varName) => !process.env[varName]
+  );
+
+  if (missingVars.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missingVars.join(", ")}`
+    );
+  }
+
+  return {
+    CIRCLE_API_KEY: process.env.CIRCLE_API_KEY!,
+    CIRCLE_ENTITY_SECRET: process.env.CIRCLE_ENTITY_SECRET!,
+    USDC_CONTRACT_ADDRESS: process.env.USDC_CONTRACT_ADDRESS!,
+    ESCROW_FACTORY_ADDRESS: process.env.ESCROW_FACTORY_ADDRESS!,
+  };
+}
+
+// Get environment variables
+const env = getEnvVariables();
+console.log("Environment variables, ", env);
 
 // Initialize Circle client
 const circleClient = initiateDeveloperControlledWalletsClient({
-  apiKey: process.env.CIRCLE_API_KEY!,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET!,
+  apiKey: env.CIRCLE_API_KEY,
+  entitySecret: env.CIRCLE_ENTITY_SECRET,
 });
 
 function convertUSDCToContractAmount(amount: number): string {
@@ -24,36 +52,20 @@ function convertUSDCToContractAmount(amount: number): string {
 }
 
 interface CreateEscrowRequest {
-  depositorWalletId: string;
-  beneficiaryWalletId: string;
+  depositorAddress: string;
+  beneficiaryAddress: string;
+  agentAddress: string;
   agentWalletId: string;
   amountUSDC: number;
 }
 
-// Helper function to get wallet address from wallet ID
-async function getWalletAddress(walletId: string): Promise<string> {
-  try {
-    const response = await circleClient.getWallet({ id: walletId });
-    if (!response.data?.wallet?.address) {
-      throw new Error(`No address found for wallet ID: ${walletId}`);
-    }
-    return response.data.wallet.address;
-  } catch (error) {
-    console.error(`Error getting wallet address for ID ${walletId}:`, error);
-    throw error;
-  }
-}
-
-// Helper function to wait for transaction status
 async function waitForTransactionStatus(id: string) {
   let attempts = 0;
-  const maxAttempts = 130; // 130 seconds timeout
+  const maxAttempts = 10;
 
   while (attempts < maxAttempts) {
     try {
-      const response = await circleClient.getTransaction({
-        id: id,
-      });
+      const response = await circleClient.getTransaction({ id });
 
       if (!response.data) {
         throw new Error("No data returned from transaction status check");
@@ -62,10 +74,7 @@ async function waitForTransactionStatus(id: string) {
       console.log("Transaction status response:", response.data);
 
       const status = response.data.transaction?.state;
-      if (status === "COMPLETE") {
-        return response.data;
-      }
-
+      if (status === "COMPLETE") return response.data;
       if (status === "FAILED") {
         throw new Error(
           `Transaction failed: ${response.data.transaction?.errorReason || "Unknown error"}`
@@ -91,11 +100,12 @@ async function waitForTransactionStatus(id: string) {
 export async function POST(req: NextRequest) {
   try {
     const body: CreateEscrowRequest = await req.json();
-    
+
     // Validate request
     if (
-      !body.depositorWalletId ||
-      !body.beneficiaryWalletId ||
+      !body.depositorAddress ||
+      !body.beneficiaryAddress ||
+      !body.agentAddress ||
       !body.agentWalletId ||
       !body.amountUSDC
     ) {
@@ -105,42 +115,43 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get Ethereum addresses for all wallets
-    console.log('Resolving wallet addresses...');
-    const [depositorAddress, beneficiaryAddress, agentAddress] = await Promise.all([
-      getWalletAddress(body.depositorWalletId),
-      getWalletAddress(body.beneficiaryWalletId),
-      getWalletAddress(body.agentWalletId)
-    ]);
-
-    console.log('Resolved addresses:', {
-      depositor: depositorAddress,
-      beneficiary: beneficiaryAddress,
-      agent: agentAddress
-    });
+    // Validate Ethereum addresses
+    const addressRegex = /^0x[a-fA-F0-9]{40}$/;
+    if (
+      !addressRegex.test(body.depositorAddress) ||
+      !addressRegex.test(body.beneficiaryAddress) ||
+      !addressRegex.test(body.agentAddress)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid Ethereum address format" },
+        { status: 400 }
+      );
+    }
 
     // Convert USDC amount to contract format
     const contractAmount = convertUSDCToContractAmount(body.amountUSDC);
 
     // Create contract execution transaction
-    const createResponse = await circleClient.createContractExecutionTransaction({
-      walletId: body.agentWalletId,
-      contractAddress: ESCROW_FACTORY_ADDRESS,
-      abiFunctionSignature: "createEscrow(address,address,address,uint256,address)",
-      abiParameters: [
-        depositorAddress,
-        beneficiaryAddress,
-        agentAddress,
-        contractAmount,
-        USDC_CONTRACT_ADDRESS,
-      ],
-      fee: {
-        type: "level",
-        config: {
-          feeLevel: "MEDIUM",
+    const createResponse =
+      await circleClient.createContractExecutionTransaction({
+        walletId: body.agentWalletId,
+        contractAddress: env.ESCROW_FACTORY_ADDRESS,
+        abiFunctionSignature:
+          "createEscrow(address,address,address,uint256,address)",
+        abiParameters: [
+          body.depositorAddress,
+          body.beneficiaryAddress,
+          body.agentAddress,
+          contractAmount,
+          env.USDC_CONTRACT_ADDRESS,
+        ],
+        fee: {
+          type: "level",
+          config: {
+            feeLevel: "MEDIUM",
+          },
         },
-      },
-    });
+      });
 
     if (!createResponse.data) {
       throw new Error("No data returned from transaction creation");
@@ -155,22 +166,22 @@ export async function POST(req: NextRequest) {
         status: "PENDING",
         message: "Escrow contract creation initiated",
         addresses: {
-          depositor: depositorAddress,
-          beneficiary: beneficiaryAddress,
-          agent: agentAddress
-        }
+          depositor: body.depositorAddress,
+          beneficiary: body.beneficiaryAddress,
+          agent: body.agentAddress,
+        },
       },
       { status: 201 }
     );
   } catch (error: any) {
     console.error("Error creating escrow:", error);
-
-    const errorResponse = {
-      error: "Failed to create escrow contract",
-      details: error.response?.data || error.message,
-    };
-
-    return NextResponse.json(errorResponse, { status: 500 });
+    return NextResponse.json(
+      {
+        error: "Failed to create escrow contract",
+        details: error.response?.data || error.message,
+      },
+      { status: 500 }
+    );
   }
 }
 
