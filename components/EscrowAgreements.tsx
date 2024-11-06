@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { FileText, ExternalLink, RotateCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useEscrowAgreements } from "@/hooks/useEscrowAgreements";
+import { useEscrowAgreements } from "@/app/hooks/useEscrowAgreements";
 import { EscrowListProps, AgreementStatus } from "@/types/escrow";
 import { getStatusColor } from "@/lib/utils/escrow";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { createFileService } from "@/services/file.service";
-import { createAgreementService } from "@/services/agreement.service";
+import { createFileService } from "@/app/services/file.service";
+import { createAgreementService } from "@/app/services/agreement.service";
 import { CreateAgreementProps } from "@/types/agreements";
 import { createClient } from "@/lib/utils/supabase/client";
 
