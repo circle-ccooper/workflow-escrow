@@ -39,7 +39,6 @@ function getEnvVariables(): EnvVariables {
 
 // Get environment variables
 const env = getEnvVariables();
-console.log("Environment variables, ", env);
 
 // Initialize Circle client
 const circleClient = initiateDeveloperControlledWalletsClient({
