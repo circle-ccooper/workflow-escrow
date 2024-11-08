@@ -56,7 +56,7 @@ UPDATE USING (
         bucket_id = 'agreement-documents'
         AND auth.role() = 'authenticated'
     );
-DO $$ 
+DO $$
 DECLARE
   v_bucket_exists boolean;
 BEGIN
@@ -69,8 +69,8 @@ BEGIN
  RAISE NOTICE 'Bucket agreement-documents exists: %', v_bucket_exists;
 
   INSERT INTO storage.buckets (
-    id, 
-    name, 
+    id,
+    name,
     public,
     file_size_limit,
     allowed_mime_types
@@ -81,7 +81,7 @@ BEGIN
     false,
     10485760,  -- 10MB limit
     ARRAY['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-  ) 
+  )
   ON CONFLICT (id) DO UPDATE SET
     file_size_limit = EXCLUDED.file_size_limit,
     allowed_mime_types = EXCLUDED.allowed_mime_types

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 
-import { createEscrowService } from "@/services/escrow.service";
+import { createEscrowService } from "@/app/services/escrow.service";
 import { EscrowAgreementWithDetails, EscrowListProps } from "@/types/escrow";
 import { createClient } from "@/lib/utils/supabase/client";
 
