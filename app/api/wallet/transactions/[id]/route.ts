@@ -67,8 +67,8 @@ export async function GET(
         { status: 404 },
       );
     }
-
-    const transaction: Transaction = {
+    //Needs to be fixed
+    const transaction: any = {
       id: response.data.transaction.id,
       amounts: response.data.transaction.amounts,
       state: response.data.transaction.state,
