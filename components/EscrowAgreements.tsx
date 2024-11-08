@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
+import { useEffect, useRef, useState } from "react";
 import { FileText, ExternalLink, RotateCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { EscrowListProps, AgreementStatus } from "@/types/escrow";
 import { getStatusColor } from "@/lib/utils/escrow";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
 interface Task {
   description: string;
@@ -28,9 +30,76 @@ const baseUrl = process.env.VERCEL_URL
   : "http://127.0.0.1:3000";
 
 export const EscrowAgreements = (props: EscrowListProps) => {
+  const supabase = createSupabaseBrowserClient();
+
   const hiddenFileInput = useRef<HTMLInputElement>(null);
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
   const [uploading, setUploading] = useState(false);
+
+  const handler = async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // Get the wallet id for both users involved in the escrow agreement that contains the updated transaction id
+    const { data: agreementWallets, error: agreementWalletsError } = await supabase
+      .from("escrow_agreements")
+      .select("beneficiary_wallet_id,depositor_wallet_id")
+      .eq("transaction_id", payload.old.id)
+      .single();
+
+    if (agreementWalletsError) {
+      console.error("Could not find an escrow agreement with such transaction_id:", agreementWalletsError);
+      return;
+    }
+
+    // Get the id of users involved in the agreement from their wallets
+    const { data: foundUsers, error: foundUsersError } = await supabase
+      .from("wallets")
+      .select("profile_id")
+      .in("id", [agreementWallets.beneficiary_wallet_id, agreementWallets.depositor_wallet_id]);
+
+    if (foundUsersError) {
+      console.error("Could not find users involved in the agreement with the given wallet id's", foundUsersError);
+      return;
+    }
+
+    const formattedUserIds = foundUsers.map(foundUser => foundUser.profile_id)
+
+    // Get the auth_user_id of users involved in the agreement from their id's
+    const { data: anotherFoundUsers, error: anotherFoundUsersError } = await supabase
+      .from("profiles")
+      .select("auth_user_id")
+      .in("id", formattedUserIds);
+
+    if (anotherFoundUsersError) {
+      console.error("Could not find auth_user_id's with the given user id's", anotherFoundUsersError);
+      return;
+    }
+
+    const formattedAuthUserIds = anotherFoundUsers.map(anotherFoundUser => anotherFoundUser.auth_user_id);
+    const isUserInvolvedInAgreement = formattedAuthUserIds.includes(user?.id);
+
+    if (!isUserInvolvedInAgreement) return;
+
+    console.log("Escrow agreement status update:", payload.new.status);
+    toast.info(`Escrow agreement status: ${payload.new.status}`);
+  }
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel("transactions")
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "transactions"
+      }, handler)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    }
+  }, []);
 
   const handleClick = () => {
     hiddenFileInput.current?.click();

@@ -9,5 +9,6 @@ namespace NodeJS {
     GOOGLE_CLIENT_SECRET: string
     OPENAI_API_KEY: string
     OPENAI_ASSISTANT_ID: string
+    NEXT_PUBLIC_USDC_CONTRACT_ADDRESS: string
   }
 }

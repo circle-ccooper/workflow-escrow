@@ -5,6 +5,7 @@ import { createFileService } from "@/app/services/file.service";
 import { createAgreementService } from "@/app/services/agreement.service";
 import { CreateAgreementProps } from "@/types/agreements";
 import { createClient } from "@/lib/utils/supabase/client";
+import { parseAmount } from "@/lib/utils/amount";
 
 interface Amount {
   amount: string;
@@ -25,28 +26,9 @@ interface DocumentAnalysis {
   tasks: Task[];
 }
 
-// Updated amount parser to handle the new format
-const parseAmount = (amountStr: string): number => {
-  if (!amountStr) {
-    throw new Error("No amount provided");
-  }
-
-  const cleanAmount = amountStr
-    .replace(/[()]/g, "")
-    .replace(/[$€£,\s]/g, "")
-    .replace(/−/g, "-");
-
-  const amount = parseFloat(cleanAmount);
-
-  if (Number.isNaN(amount) || amount <= 0) {
-    throw new Error(`Invalid amount: ${amountStr}`);
-  }
-
-  return amount;
-};
-
 export const useContractUpload = (props: CreateAgreementProps) => {
   const [uploading, setUploading] = useState(false);
+  const [done, setDone] = useState(false);
   const supabase = createClient();
   const fileService = createFileService(supabase);
   const agreementService = createAgreementService(supabase);
@@ -169,8 +151,9 @@ export const useContractUpload = (props: CreateAgreementProps) => {
       });
     } finally {
       setUploading(false);
+      setDone(true);
     }
   };
 
-  return { handleFileUpload, uploading };
+  return { handleFileUpload, uploading, done };
 };

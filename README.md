@@ -61,10 +61,13 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
    ```
    NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
    NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
+   NEXT_PUBLIC_USDC_CONTRACT_ADDRESS=[INSERT USDC CONTRACT ADDRESS]
    CIRCLE_API_KEY=[INSERT CIRCLE API KEY]
    CIRCLE_ENTITY_SECRET=[INSERT CIRCLE ENTITY SECRET]
    GOOGLE_CLIENT_ID=[INSERT GOOGLE CLIENT ID]
    GOOGLE_CLIENT_SECRET=[INSERT GOOGLE CLIENT SECRET]
+   OPENAI_API_KEY=[INSERT OPENAI API KEY]
+   OPENAI_ASSISTANT_ID=[INSERT OPENAI ASSISTANT ID]
    ```
 
    - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api)
@@ -74,6 +77,8 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
    - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` can be found in the [Google Cloud Developer Console](https://console.cloud.google.com/apis/credentials?project=workflow-escrow) of the project (APIs & Services > Credentials > Web)
 
    - `OPENAI_API_KEY` can be found in the [Settings](https://platform.openai.com/settings) of your OpenAI account (Settings > API keys), while `OPENAI_ASSISTANT_ID` is located on the [Assistants](https://platform.openai.com/assistants) page, after selecting the desired assistant, the ID can be seen right below the "Name" input.
+
+   - **TODO**: Information on whether to find `NEXT_PUBLIC_USDC_CONTRACT_ADDRESS` should be added here
 
 5. Then start a local instance of the Supabase server:
 

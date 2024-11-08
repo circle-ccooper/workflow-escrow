@@ -239,26 +239,30 @@ export const CreateAgreementPage = () => {
                         placeholder="Search beneficiary..."
                       />
                       <CommandList>
-                        <CommandEmpty>No beneficiaries found.</CommandEmpty>
-                        <CommandGroup>
-                          {beneficiaries.map(beneficiary => (
-                            <CommandItem
-                              key={beneficiary.id}
-                              value={beneficiary.name}
-                              onSelect={handleBeneficiarySelect}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  selectedBeneficiary?.id === beneficiary.id
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {beneficiary.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
+                        {beneficiaries.length > 0
+                          ? (
+                            <CommandGroup>
+                              {beneficiaries.map(beneficiary => (
+                                <CommandItem
+                                  key={beneficiary.id}
+                                  value={beneficiary.name}
+                                  onSelect={handleBeneficiarySelect}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      selectedBeneficiary?.id === beneficiary.id
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {beneficiary.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          )
+                          : <CommandEmpty>No beneficiaries found.</CommandEmpty>
+                        }
                       </CommandList>
                     </Command>
                   </PopoverContent>
