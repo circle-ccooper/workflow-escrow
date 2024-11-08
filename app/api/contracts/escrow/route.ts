@@ -136,10 +136,16 @@ export async function POST(req: NextRequest) {
 
     // Create contract execution transaction
     const createResponse = await circleContractClient.deployContract({
-      walletId: body.agentWalletId,
       name: `Escrow ${body.beneficiaryAddress}`,
-      bytecode: CONTRACT_BYTECODE,
+      description: `Escrow ${body.beneficiaryAddress}`,
+      walletId: body.agentWalletId,
       blockchain: "MATIC-AMOY",
+      fee: {
+        type: "level",
+        config: {
+          feeLevel: "MEDIUM",
+        },
+      },
       constructorParameters: [
         body.depositorAddress,
         body.beneficiaryAddress,
@@ -148,12 +154,7 @@ export async function POST(req: NextRequest) {
         env.USDC_CONTRACT_ADDRESS,
       ],
       abiJson: ABIJSON,
-      fee: {
-        type: "level",
-        config: {
-          feeLevel: "MEDIUM",
-        },
-      },
+      bytecode: CONTRACT_BYTECODE,
     });
 
     if (!createResponse.data) {
