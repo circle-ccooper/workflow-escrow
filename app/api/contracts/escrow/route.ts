@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
+import { initiateSmartContractPlatformClient } from "@circle-fin/smart-contract-platform";
+import { ABIJSON, CONTRACT_BYTECODE } from "@/lib/constants";
 
 // Environment variable validation
 const requiredEnvVars = [
   "CIRCLE_API_KEY",
   "CIRCLE_ENTITY_SECRET",
-  "USDC_CONTRACT_ADDRESS",
-  "ESCROW_FACTORY_ADDRESS",
+  "USDC_CONTRACT_ADDRESS",  
 ] as const;
 
 // Type for environment variables
 interface EnvVariables {
   CIRCLE_API_KEY: string;
   CIRCLE_ENTITY_SECRET: string;
-  USDC_CONTRACT_ADDRESS: string;
-  ESCROW_FACTORY_ADDRESS: string;
+  USDC_CONTRACT_ADDRESS: string;  
 }
 
 // Validate and get environment variables
@@ -32,8 +32,7 @@ function getEnvVariables(): EnvVariables {
   return {
     CIRCLE_API_KEY: process.env.CIRCLE_API_KEY!,
     CIRCLE_ENTITY_SECRET: process.env.CIRCLE_ENTITY_SECRET!,
-    USDC_CONTRACT_ADDRESS: process.env.USDC_CONTRACT_ADDRESS!,
-    ESCROW_FACTORY_ADDRESS: process.env.ESCROW_FACTORY_ADDRESS!,
+    USDC_CONTRACT_ADDRESS: process.env.USDC_CONTRACT_ADDRESS!,    
   };
 }
 
@@ -42,6 +41,11 @@ const env = getEnvVariables();
 
 // Initialize Circle client
 const circleClient = initiateDeveloperControlledWalletsClient({
+  apiKey: env.CIRCLE_API_KEY,
+  entitySecret: env.CIRCLE_ENTITY_SECRET,
+});
+// Initialize Circle Smart Contract client
+const circleContractClient = initiateSmartContractPlatformClient({
   apiKey: env.CIRCLE_API_KEY,
   entitySecret: env.CIRCLE_ENTITY_SECRET,
 });
@@ -131,26 +135,26 @@ export async function POST(req: NextRequest) {
     const contractAmount = convertUSDCToContractAmount(body.amountUSDC);
 
     // Create contract execution transaction
-    const createResponse =
-      await circleClient.createContractExecutionTransaction({
-        walletId: body.agentWalletId,
-        contractAddress: env.ESCROW_FACTORY_ADDRESS,
-        abiFunctionSignature:
-          "createEscrow(address,address,address,uint256,address)",
-        abiParameters: [
-          body.depositorAddress,
-          body.beneficiaryAddress,
-          body.agentAddress,
-          contractAmount,
-          env.USDC_CONTRACT_ADDRESS,
-        ],
-        fee: {
-          type: "level",
-          config: {
-            feeLevel: "MEDIUM",
-          },
+    const createResponse = await circleContractClient.deployContract({
+      walletId: body.agentWalletId,
+      name: `Escrow ${body.beneficiaryAddress}`,
+      bytecode: CONTRACT_BYTECODE,
+      blockchain: "MATIC-AMOY",
+      constructorParameters: [
+        body.depositorAddress,
+        body.beneficiaryAddress,
+        body.agentAddress,
+        contractAmount,
+        env.USDC_CONTRACT_ADDRESS,
+      ],
+      abiJson: ABIJSON,
+      fee: {
+        type: "level",
+        config: {
+          feeLevel: "MEDIUM",
         },
-      });
+      },
+    });
 
     if (!createResponse.data) {
       throw new Error("No data returned from transaction creation");
@@ -161,7 +165,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        id: createResponse.data.id,
+        id: createResponse.data.contractId,
+        transactionId: createResponse.data.transactionId,
         status: "PENDING",
         message: "Escrow contract creation initiated",
         addresses: {
