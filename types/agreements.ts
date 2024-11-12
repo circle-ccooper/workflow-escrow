@@ -57,14 +57,14 @@ export interface EscrowAgreement {
   }[];
 }
 
-/** Properties required to create a new escrow agreement */
+
 export interface CreateAgreementProps {
-  beneficiaryWalletId: string; // Made required since both wallets will always be present
-  depositorWalletId: string; // Made required since both wallets will always be present
-  userId: string; // ID of the user creating the agreement
-  userProfileId: string; // Made required since it's needed for the relationship
+  beneficiaryWalletId: string; 
+  depositorWalletId: string; 
+  userId: string; 
+  userProfileId: string; 
   onAnalysisComplete?: (
     analysis: DocumentAnalysis,
     agreement: EscrowAgreement
-  ) => void; // Called after successful document analysis and agreement creation
+  ) => void; 
 }
