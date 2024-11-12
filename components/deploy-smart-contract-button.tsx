@@ -1,0 +1,83 @@
+"use client";
+
+import { useSmartContract } from "@/app/hooks/useSmartContract";
+import { Button } from "@/components/ui/button";
+import { SYSTEM_AGENT_ADDRESS, SYSTEM_AGENT_WALLET_ID } from "@/lib/constants";
+import { Loader2, WalletCards } from "lucide-react";
+import { toast } from "sonner";
+
+interface CreateSmartContractButtonProps {
+  depositorAddress: string;
+  beneficiaryAddress: string;
+  amountUSDC: number;
+  onSuccess?: () => void;
+  disabled?: boolean;
+}
+
+export const CreateSmartContractButton = ({
+  depositorAddress,
+  beneficiaryAddress,
+  amountUSDC,
+  onSuccess,
+  disabled,
+}: CreateSmartContractButtonProps) => {
+  const { createSmartContract, isLoading } = useSmartContract();
+  //log all props
+  console.log({depositorAddress, beneficiaryAddress, amountUSDC, onSuccess, disabled});
+
+  const handleCreateSmartContract = async () => {    
+    if (!SYSTEM_AGENT_ADDRESS || !SYSTEM_AGENT_WALLET_ID) {
+      toast.error("Configuration Error", {
+        description:
+          "System is not properly configured. Please check your environment variables.",
+      });
+      return;
+    }
+
+    try {
+      const result = await createSmartContract({
+        depositorAddress,
+        beneficiaryAddress,
+        agentAddress: SYSTEM_AGENT_ADDRESS,
+        agentWalletId: SYSTEM_AGENT_WALLET_ID,
+        amountUSDC,
+      });
+      console.log(result);
+
+      toast.success("Smart contract created", {
+        description: "Your smart contract is being processed",
+      });
+
+      onSuccess?.();
+    } catch (error) {
+      toast.error("Failed to create smart contract", {
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      });
+    }
+  };
+
+  return (
+    <Button
+      onClick={handleCreateSmartContract}
+      disabled={
+        isLoading ||
+        disabled ||
+        !SYSTEM_AGENT_ADDRESS ||
+        !SYSTEM_AGENT_WALLET_ID
+      }
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Creating...
+        </>
+      ) : (
+        <>
+          <WalletCards className="mr-2 h-4 w-4" />
+          Create Smart Contract
+        </>
+      )}
+    </Button>
+  );
+};

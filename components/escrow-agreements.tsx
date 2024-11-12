@@ -1,14 +1,19 @@
 "use client";
 
-import { useRef, useState } from "react";
 import { FileText, ExternalLink, RotateCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useEscrowAgreements } from "@/app/hooks/useEscrowAgreements";
-import { EscrowListProps, AgreementStatus } from "@/types/escrow";
+import {
+  EscrowListProps,
+  AgreementStatus,
+  EscrowAgreementWithDetails,
+} from "@/types/escrow";
 import { getStatusColor } from "@/lib/utils/escrow";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { useEscrowAgreements } from "@/app/hooks/useEscrowAgreements";
+
+import { CreateSmartContractButton } from "./deploy-smart-contract-button";
 
 interface Task {
   description: string;
@@ -23,53 +28,8 @@ interface Amount {
   location: string;
 }
 
-const baseUrl = process.env.VERCEL_URL
-  ? process.env.VERCEL_URL
-  : "http://127.0.0.1:3000";
-
 export const EscrowAgreements = (props: EscrowListProps) => {
-  const hiddenFileInput = useRef<HTMLInputElement>(null);
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
-  const [uploading, setUploading] = useState(false);
-
-  const handleClick = () => {
-    hiddenFileInput.current?.click();
-  };
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-
-    if (!files) return;
-
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append("file", files[0]);
-    event.target.value = "";
-
-    try {
-      const response = await fetch(`${baseUrl}/api/contracts/validateWork`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const parsedResponse = await response.json();
-
-      if (parsedResponse.error) {
-        return toast("Failed work validation", {
-          description: parsedResponse.error
-        });
-      }
-
-      toast("Successful work validation", {
-        description: parsedResponse.message
-      });
-    } catch (error) {
-      console.error("Error during image upload:", error);
-    } finally {
-      setUploading(false);
-    }
-  };
 
   if (error) {
     return (
@@ -88,6 +48,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       </Card>
     );
   }
+  console.log(agreements)
 
   return (
     <Card className="break-inside-avoid mb-4 w-full">
@@ -116,21 +77,20 @@ export const EscrowAgreements = (props: EscrowListProps) => {
           </div>
         ) : (
           <div className="space-y-4">
-            {agreements.map((agreement) => (
-              <div
-                key={agreement.id}
-                className="rounded-lg border p-4"
-              >
+            {agreements.map((agreement: EscrowAgreementWithDetails) => (
+              <div key={agreement.id} className="rounded-lg border p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <h3 className="font-medium">
                       Agreement with{" "}
-                      {agreement.depositor_wallet?.profiles.name || agreement.beneficiary_wallet.profiles.name}
+                      {agreement.depositor_wallet?.profiles.name ||
+                        agreement.beneficiary_wallet?.profiles.name}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Created {new Date(agreement.created_at).toLocaleString()}
                     </p>
                   </div>
+
                   <div className="flex items-center gap-2">
                     <span
                       className={`px-2 py-1 rounded text-sm font-medium ${getStatusColor(
@@ -140,6 +100,18 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                       {agreement.status}
                     </span>
                   </div>
+                </div>
+                <div>
+                  <CreateSmartContractButton
+                    depositorAddress={
+                      agreement.depositor_wallet?.wallet_address
+                    }
+                    beneficiaryAddress={
+                      agreement.beneficiary_wallet?.wallet_address
+                    }
+                    amountUSDC={1}
+                    onSuccess={() => {console.log("Success")}}
+                  />
                 </div>
                 {agreement.terms.documentUrl && (
                   <a
@@ -153,35 +125,36 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
-                {agreement.terms.amounts?.length > 0 && (
+                {agreement.terms.amounts &&
+                  agreement.terms.amounts.length > 0 && (
+                    <>
+                      <p className="text-sm font-medium text-muted-foreground mt-3">
+                        Amounts ({agreement.terms.amounts?.length})
+                      </p>
+                      <ul className="mt-1 space-y-1">
+                        {agreement.terms.amounts?.map(
+                          (amount: Amount, index: number) => (
+                            <li
+                              key={index}
+                              className="text-sm text-muted-foreground"
+                            >
+                              • {amount.for} - {amount.amount}
+                              <span className="text-xs ml-1">
+                                ({amount.location})
+                              </span>
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    </>
+                  )}
+                {agreement.terms.tasks && agreement.terms.tasks.length > 0 && (
                   <>
                     <p className="text-sm font-medium text-muted-foreground mt-3">
-                      Amounts ({agreement.terms.amounts.length})
+                      Tasks ({agreement.terms.tasks?.length})
                     </p>
                     <ul className="mt-1 space-y-1">
-                      {agreement.terms.amounts.map(
-                        (amount: Amount, index: number) => (
-                          <li
-                            key={index}
-                            className="text-sm text-muted-foreground"
-                          >
-                            • {amount.for} - {amount.amount}
-                            <span className="text-xs ml-1">
-                              ({amount.location})
-                            </span>
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </>
-                )}
-                {agreement.terms.tasks?.length > 0 && (
-                  <>
-                    <p className="text-sm font-medium text-muted-foreground mt-3">
-                      Tasks ({agreement.terms.tasks.length})
-                    </p>
-                    <ul className="mt-1 space-y-1">
-                      {agreement.terms.tasks.map(
+                      {agreement.terms.tasks?.map(
                         (task: Task, index: number) => (
                           <li
                             key={index}
@@ -197,20 +170,6 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                         )
                       )}
                     </ul>
-                  </>
-                )}
-                {!agreement.depositor_wallet?.profiles.name && (
-                  <>
-                    <input
-                      ref={hiddenFileInput}
-                      type="file"
-                      accept=".png,.jpg,.jpeg"
-                      onChange={handleFileChange}
-                      hidden
-                    />
-                    <Button className="mt-3" onClick={handleClick} disabled={uploading}>
-                      {uploading ? "Uploading..." : "Submit work"}
-                    </Button>
                   </>
                 )}
               </div>

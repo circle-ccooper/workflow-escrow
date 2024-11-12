@@ -1,21 +1,26 @@
 import { EscrowAgreement } from "./agreements";
 
 export interface EscrowAgreementWithDetails extends EscrowAgreement {
+  // Wallet IDs
+  beneficiary_wallet_id: string;
+  depositor_wallet_id: string;
+
+  
   depositor_wallet: {
     profile_id: string;
+    wallet_address: string;
     profiles: {
       name: string;
     }
   };
   beneficiary_wallet: {
     profile_id: string;
+    wallet_address: string;
     profiles: {
-      // Changed from profile to profiles to match Supabase query structure
       name: string;
     };
   };
   transactions: {
-    // Changed from transaction to transactions to match array return
     amount: number;
     currency: string;
     status: string;
