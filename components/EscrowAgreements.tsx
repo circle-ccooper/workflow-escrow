@@ -54,36 +54,60 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     }
 
     // Get the id of users involved in the agreement from their wallets
-    const { data: foundUsers, error: foundUsersError } = await supabase
+    const { data: usersFromWallets, error: usersFromWalletsError } = await supabase
       .from("wallets")
       .select("profile_id")
       .in("id", [agreementWallets.beneficiary_wallet_id, agreementWallets.depositor_wallet_id]);
 
-    if (foundUsersError) {
-      console.error("Could not find users involved in the agreement with the given wallet id's", foundUsersError);
+    if (usersFromWalletsError) {
+      console.error("Could not find users involved in the agreement with the given wallet id's", usersFromWallets);
       return;
     }
 
-    const formattedUserIds = foundUsers.map(foundUser => foundUser.profile_id)
+    const formattedUserIds = usersFromWallets.map(userFromWallet => userFromWallet.profile_id)
 
     // Get the auth_user_id of users involved in the agreement from their id's
-    const { data: anotherFoundUsers, error: anotherFoundUsersError } = await supabase
+    const { data: foundUsers, error: foundUsersError } = await supabase
       .from("profiles")
       .select("auth_user_id")
       .in("id", formattedUserIds);
 
-    if (anotherFoundUsersError) {
-      console.error("Could not find auth_user_id's with the given user id's", anotherFoundUsersError);
+    if (foundUsersError) {
+      console.error("Could not find auth_user_id's with the given user id's", foundUsersError);
       return;
     }
 
-    const formattedAuthUserIds = anotherFoundUsers.map(anotherFoundUser => anotherFoundUser.auth_user_id);
+    const formattedAuthUserIds = foundUsers.map(foundUser => foundUser.auth_user_id);
     const isUserInvolvedInAgreement = formattedAuthUserIds.includes(user?.id);
 
     if (!isUserInvolvedInAgreement) return;
 
-    console.log("Escrow agreement status update:", payload.new.status);
-    toast.info(`Escrow agreement status: ${payload.new.status}`);
+    const smartContractDeploymentStatus = payload.new.status
+
+    console.log("Escrow agreement status update:", smartContractDeploymentStatus);
+    toast.info(`Escrow agreement status update: ${smartContractDeploymentStatus}`);
+
+    const shouldRefresh = smartContractDeploymentStatus === "PENDING";
+
+    if (shouldRefresh) {
+      refresh();
+    }
+
+    const isSmartContractDeployed = smartContractDeploymentStatus === "CONFIRMED";
+
+    if (!isSmartContractDeployed) return;
+
+    const { error: agreementStatusUpdateError } = await supabase
+      .from("escrow_agreements")
+      .update({ status: "OPEN" })
+      .eq("transaction_id", payload.old.id);
+
+    if (agreementStatusUpdateError) {
+      console.error("Could not update smart contract status", agreementStatusUpdateError);
+      return;
+    }
+
+    refresh();
   }
 
   useEffect(() => {
