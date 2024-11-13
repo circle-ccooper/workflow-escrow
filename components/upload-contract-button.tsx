@@ -47,8 +47,7 @@ export const UploadContractButton = (props: CreateAgreementProps) => {
           depositorAddress: depositor?.wallet_address,
           beneficiaryAddress: beneficiary?.wallet_address,
           agentAddress: process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS,
-          // Used for testing purposes
-          agentWalletId: "a177f8f6-a55d-5f4f-aa1f-16554ec03b77",
+          agentWalletId: process.env.NEXT_PUBLIC_AGENT_WALLET_ID,
           amountUSDC: 1,
         }),
       });

@@ -62,6 +62,7 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
    NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
    NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
    NEXT_PUBLIC_USDC_CONTRACT_ADDRESS=[INSERT USDC CONTRACT ADDRESS]
+   NEXT_PUBLIC_AGENT_WALLET_ID=[INSERT AGENT WALLET ID]
    CIRCLE_API_KEY=[INSERT CIRCLE API KEY]
    CIRCLE_ENTITY_SECRET=[INSERT CIRCLE ENTITY SECRET]
    GOOGLE_CLIENT_ID=[INSERT GOOGLE CLIENT ID]
@@ -79,6 +80,8 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
    - `OPENAI_API_KEY` can be found in the [Settings](https://platform.openai.com/settings) of your OpenAI account (Settings > API keys), while `OPENAI_ASSISTANT_ID` is located on the [Assistants](https://platform.openai.com/assistants) page, after selecting the desired assistant, the ID can be seen right below the "Name" input.
 
    - `NEXT_PUBLIC_USDC_CONTRACT_ADDRESS` is documented [here](https://developers.circle.com/stablecoins/usdc-on-test-networks) alongside other blockchain test networks, like Polygon PoS Amoy (the one used in the project).
+
+   - For development purposes, `NEXT_PUBLIC_AGENT_WALLET_ID` can be the address of any developer controlled wallet registered on [Circle](https://console.circle.com/wallets/dev/wallets), that might change for a production scenario.
 
 5. Then start a local instance of the Supabase server:
 
