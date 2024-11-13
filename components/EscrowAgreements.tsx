@@ -45,30 +45,31 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       throw new Error("Not authenticated");
     }
 
-    // Get the wallet id for both users involved in the escrow agreement that contains the updated transaction id
-    const { data: agreementWallets, error: agreementWalletsError } = await supabase
+    // Get the id of users involved in the agreement from their wallets
+    const { data: agreementUsers, error: agreementUsersError } = await supabase
       .from("escrow_agreements")
-      .select("beneficiary_wallet_id,depositor_wallet_id")
+      .select(`
+        beneficiary_wallet_id,
+        depositor_wallet_id,
+        beneficiary_wallet:wallets!beneficiary_wallet_id(profile_id),
+        depositor_wallet:wallets!depositor_wallet_id(profile_id)
+      `)
       .eq("transaction_id", payload.old.id)
       .single();
 
-    if (agreementWalletsError) {
-      console.error("Could not find an escrow agreement with such transaction_id:", agreementWalletsError);
+    if (agreementUsersError) {
+      console.error("Could not find users involved in the given agreement", agreementUsersError);
       return;
     }
 
-    // Get the id of users involved in the agreement from their wallets
-    const { data: usersFromWallets, error: usersFromWalletsError } = await supabase
-      .from("wallets")
-      .select("profile_id")
-      .in("id", [agreementWallets.beneficiary_wallet_id, agreementWallets.depositor_wallet_id]);
+    const userIds = [
+      agreementUsers.beneficiary_wallet,
+      agreementUsers.depositor_wallet
+    ];
 
-    if (usersFromWalletsError) {
-      console.error("Could not find users involved in the agreement with the given wallet id's", usersFromWalletsError);
-      return;
-    }
-
-    const formattedUserIds = usersFromWallets.map(userFromWallet => userFromWallet.profile_id)
+    const formattedUserIds = userIds
+      .flat()
+      .map(wallet => wallet.profile_id);
 
     // Get the auth_user_id of users involved in the agreement from their id's
     const { data: foundUsers, error: foundUsersError } = await supabase
