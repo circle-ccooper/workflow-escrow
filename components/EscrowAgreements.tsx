@@ -1,7 +1,7 @@
 "use client";
 
 import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { FileText, ExternalLink, RotateCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,10 +36,14 @@ export const EscrowAgreements = (props: EscrowListProps) => {
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
   const [uploading, setUploading] = useState(false);
 
-  const handler = async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
+  const updateEscrowAgreements = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error("Not authenticated");
+    }
 
     // Get the wallet id for both users involved in the escrow agreement that contains the updated transaction id
     const { data: agreementWallets, error: agreementWalletsError } = await supabase
@@ -60,7 +64,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       .in("id", [agreementWallets.beneficiary_wallet_id, agreementWallets.depositor_wallet_id]);
 
     if (usersFromWalletsError) {
-      console.error("Could not find users involved in the agreement with the given wallet id's", usersFromWallets);
+      console.error("Could not find users involved in the agreement with the given wallet id's", usersFromWalletsError);
       return;
     }
 
@@ -108,7 +112,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     }
 
     refresh();
-  }
+  }, [supabase, refresh]);
 
   useEffect(() => {
     const subscription = supabase
@@ -117,13 +121,13 @@ export const EscrowAgreements = (props: EscrowListProps) => {
         event: "UPDATE",
         schema: "public",
         table: "transactions"
-      }, handler)
+      }, updateEscrowAgreements)
       .subscribe();
 
     return () => {
       supabase.removeChannel(subscription);
     }
-  }, []);
+  }, [supabase, updateEscrowAgreements]);
 
   const handleClick = () => {
     hiddenFileInput.current?.click();

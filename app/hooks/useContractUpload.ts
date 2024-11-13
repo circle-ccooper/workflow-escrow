@@ -51,6 +51,8 @@ export const useContractUpload = (props: CreateAgreementProps) => {
   };
 
   const handleFileUpload = async (file: File) => {
+    setDone(false);
+
     if (!props.beneficiaryWalletId) {
       toast.error("Missing beneficiary", {
         description: "Please select a beneficiary before uploading a contract",
