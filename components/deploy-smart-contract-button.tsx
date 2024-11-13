@@ -9,7 +9,7 @@ import { toast } from "sonner";
 interface CreateSmartContractButtonProps {
   depositorAddress: string;
   beneficiaryAddress: string;
-  amountUSDC: number;
+  amountUSDC: number | undefined;
   onSuccess?: () => void;
   disabled?: boolean;
 }
@@ -30,6 +30,14 @@ export const CreateSmartContractButton = ({
       toast.error("Configuration Error", {
         description:
           "System is not properly configured. Please check your environment variables.",
+      });
+      return;
+    }
+
+    if (!amountUSDC) {
+      toast.error("Invalid amount for the contract", {
+        description:
+          "Amount for the contract should be greater than 0",
       });
       return;
     }

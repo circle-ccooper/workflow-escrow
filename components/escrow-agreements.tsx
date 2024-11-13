@@ -47,8 +47,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
         </CardContent>
       </Card>
     );
-  }
-  console.log(agreements)
+  }  
 
   return (
     <Card className="break-inside-avoid mb-4 w-full">
@@ -108,9 +107,16 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                     }
                     beneficiaryAddress={
                       agreement.beneficiary_wallet?.wallet_address
+                    }                    
+                    amountUSDC={
+                      agreement.terms.amounts &&
+                      parseFloat(
+                        agreement.terms.amounts[0]?.amount.replace(/[$,]/g, "")
+                      )
                     }
-                    amountUSDC={1}
-                    onSuccess={() => {console.log("Success")}}
+                    onSuccess={() => {
+                      console.log("Success");
+                    }}
                   />
                 </div>
                 {agreement.terms.documentUrl && (
