@@ -23,40 +23,49 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
 
     const { data, error } = await supabase
       .from("escrow_agreements")
-      .select(`
-        *,
-        depositor_wallet:wallets!escrow_agreements_depositor_wallet_id_fkey (
-          profile_id,
-          profiles!wallets_profile_id_fkey (
-            name
-          )
-        ),
-        beneficiary_wallet:wallets!escrow_agreements_beneficiary_wallet_id_fkey (
-          profile_id,
-          profiles!wallets_profile_id_fkey (
-            name
-          )
-        ),
-        transactions (
-          amount,
-          currency,
-          status
+      .select(
+        `
+      *,
+      depositor_wallet:wallets!escrow_agreements_depositor_wallet_id_fkey (
+        profile_id,
+        wallet_address,
+        profiles!wallets_profile_id_fkey (
+          name
         )
-      `)
-      .or(`depositor_wallet_id.in.(${profileWallet.id}),beneficiary_wallet_id.in.(${profileWallet.id})`);
+      ),
+      beneficiary_wallet:wallets!escrow_agreements_beneficiary_wallet_id_fkey (
+        profile_id,
+        wallet_address,
+        profiles!wallets_profile_id_fkey (
+          name
+        )
+      ),
+      transactions (
+        amount,
+        currency,
+        status
+      )
+    `
+      )
+      .or(
+        `depositor_wallet_id.in.(${profileWallet.id}),beneficiary_wallet_id.in.(${profileWallet.id})`
+      );
 
     if (error) {
       throw new Error(`Failed to fetch agreements: ${error.message}`);
     }
 
+    // Modified data processing to keep both wallet details
     const filteredData = data?.map((agreement) => {
       const isDepositor = agreement.depositor_wallet?.profile_id === profileId;
-      const isBeneficiary = agreement.beneficiary_wallet?.profile_id === profileId;
+      const isBeneficiary =
+        agreement.beneficiary_wallet?.profile_id === profileId;
 
       return {
         ...agreement,
-        depositor_wallet: isDepositor ? agreement.beneficiary_wallet : null,
-        beneficiary_wallet: isBeneficiary ? agreement.depositor_wallet : null,
+        userRole: isDepositor ? "depositor" : "beneficiary", // Optional: Add role context
+        depositor_wallet: agreement.depositor_wallet, // Keep original depositor wallet
+        beneficiary_wallet: agreement.beneficiary_wallet, // Keep original beneficiary wallet
       };
     });
 

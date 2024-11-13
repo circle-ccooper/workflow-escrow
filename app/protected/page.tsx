@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/copy-button";
 import { WalletTransactionsResponse } from "@/app/api/wallet/transactions/route";
-import { EscrowAgreements } from "@/components/EscrowAgreements";
+import { EscrowAgreements } from "@/components/escrow-agreements";
 
 const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
