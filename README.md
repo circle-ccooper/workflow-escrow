@@ -78,7 +78,7 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
    - `OPENAI_API_KEY` can be found in the [Settings](https://platform.openai.com/settings) of your OpenAI account (Settings > API keys), while `OPENAI_ASSISTANT_ID` is located on the [Assistants](https://platform.openai.com/assistants) page, after selecting the desired assistant, the ID can be seen right below the "Name" input.
 
-   - **TODO**: Information on whether to find `NEXT_PUBLIC_USDC_CONTRACT_ADDRESS` should be added here
+   - **TODO**: Information on where to find `NEXT_PUBLIC_USDC_CONTRACT_ADDRESS` should be added here
 
 5. Then start a local instance of the Supabase server:
 
