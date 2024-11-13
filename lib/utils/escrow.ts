@@ -2,9 +2,9 @@ import { AgreementStatus } from "@/types/escrow";
 
 const STATUS_COLORS: Record<AgreementStatus, string> = {
   PENDING: "text-yellow-500 bg-yellow-500/10",
-  ACTIVE: "text-green-500 bg-green-500/10",
-  COMPLETED: "text-blue-500 bg-blue-500/10",
-  CANCELLED: "text-destructive bg-destructive/10",
+  OPEN: "text-green-500 bg-green-500/10",
+  LOCKED: "text-blue-500 bg-blue-500/10",
+  CLOSED: "text-destructive bg-destructive/10",
 };
 
 export const getStatusColor = (status: AgreementStatus) => {
@@ -29,13 +29,3 @@ export const formatAmount = (amount: number, currency: string) => {
     throw new Error(`Invalid currency code: ${currency}`);
   }
 };
-
-// export const formatDate = (date: string) => {
-//   return new Intl.DateTimeFormat("en-US", {
-//     year: "numeric",
-//     month: "short",
-//     day: "numeric",
-//     hour: "2-digit",
-//     minute: "2-digit",
-//   }).format(new Date(date));
-// };

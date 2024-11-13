@@ -32,4 +32,4 @@ export interface EscrowListProps {
   profileId: string;
 }
 
-export type AgreementStatus = "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
+export type AgreementStatus = "PENDING" | "OPEN" | "LOCKED" | "CLOSED";

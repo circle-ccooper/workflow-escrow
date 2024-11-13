@@ -7,14 +7,14 @@ import { ABIJSON, CONTRACT_BYTECODE } from "@/lib/constants";
 const requiredEnvVars = [
   "CIRCLE_API_KEY",
   "CIRCLE_ENTITY_SECRET",
-  "USDC_CONTRACT_ADDRESS",  
+  "NEXT_PUBLIC_USDC_CONTRACT_ADDRESS",
 ] as const;
 
 // Type for environment variables
 interface EnvVariables {
   CIRCLE_API_KEY: string;
   CIRCLE_ENTITY_SECRET: string;
-  USDC_CONTRACT_ADDRESS: string;  
+  NEXT_PUBLIC_USDC_CONTRACT_ADDRESS: string;
 }
 
 // Validate and get environment variables
@@ -32,7 +32,7 @@ function getEnvVariables(): EnvVariables {
   return {
     CIRCLE_API_KEY: process.env.CIRCLE_API_KEY!,
     CIRCLE_ENTITY_SECRET: process.env.CIRCLE_ENTITY_SECRET!,
-    USDC_CONTRACT_ADDRESS: process.env.USDC_CONTRACT_ADDRESS!,    
+    NEXT_PUBLIC_USDC_CONTRACT_ADDRESS: process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS!,
   };
 }
 
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
         body.beneficiaryAddress,
         body.agentAddress,
         contractAmount,
-        env.USDC_CONTRACT_ADDRESS,
+        env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS,
       ],
       abiJson: ABIJSON,
       bytecode: CONTRACT_BYTECODE,
