@@ -178,7 +178,6 @@ export const CreateAgreementPage = () => {
   ) => {
     console.log("Document analysis completed:", analysis);
     console.log("Agreement created:", agreement);
-    // Add any additional handling here
   };
 
   if (error) {

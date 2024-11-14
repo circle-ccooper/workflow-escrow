@@ -1,15 +1,15 @@
 "use client";
 
 import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
-import { useEffect, useRef, useState, useCallback } from "react";
-import { FileText, ExternalLink, RotateCw } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
+import type {
   EscrowListProps,
   AgreementStatus,
   EscrowAgreementWithDetails,
 } from "@/types/escrow";
+import { useEffect, useCallback } from "react";
+import { FileText, ExternalLink, RotateCw } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { getStatusColor } from "@/lib/utils/escrow";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -17,6 +17,8 @@ import { useEscrowAgreements } from "@/app/hooks/useEscrowAgreements";
 
 import { CreateSmartContractButton } from "./deploy-smart-contract-button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
+import { Separator } from "@/components/ui/separator";
+import { SmartContractResponse } from "@/app/hooks/useSmartContract";
 
 interface Task {
   description: string;
@@ -34,8 +36,20 @@ interface Amount {
 export const EscrowAgreements = (props: EscrowListProps) => {
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
   const supabase = createSupabaseBrowserClient();
-  const hiddenFileInput = useRef<HTMLInputElement>(null);  
-  const [uploading, setUploading] = useState(false);
+
+  const updateTransactionId = async (agreement: EscrowAgreementWithDetails, response: SmartContractResponse) => {
+    // Update circle_transaction_id (is "PENDING" by default on creation)
+    // This is needed so we can find the transaction later on and update it's status
+    const { error } = await supabase
+      .from("transactions")
+      .update({ circle_transaction_id: response.transactionId })
+      .eq("id", agreement.transaction_id);
+
+    if (error) {
+      console.error("Failed to update Circle transaction ID:", error);
+      toast.error("An error occured while updating the Circle transaction ID");
+    }
+  }
 
   const updateEscrowAgreements = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
     const {
@@ -117,59 +131,37 @@ export const EscrowAgreements = (props: EscrowListProps) => {
   }, [supabase, refresh]);
 
   useEffect(() => {
-    const subscription = supabase
+    const transactionsSubscription = supabase
       .channel("transactions")
-      .on("postgres_changes", {
-        event: "UPDATE",
-        schema: "public",
-        table: "transactions"
-      }, updateEscrowAgreements)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "transactions"
+        },
+        updateEscrowAgreements
+      )
+      .subscribe();
+
+    const escrowAgreementsSubscription = supabase
+      .channel("escrow_agreements")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "escrow_agreements"
+        },
+        () => refresh()
+      )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(subscription);
+      supabase.removeChannel(transactionsSubscription);
+      supabase.removeChannel(escrowAgreementsSubscription);
     }
-  }, [supabase, updateEscrowAgreements]);
-
-  const handleClick = () => {
-    hiddenFileInput.current?.click();
-  };
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-
-    if (!files) return;
-
-    setUploading(true);
-
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
-    const formData = new FormData();
-    formData.append("file", files[0]);
-    event.target.value = "";
-
-    try {
-      const response = await fetch(`${baseUrl}/api/contracts/validateWork`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const parsedResponse = await response.json();
-
-      if (parsedResponse.error) {
-        return toast("Failed work validation", {
-          description: parsedResponse.error
-        });
-      }
-
-      toast("Successful work validation", {
-        description: parsedResponse.message
-      });
-    } catch (error) {
-      console.error("Error during image upload:", error);
-    } finally {
-      setUploading(false);
-    }
-  };
+  }, [supabase, updateEscrowAgreements, refresh]);
 
   if (error) {
     return (
@@ -187,7 +179,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
         </CardContent>
       </Card>
     );
-  }  
+  };
 
   return (
     <Card className="break-inside-avoid mb-4 w-full">
@@ -247,24 +239,23 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                     }
                     beneficiaryAddress={
                       agreement.beneficiary_wallet?.wallet_address
-                    }                    
+                    }
                     amountUSDC={
                       agreement.terms.amounts &&
                       parseFloat(
                         agreement.terms.amounts[0]?.amount.replace(/[$,]/g, "")
                       )
                     }
-                    onSuccess={() => {
-                      console.log("Success");
-                    }}
+                    onSuccess={response => updateTransactionId(agreement, response)}
                   />
                 </div>
+                <Separator className="my-4" />
                 {agreement.terms.documentUrl && (
                   <a
                     href={agreement.terms.documentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/90 mt-3"
+                    className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/90"
                   >
                     <FileText className="h-4 w-4" />
                     {agreement.terms.originalFileName}
