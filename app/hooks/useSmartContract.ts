@@ -8,7 +8,7 @@ interface CreateSmartContractRequest {
   amountUSDC: number;
 }
 
-interface SmartContractResponse {
+export interface SmartContractResponse {
   success: boolean;
   id?: string;
   transactionId?: string;
@@ -46,6 +46,8 @@ export function useSmartContract(): UseSmartContractReturn {
   const [error, setError] = useState<string | null>(null);
 
   const createSmartContract = useCallback(async (data: CreateSmartContractRequest): Promise<SmartContractResponse> => {
+    // ---------------------------------------------------------------------------------------------
+
     setIsLoading(true);
     setError(null);
 
@@ -61,12 +63,12 @@ export function useSmartContract(): UseSmartContractReturn {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create SmartContract');
+        throw new Error(result.error || 'Failed to create Smart contract');
       }
 
       return result;
     } catch (err: any) {
-      const errorMessage = err.message || 'An error occurred while creating the SmartContract';
+      const errorMessage = err.message || 'An error occurred while creating the Smart contract';
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {

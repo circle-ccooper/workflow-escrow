@@ -59,12 +59,12 @@ export interface EscrowAgreement {
 
 
 export interface CreateAgreementProps {
-  beneficiaryWalletId: string; 
-  depositorWalletId: string; 
-  userId: string; 
-  userProfileId: string; 
+  beneficiaryWalletId?: string;
+  depositorWalletId?: string;
+  userId: string;
+  userProfileId?: string;
   onAnalysisComplete?: (
     analysis: DocumentAnalysis,
     agreement: EscrowAgreement
-  ) => void; 
+  ) => void;
 }

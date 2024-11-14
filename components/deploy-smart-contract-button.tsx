@@ -1,6 +1,6 @@
 "use client";
 
-import { useSmartContract } from "@/app/hooks/useSmartContract";
+import { type SmartContractResponse, useSmartContract } from "@/app/hooks/useSmartContract";
 import { Button } from "@/components/ui/button";
 import { SYSTEM_AGENT_ADDRESS, SYSTEM_AGENT_WALLET_ID } from "@/lib/constants";
 import { Loader2, WalletCards } from "lucide-react";
@@ -10,7 +10,7 @@ interface CreateSmartContractButtonProps {
   depositorAddress: string;
   beneficiaryAddress: string;
   amountUSDC: number | undefined;
-  onSuccess?: () => void;
+  onSuccess?: (response: SmartContractResponse) => void;
   disabled?: boolean;
 }
 
@@ -22,10 +22,8 @@ export const CreateSmartContractButton = ({
   disabled,
 }: CreateSmartContractButtonProps) => {
   const { createSmartContract, isLoading } = useSmartContract();
-  //log all props
-  console.log({depositorAddress, beneficiaryAddress, amountUSDC, onSuccess, disabled});
 
-  const handleCreateSmartContract = async () => {    
+  const handleCreateSmartContract = async () => {
     if (!SYSTEM_AGENT_ADDRESS || !SYSTEM_AGENT_WALLET_ID) {
       toast.error("Configuration Error", {
         description:
@@ -43,20 +41,19 @@ export const CreateSmartContractButton = ({
     }
 
     try {
-      const result = await createSmartContract({
+      const response = await createSmartContract({
         depositorAddress,
         beneficiaryAddress,
         agentAddress: SYSTEM_AGENT_ADDRESS,
         agentWalletId: SYSTEM_AGENT_WALLET_ID,
         amountUSDC,
       });
-      console.log(result);
 
       toast.success("Smart contract created", {
         description: "Your smart contract is being processed",
       });
 
-      onSuccess?.();
+      onSuccess?.(response);
     } catch (error) {
       toast.error("Failed to create smart contract", {
         description:
