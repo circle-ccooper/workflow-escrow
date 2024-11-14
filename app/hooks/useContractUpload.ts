@@ -61,7 +61,6 @@ export const useContractUpload = (props: CreateAgreementProps) => {
     }
 
     let tempPath: string | null = null;
-    const toastId = toast.loading("Processing document...");
     setUploading(true);
 
     try {
@@ -117,7 +116,6 @@ export const useContractUpload = (props: CreateAgreementProps) => {
       });
 
       toast.success("Document processed successfully", {
-        id: toastId,
         description: `Found ${analysis.amounts.length} amounts and ${
           analysis.tasks?.length || 0
         } tasks`,
@@ -145,7 +143,6 @@ export const useContractUpload = (props: CreateAgreementProps) => {
       }
 
       toast.error("Process failed", {
-        id: toastId,
         description:
           error instanceof Error
             ? error.message
@@ -157,5 +154,5 @@ export const useContractUpload = (props: CreateAgreementProps) => {
     }
   };
 
-  return { handleFileUpload, uploading, done };
+  return { handleFileUpload, analyzeDocument, uploading, done };
 };
