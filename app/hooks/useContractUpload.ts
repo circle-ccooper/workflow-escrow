@@ -15,7 +15,7 @@ interface Amount {
 }
 
 interface Task {
-  task_description: string;
+  description: string;
   due_date: string | null;
   responsible_party: string;
   additional_details: string;
