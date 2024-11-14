@@ -46,8 +46,6 @@ export function useSmartContract(): UseSmartContractReturn {
   const [error, setError] = useState<string | null>(null);
 
   const createSmartContract = useCallback(async (data: CreateSmartContractRequest): Promise<SmartContractResponse> => {
-    // ---------------------------------------------------------------------------------------------
-
     setIsLoading(true);
     setError(null);
 

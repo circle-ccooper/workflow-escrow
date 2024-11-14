@@ -40,10 +40,15 @@ export const EscrowAgreements = (props: EscrowListProps) => {
   const updateTransactionId = async (agreement: EscrowAgreementWithDetails, response: SmartContractResponse) => {
     // Update circle_transaction_id (is "PENDING" by default on creation)
     // This is needed so we can find the transaction later on and update it's status
-    await supabase
+    const { error } = await supabase
       .from("transactions")
       .update({ circle_transaction_id: response.transactionId })
       .eq("id", agreement.transaction_id);
+
+    if (error) {
+      console.error("Failed to update Circle transaction ID:", error);
+      toast.error("An error occured while updating the Circle transaction ID");
+    }
   }
 
   const updateEscrowAgreements = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
@@ -156,7 +161,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       supabase.removeChannel(transactionsSubscription);
       supabase.removeChannel(escrowAgreementsSubscription);
     }
-  }, [supabase, updateEscrowAgreements]);
+  }, [supabase, updateEscrowAgreements, refresh]);
 
   if (error) {
     return (
