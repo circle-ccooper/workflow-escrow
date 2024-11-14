@@ -5,12 +5,12 @@ export interface EscrowAgreementWithDetails extends EscrowAgreement {
   beneficiary_wallet_id: string;
   depositor_wallet_id: string;
 
-  
   depositor_wallet: {
     profile_id: string;
     wallet_address: string;
     profiles: {
       name: string;
+      auth_user_id: string;
     }
   };
   beneficiary_wallet: {
@@ -18,6 +18,7 @@ export interface EscrowAgreementWithDetails extends EscrowAgreement {
     wallet_address: string;
     profiles: {
       name: string;
+      auth_user_id: string;
     };
   };
   transactions: {

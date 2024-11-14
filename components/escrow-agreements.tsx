@@ -1,6 +1,6 @@
 "use client";
 
-import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
+import type { PostgrestError, RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
 import type {
   EscrowListProps,
   AgreementStatus,
@@ -52,25 +52,31 @@ export const EscrowAgreements = (props: EscrowListProps) => {
   }
 
   const updateEscrowAgreements = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("Not authenticated");
-    }
-
     // Get the id of users involved in the agreement from their wallets
     const { data: agreementUsers, error: agreementUsersError } = await supabase
       .from("escrow_agreements")
       .select(`
         beneficiary_wallet_id,
         depositor_wallet_id,
-        beneficiary_wallet:wallets!beneficiary_wallet_id(profile_id),
-        depositor_wallet:wallets!depositor_wallet_id(profile_id)
+        depositor_wallet:wallets!depositor_wallet_id(
+          profile_id,
+          wallet_address,
+          profiles:profiles!wallets_profile_id_fkey (
+            name,
+            auth_user_id
+          )
+        ),
+        beneficiary_wallet:wallets!beneficiary_wallet_id(
+          profile_id,
+          wallet_address,
+          profiles:profiles!wallets_profile_id_fkey (
+            name,
+            auth_user_id
+          )
+        )
       `)
       .eq("transaction_id", payload.old.id)
-      .single();
+      .single() as { data: EscrowAgreementWithDetails, error: PostgrestError | null };
 
     if (agreementUsersError) {
       console.error("Could not find users involved in the given agreement", agreementUsersError);
@@ -78,27 +84,11 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     }
 
     const userIds = [
-      agreementUsers.beneficiary_wallet,
-      agreementUsers.depositor_wallet
-    ];
+      agreementUsers.depositor_wallet.profiles.auth_user_id,
+      agreementUsers.beneficiary_wallet.profiles.auth_user_id
+    ]
 
-    const formattedUserIds = userIds
-      .flat()
-      .map(wallet => wallet.profile_id);
-
-    // Get the auth_user_id of users involved in the agreement from their id's
-    const { data: foundUsers, error: foundUsersError } = await supabase
-      .from("profiles")
-      .select("auth_user_id")
-      .in("id", formattedUserIds);
-
-    if (foundUsersError) {
-      console.error("Could not find auth_user_id's with the given user id's", foundUsersError);
-      return;
-    }
-
-    const formattedAuthUserIds = foundUsers.map(foundUser => foundUser.auth_user_id);
-    const isUserInvolvedInAgreement = formattedAuthUserIds.includes(user?.id);
+    const isUserInvolvedInAgreement = userIds.includes(props.userId);
 
     if (!isUserInvolvedInAgreement) return;
 
@@ -107,19 +97,17 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     console.log("Escrow agreement status update:", smartContractDeploymentStatus);
     toast.info(`Escrow agreement status update: ${smartContractDeploymentStatus}`);
 
-    const shouldRefresh = smartContractDeploymentStatus === "PENDING";
+    const shouldRefresh = smartContractDeploymentStatus === "PENDING" || smartContractDeploymentStatus === "CONFIRMED";
 
-    if (shouldRefresh) {
-      refresh();
-    }
-
-    const isSmartContractDeployed = smartContractDeploymentStatus === "CONFIRMED";
-
-    if (!isSmartContractDeployed) return;
+    if (!shouldRefresh) return
 
     const { error: agreementStatusUpdateError } = await supabase
       .from("escrow_agreements")
-      .update({ status: "OPEN" })
+      .update({
+        status: smartContractDeploymentStatus === "CONFIRMED"
+          ? "OPEN"
+          : smartContractDeploymentStatus
+      })
       .eq("transaction_id", payload.old.id);
 
     if (agreementStatusUpdateError) {
@@ -222,32 +210,36 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2 py-1 rounded text-sm font-medium ${getStatusColor(
-                        agreement.status as AgreementStatus
-                      )}`}
-                    >
-                      {agreement.status}
-                    </span>
-                  </div>
+                  {agreement.status !== "" && (
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2 py-1 rounded text-sm font-medium ${getStatusColor(
+                          agreement.status as AgreementStatus
+                        )}`}
+                      >
+                        {agreement.status}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <CreateSmartContractButton
-                    depositorAddress={
-                      agreement.depositor_wallet?.wallet_address
-                    }
-                    beneficiaryAddress={
-                      agreement.beneficiary_wallet?.wallet_address
-                    }
-                    amountUSDC={
-                      agreement.terms.amounts &&
-                      parseFloat(
-                        agreement.terms.amounts[0]?.amount.replace(/[$,]/g, "")
-                      )
-                    }
-                    onSuccess={response => updateTransactionId(agreement, response)}
-                  />
+                  {(props.userId === agreement.depositor_wallet.profiles.auth_user_id && agreement.status === "") && (
+                    <CreateSmartContractButton
+                      depositorAddress={
+                        agreement.depositor_wallet?.wallet_address
+                      }
+                      beneficiaryAddress={
+                        agreement.beneficiary_wallet?.wallet_address
+                      }
+                      amountUSDC={
+                        agreement.terms.amounts &&
+                        parseFloat(
+                          agreement.terms.amounts[0]?.amount.replace(/[$,]/g, "")
+                        )
+                      }
+                      onSuccess={response => updateTransactionId(agreement, response)}
+                    />
+                  )}
                 </div>
                 <Separator className="my-4" />
                 {agreement.terms.documentUrl && (
