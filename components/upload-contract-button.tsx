@@ -60,10 +60,6 @@ export const UploadContractButton = (props: CreateAgreementProps) => {
       });
     }
 
-    if (!selectedFile) return;
-
-    await handleFileUpload(selectedFile);
-
     closeAlertDialog();
   }
 

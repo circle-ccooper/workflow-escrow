@@ -74,7 +74,7 @@ export async function HEAD() {
   return NextResponse.json({}, { status: 200 });
 }
 
-// Verify Circle"s signature
+// Verify Circle's signature
 async function verifyCircleSignature(
   bodyString: string,
   signature: string,
