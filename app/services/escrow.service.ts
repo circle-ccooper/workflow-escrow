@@ -30,14 +30,16 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
         profile_id,
         wallet_address,
         profiles!wallets_profile_id_fkey (
-          name
+          name,
+          auth_user_id
         )
       ),
       beneficiary_wallet:wallets!escrow_agreements_beneficiary_wallet_id_fkey (
         profile_id,
         wallet_address,
         profiles!wallets_profile_id_fkey (
-          name
+          name,
+          auth_user_id
         )
       ),
       transactions (
@@ -58,8 +60,6 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
     // Modified data processing to keep both wallet details
     const filteredData = data?.map((agreement) => {
       const isDepositor = agreement.depositor_wallet?.profile_id === profileId;
-      const isBeneficiary =
-        agreement.beneficiary_wallet?.profile_id === profileId;
 
       return {
         ...agreement,

@@ -15,18 +15,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface Task {
   description: string;
-  due_date: string | null;
-  responsible_party: string;
-  additional_details: string;
+}
+
+interface Amount {
+  amount: string;
+  for: string;
 }
 
 export const UploadContractButton = (props: CreateAgreementProps) => {
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
   const [analyzingDocument, setAnalyzingDocument] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<File>();
+  const [selectedFile, setSelectedFile] = useState<File>();
+  const [contractAmounts, setContractAmounts] = useState<Amount[]>([]);
   const [contractTerms, setContractTerms] = useState<string[]>([]);
   const hiddenFileInput = useRef<HTMLInputElement>(null);
 
@@ -41,9 +45,24 @@ export const UploadContractButton = (props: CreateAgreementProps) => {
   const closeAlertDialog = () => setConfirmationDialogOpen(false);
 
   const uploadDocument = async () => {
-    if (!selectedDocument) return;
+    try {
+      if (!selectedFile) {
+        throw new Error("No file selected");
+      }
 
-    await handleFileUpload(selectedDocument);
+      await handleFileUpload(selectedFile);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      toast.error("Error uploading document", {
+        description: error instanceof Error
+          ? error.message
+          : "An error occurred while uploading the document. Please try again later.",
+      });
+    }
+
+    if (!selectedFile) return;
+
+    await handleFileUpload(selectedFile);
 
     closeAlertDialog();
   }
@@ -52,10 +71,13 @@ export const UploadContractButton = (props: CreateAgreementProps) => {
     const files = event.target.files;
 
     if (files) {
-      setSelectedDocument(files[0]);
+      setSelectedFile(files[0]);
 
       setAnalyzingDocument(true);
-      const document = await analyzeDocument(files[0]);
+
+      const document = await analyzeDocument(files[0]) as unknown as { amounts: Amount[], tasks: Task[] };
+      setContractAmounts(document.amounts);
+
       setAnalyzingDocument(false);
 
       const contractTasks = document.tasks.map(task => task.description);
@@ -99,7 +121,16 @@ export const UploadContractButton = (props: CreateAgreementProps) => {
             <AlertDialogDescription>
               Before proceeding, check the uploaded contract terms below to ensure everything is correct.
             </AlertDialogDescription>
-            <ul className="my-6 ml-6 list-disc text-sm text-muted-foreground [&>li]:mt-2">
+            <span className="text-sm text-muted-foreground font-bold">Amounts:</span>
+            <ul className="my-6 ml-6 list-disc text-sm text-muted-foreground [&>li]:mt-2 [&>li:first-child]:mt-0">
+              {contractAmounts.map((contractAmount, index) => (
+                <li key={index}>
+                  <b>{contractAmount.amount}</b>: {contractAmount.for}
+                </li>
+              ))}
+            </ul>
+            <span className="text-sm text-muted-foreground font-bold">Tasks:</span>
+            <ul className="my-6 ml-6 list-disc text-sm text-muted-foreground [&>li]:mt-2 [&>li:first-child]:mt-0">
               {contractTerms.map((contractTerm, index) => (
                 <li key={index}>
                   {contractTerm}

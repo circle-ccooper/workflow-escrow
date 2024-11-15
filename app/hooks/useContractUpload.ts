@@ -11,17 +11,20 @@ interface Amount {
   amount: string;
   full_amount: string;
   payment_for: string;
+  for: string;
   location: string;
 }
 
 interface Task {
   task_description: string;
-  due_date: string | null;
+  description: string;
+  details: string[];
+  due_date: string;
   responsible_party: string;
   additional_details: string;
 }
 
-interface DocumentAnalysis {
+export interface DocumentAnalysis {
   amounts: Amount[];
   tasks: Task[];
 }

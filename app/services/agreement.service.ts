@@ -42,7 +42,7 @@ export const createAgreementService = (supabase: SupabaseClient) => ({
         beneficiary_wallet_id: params.beneficiaryWalletId,
         depositor_wallet_id: params.depositorWalletId,
         transaction_id: params.transactionId,
-        status: "PENDING",
+        status: "INITIATED",
         terms: params.terms,
       })
       .select()
