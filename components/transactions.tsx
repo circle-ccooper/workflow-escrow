@@ -45,7 +45,7 @@ export const Transactions: FunctionComponent<Props> = props => {
       </TableHeader>
       <TableBody>
         {props.data?.map(transaction => (
-          <TableRow onClick={() => router.push(`/protected/transaction/${transaction.id}`)} className="cursor-pointer" key={transaction.id}>
+          <TableRow onClick={() => router.push(`/dashboard/transaction/${transaction.id}`)} className="cursor-pointer" key={transaction.id}>
             <TableCell className="font-medium">{transaction.id}</TableCell>
             <TableCell>{transaction.status}</TableCell>
             <TableCell>{transaction.createDate}</TableCell>
