@@ -81,6 +81,7 @@ export async function POST(req: Request) {
           content: `${ANALYSIS_PROMPT} ${textContent}`,
         },
       ],
+      temperature: 0,
       response_format: { type: "json_object" },
     });
 
