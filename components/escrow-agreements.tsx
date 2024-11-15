@@ -84,8 +84,8 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     }
 
     const userIds = [
-      agreementUsers.depositor_wallet.profiles.auth_user_id,
-      agreementUsers.beneficiary_wallet.profiles.auth_user_id
+      agreementUsers.depositor_wallet?.profiles?.auth_user_id,
+      agreementUsers.beneficiary_wallet?.profiles?.auth_user_id
     ]
 
     const isUserInvolvedInAgreement = userIds.includes(props.userId);
@@ -202,15 +202,16 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                   <div>
                     <h3 className="font-medium">
                       Agreement with{" "}
-                      {agreement.depositor_wallet?.profiles.name ||
-                        agreement.beneficiary_wallet?.profiles.name}
+                      {props.profileId === agreement.depositor_wallet?.profile_id
+                        ? agreement.beneficiary_wallet?.profiles.name
+                        : agreement.depositor_wallet?.profiles.name}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Created {new Date(agreement.created_at).toLocaleString()}
                     </p>
                   </div>
 
-                  {agreement.status !== "" && (
+                  {agreement.status !== "INITIATED" && (
                     <div className="flex items-center gap-2">
                       <span
                         className={`px-2 py-1 rounded text-sm font-medium ${getStatusColor(
@@ -223,7 +224,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                   )}
                 </div>
                 <div>
-                  {(props.userId === agreement.depositor_wallet.profiles.auth_user_id && agreement.status === "") && (
+                  {(props.userId === agreement.depositor_wallet?.profiles?.auth_user_id && agreement.status === "INITIATED") && (
                     <CreateSmartContractButton
                       depositorAddress={
                         agreement.depositor_wallet?.wallet_address
@@ -232,10 +233,9 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                         agreement.beneficiary_wallet?.wallet_address
                       }
                       amountUSDC={
-                        agreement.terms.amounts &&
-                        parseFloat(
-                          agreement.terms.amounts[0]?.amount.replace(/[$,]/g, "")
-                        )
+                        agreement.terms.amounts && agreement.terms.amounts.length > 0
+                          ? parseFloat(agreement.terms.amounts[0]?.amount.replace(/[$,]/g, ""))
+                          : undefined
                       }
                       onSuccess={response => updateTransactionId(agreement, response)}
                     />

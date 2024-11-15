@@ -15,6 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface Task {
   description: string;
@@ -44,6 +45,21 @@ export const UploadContractButton = (props: CreateAgreementProps) => {
   const closeAlertDialog = () => setConfirmationDialogOpen(false);
 
   const uploadDocument = async () => {
+    try {
+      if (!selectedFile) {
+        throw new Error("No file selected");
+      }
+
+      await handleFileUpload(selectedFile);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      toast.error("Error uploading document", {
+        description: error instanceof Error
+          ? error.message
+          : "An error occurred while uploading the document. Please try again later.",
+      });
+    }
+
     if (!selectedFile) return;
 
     await handleFileUpload(selectedFile);
@@ -58,11 +74,11 @@ export const UploadContractButton = (props: CreateAgreementProps) => {
       setSelectedFile(files[0]);
 
       setAnalyzingDocument(true);
+
       const document = await analyzeDocument(files[0]) as unknown as { amounts: Amount[], tasks: Task[] };
       setContractAmounts(document.amounts);
-      setAnalyzingDocument(false);
 
-      console.log(document);
+      setAnalyzingDocument(false);
 
       const contractTasks = document.tasks.map(task => task.description);
 
