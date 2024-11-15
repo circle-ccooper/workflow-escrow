@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/copy-button";
 import { WalletTransactionsResponse } from "@/app/api/wallet/transactions/route";
 import { EscrowAgreements } from "@/components/escrow-agreements";
+import { WalletBalance } from "@/components/wallet-balance";
 
 const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
@@ -50,11 +51,8 @@ export default async function ProtectedPage() {
     }
   );
 
-  const parsedTransactions: WalletTransactionsResponse =
-    await transactionsResponse.json();
-  const transactions = parsedTransactions.error
-    ? []
-    : parsedTransactions.transactions;
+  const parsedTransactions: WalletTransactionsResponse = await transactionsResponse.json();
+  const transactions = parsedTransactions.error ? [] : parsedTransactions.transactions;
 
   return (
     <div className="columns-2 gap-4">
@@ -66,6 +64,10 @@ export default async function ProtectedPage() {
         <CardContent>
           <div className="grid w-full items-center gap-4">
             <div className="flex flex-col space-y-1.5">
+              <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+                Balance
+              </h4>
+              <WalletBalance walletId={wallet?.circle_wallet_id} />
               <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
                 ID
               </h4>
