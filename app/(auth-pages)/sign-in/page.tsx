@@ -41,7 +41,7 @@ export default function Login({ searchParams }: { searchParams: Message }) {
           </SubmitButton>
         </div>
       </form>
-      <GoogleLoginButton nextUrl="/protected" />
+      <GoogleLoginButton nextUrl="/dashboard" />
     </div>
   );
 }
