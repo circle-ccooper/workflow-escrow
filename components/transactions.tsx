@@ -15,6 +15,7 @@ interface Transaction {
   id: string
   status: string
   createDate: string
+  circle_transaction_id: string
   amount: string[]
 }
 
@@ -23,7 +24,7 @@ interface Props {
 }
 
 export const Transactions: FunctionComponent<Props> = props => {
-  const router = useRouter();
+  const router = useRouter();  
 
   if (props.data && props.data.length < 1) {
     return (
@@ -45,7 +46,7 @@ export const Transactions: FunctionComponent<Props> = props => {
       </TableHeader>
       <TableBody>
         {props.data?.map(transaction => (
-          <TableRow onClick={() => router.push(`/dashboard/transaction/${transaction.id}`)} className="cursor-pointer" key={transaction.id}>
+          <TableRow onClick={() => router.push(`/dashboard/transaction/${transaction.circle_transaction_id}`)} className="cursor-pointer" key={transaction.id}>
             <TableCell className="font-medium">{transaction.id}</TableCell>
             <TableCell>{transaction.status}</TableCell>
             <TableCell>{transaction.createDate}</TableCell>
