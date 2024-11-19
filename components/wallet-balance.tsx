@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { syncWalletBalance } from "@/app/actions/sync-wallet-balance";
 
 interface WalletBalanceProps {
   walletId: string;
@@ -11,29 +12,49 @@ interface WalletBalanceProps {
 export function WalletBalance({ walletId }: WalletBalanceProps) {
   const supabase = createSupabaseBrowserClient();
   const [balance, setBalance] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchBalance = async () => {
-      const { data } = await supabase
-        .from("wallets")
-        .select("balance")
-        .eq("circle_wallet_id", walletId)
-        .single();
+      setIsLoading(true);
+      try {
+        // First, sync with Circle API
+        await syncWalletBalance(walletId);
 
-      if (data) {
-        setBalance(data.balance);
+        // Then fetch from database
+        const { data } = await supabase
+          .from("wallets")
+          .select("balance")
+          .eq("circle_wallet_id", walletId)
+          .single();
+
+        if (data) {
+          setBalance(data.balance);
+        }
+      } catch (error) {
+        console.error("Error fetching balance:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     // Fetch initial balance
     fetchBalance();
 
+    // Set up polling interval (every 30 seconds)
+    const intervalId = setInterval(fetchBalance, 30000);
+
     // Subscribe to real-time updates
     const channel = supabase
       .channel("wallets")
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "wallets", filter: `circle_wallet_id=eq.${walletId}` },
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "wallets",
+          filter: `circle_wallet_id=eq.${walletId}`,
+        },
         (payload) => {
           setBalance(payload.new.balance);
         }
@@ -41,11 +62,12 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
       .subscribe();
 
     return () => {
+      clearInterval(intervalId);
       supabase.removeChannel(channel);
     };
   }, [supabase, walletId]);
 
-  if (balance === null) {
+  if (isLoading || balance === null) {
     return <Skeleton className="w-[56px] h-[28px] rounded-full" />;
   }
 
