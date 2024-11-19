@@ -42,7 +42,7 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
           auth_user_id
         )
       ),
-      transactions (
+      transactions:transactions!escrow_agreements_transaction_id_fkey (
         amount,
         currency,
         status

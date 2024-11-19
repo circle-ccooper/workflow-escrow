@@ -190,7 +190,11 @@ export default async function ProtectedPage() {
 
       {/* Agreements Section */}
       <div className="break-inside-avoid mb-4">
-        <EscrowAgreements userId={user.id} profileId={profile?.id} />
+        <EscrowAgreements
+          userId={user.id}
+          profileId={profile?.id}
+          walletId={wallet.circle_wallet_id}
+        />
       </div>
 
       {/* Transactions Section */}
