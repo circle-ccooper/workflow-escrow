@@ -2,7 +2,6 @@ import { createSupabaseServerComponentClient } from "@/lib/supabase/server-clien
 import { redirect } from "next/navigation";
 import { Transactions } from "@/components/transactions";
 import { CreateAgreementPage } from "@/components/ui/createAgreementPage";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/copy-button";
@@ -13,6 +12,74 @@ import { WalletBalance } from "@/components/wallet-balance";
 const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
   : "http://127.0.0.1:3000";
+
+async function syncTransactions(supabase: any, walletId: string, profileId: string, circleWalletId: string) {
+  // 1. Fetch transactions from Circle API
+  const transactionsResponse = await fetch(
+    `${baseUrl}/api/wallet/transactions`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        walletId: circleWalletId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const parsedTransactions: WalletTransactionsResponse = await transactionsResponse.json();
+  
+  if (parsedTransactions.error || !parsedTransactions.transactions) {
+    return [];
+  }
+
+  // 2. Get existing transactions from database
+  const { data: existingTransactions } = await supabase
+    .from('transactions')
+    .select('circle_transaction_id')
+    .eq('wallet_id', walletId);
+
+  const existingTransactionIds = new Set(
+    existingTransactions?.map((t: any) => t.circle_transaction_id) || []
+  );
+
+  // 3. Filter out transactions that already exist
+  const newTransactions = parsedTransactions.transactions.filter(
+    (transaction: any) => !existingTransactionIds.has(transaction.id)
+  );
+
+  // 4. Insert new transactions into the database
+  if (newTransactions.length > 0) {
+    const transactionsToInsert = newTransactions.map((transaction: any) => ({
+      wallet_id: walletId,
+      profile_id: profileId,
+      circle_transaction_id: transaction.id,
+      transaction_type: transaction.transactionType,
+      amount: transaction.amount[0],
+      currency: transaction.amount.currency || "USDC",
+      status: transaction.status,
+      description: transaction.description || null,
+    }));
+
+    const { error } = await supabase
+      .from('transactions')
+      .insert(transactionsToInsert);
+
+    if (error) {
+      console.error('Error inserting transactions:', error);
+    }
+  }
+
+  // 5. Return all transactions from database
+  const { data: allTransactions } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('wallet_id', walletId)
+    .order('created_at', { ascending: false });
+
+  return allTransactions || [];
+}
 
 export default async function ProtectedPage() {
   const supabase = createSupabaseServerComponentClient();
@@ -38,21 +105,13 @@ export default async function ProtectedPage() {
     .eq("profile_id", profile?.id)
     .single();
 
-  const transactionsResponse = await fetch(
-    `${baseUrl}/api/wallet/transactions`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        walletId: wallet?.circle_wallet_id,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
+  // Sync and get transactions
+  const transactions = await syncTransactions(
+    supabase,
+    wallet?.id,
+    profile?.id,
+    wallet?.circle_wallet_id
   );
-
-  const parsedTransactions: WalletTransactionsResponse = await transactionsResponse.json();
-  const transactions = parsedTransactions.error ? [] : parsedTransactions.transactions;
 
   return (
     <div className="columns-2 gap-4">
