@@ -28,7 +28,7 @@ export async function syncWalletBalance(circleWalletId: string) {
     const parsedBalance = await balanceResponse.json();
     
     if (parsedBalance.error || !parsedBalance.balance) {
-      console.error('Error fetching balance:', parsedBalance.error);
+      console.log('Wallet with empty balance');
       return { error: parsedBalance.error || 'Failed to fetch balance' };
     }
 
