@@ -28,8 +28,14 @@ export async function syncWalletBalance(circleWalletId: string) {
     const parsedBalance = await balanceResponse.json();
     
     if (parsedBalance.error || !parsedBalance.balance) {
-      console.log('Wallet with empty balance');
-      return { error: parsedBalance.error || 'Failed to fetch balance' };
+      if (parsedBalance.error || !parsedBalance.balance) {
+        if (parsedBalance.error) {
+          console.error('Error fetching balance:', parsedBalance.error);
+          return { error: parsedBalance.error };
+        }
+        console.log('Wallet has no balance');
+        return { error: 'No balance available' };
+      }
     }
 
     // 2. Update the wallet balance in the database
