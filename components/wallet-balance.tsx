@@ -1,27 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { syncWalletBalance } from "@/app/actions/sync-wallet-balance";
 
 interface WalletBalanceProps {
   walletId: string;
 }
 
 export function WalletBalance({ walletId }: WalletBalanceProps) {
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [balance, setBalance] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchBalance = async () => {
-      const { data } = await supabase
-        .from("wallets")
-        .select("balance")
-        .eq("circle_wallet_id", walletId)
-        .single();
+      setIsLoading(true);
+      try {
+        // Initial sync with Circle API
+        await syncWalletBalance(walletId);
 
-      if (data) {
-        setBalance(data.balance);
+        // Fetch from database
+        const { data, error } = await supabase
+          .from("wallets")
+          .select("balance")
+          .eq("circle_wallet_id", walletId)
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          setBalance(data.balance);
+        }
+      } catch (error) {
+        console.error("Error fetching balance:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -30,28 +44,39 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
 
     // Subscribe to real-time updates
     const channel = supabase
-      .channel("wallets")
+      .channel(`wallet-${walletId}`) // Unique channel name per wallet
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "wallets", filter: `circle_wallet_id=eq.${walletId}` },
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "wallets",
+          filter: `circle_wallet_id=eq.${walletId}`,
+        },
         (payload) => {
-          setBalance(payload.new.balance);
+          if (payload.new.balance !== balance) {
+            setBalance(payload.new.balance);
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Subscription status for wallet ${walletId}:`, status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, walletId]);
+  }, [supabase, walletId, balance]);
 
-  if (balance === null) {
+  if (isLoading || balance === null) {
     return <Skeleton className="w-[56px] h-[28px] rounded-full" />;
   }
 
   const formattedBalance = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(balance);
 
   return (

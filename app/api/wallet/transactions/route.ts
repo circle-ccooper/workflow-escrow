@@ -13,6 +13,7 @@ const ResponseSchema = z.object({
         id: z.string(),
         amount: z.array(z.string()),
         status: z.string(),
+        transactionType: z.string(),
         createDate: z.string(),
       }),
     )
@@ -37,7 +38,7 @@ export async function POST(
   req: NextRequest,
 ): Promise<NextResponse<WalletTransactionsResponse>> {
   try {
-    const body = await req.json();
+    const body = await req.json();    
     const parseResult = WalletIdSchema.safeParse(body);
 
     if (!parseResult.success) {
@@ -63,12 +64,13 @@ export async function POST(
         { status: 404 },
       );
     }
-
+    
     return NextResponse.json({
       transactions: response.data.transactions.map((tx) => ({
         id: tx.id,
         amount: tx.amounts || [],
         status: tx.state,
+        transactionType: tx.transactionType,
         createDate: tx.createDate,
       })),
     });
