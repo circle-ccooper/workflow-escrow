@@ -8,7 +8,13 @@ Automated escrow agent that facilitates secure transactions.
 
 ## Clone and run locally
 
-1. Clone this repository and install dependencies.
+1. Clone the repository and install dependencies:
+
+   ```bash
+   git clone https://github.com/[username]/workflow-escrow.git
+   cd workflow-escrow
+   npm install
+   ```
 
 2. Rename `.env.example` to `.env.local` and update the following:
 
@@ -43,9 +49,13 @@ Automated escrow agent that facilitates secure transactions.
    npx supabase start
    ```
 
-> If that's your first time running the project, consider executing the migrations with `npx supabase migration up`
+4. Initialize the database schema:
 
-4. You can now run the Next.js local development server:
+   ```bash
+   npx supabase migration up
+   ```
+
+5. You can now run the Next.js local development server:
 
    ```bash
    npm run dev
@@ -53,14 +63,14 @@ Automated escrow agent that facilitates secure transactions.
 
    The starter kit should now be running on [127.0.0.1:3000](http://127.0.0.1:3000/).
 
-5. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
+6. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
 
    ```bash
    ngrok http 3000
    ```
 
-6. Register a webhook at [Circle](https://console.circle.com/webhooks) with the URL provided by ngrok, it should look similar to this: `https://9940-170-239-106-57.ngrok-free.app`, this webhook should point to the `/api/webhooks/circle` endpoint, and ideally the webhook should be limited to the `transactions.outbound` event.
+7. Register a webhook at [Circle](https://console.circle.com/webhooks) with the URL provided by ngrok, it should look similar to this: `https://9940-170-239-106-57.ngrok-free.app`, this webhook should point to the `/api/webhooks/circle` endpoint, and ideally the webhook should be limited to the `transactions.outbound` event.
 
-7. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+8. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
