@@ -74,3 +74,69 @@ Automated escrow agent that facilitates secure transactions.
 8. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+
+## Project Structure
+
+```
+.
+├── app/                      # Next.js 13+ app directory (main application code)
+│   ├── actions/             # Server actions for form handling and data mutations
+│   ├── api/                 # API routes and endpoints
+│   │   ├── contracts/       # Smart contract interaction endpoints
+│   │   ├── wallet/         # Digital wallet management endpoints
+│   │   ├── wallet-set/     # Wallet configuration endpoints
+│   │   └── webhooks/       # Webhook handlers (e.g., Circle payment notifications)
+│   ├── auth/               # Authentication core functionality
+│   ├── (auth-pages)/       # Authentication-related pages (grouped route)
+│   ├── dashboard/          # Dashboard views and functionality
+│   ├── hooks/              # Custom React hooks
+│   └── services/           # Business logic and external service integrations
+│
+├── components/             # Reusable React components
+│   ├── tutorial/          # Tutorial and onboarding components
+│   ├── typography/        # Text styling components
+│   └── ui/               # UI components library
+│
+├── contracts/             # Smart contract definitions and ABIs
+│   └── escrow-with-agent/ # Escrow contract implementation
+│
+├── lib/                   # Library code and utilities
+│   ├── supabase/         # Supabase client configuration
+│   └── utils/            # Utility functions and helpers
+│
+├── supabase/             # Supabase-specific configuration
+│   ├── migrations/       # Database migration files
+│   └── tests/           # Supabase-related tests
+│
+└── types/                # TypeScript type definitions
+```
+
+### Key Directories
+
+- **`app/`**: Core application code using Next.js 13+ app directory structure
+  - `actions/`: Server-side actions for data mutations
+  - `api/`: Backend API endpoints for contracts, wallets, and webhooks
+  - `auth/`: Authentication system implementation
+  - `dashboard/`: Main application dashboard features
+  - `hooks/`: Reusable React hooks
+  - `services/`: Business logic layer
+
+- **`components/`**: Reusable React components organized by function
+  - `ui/`: Core UI component library
+  - `typography/`: Text and typography-related components
+  - `tutorial/`: User onboarding and tutorial components
+
+- **`contracts/`**: Smart contract related files
+  - `escrow-with-agent/`: Implementation of the escrow system with agent functionality
+
+- **`lib/`**: Utility functions and external service configurations
+  - `supabase/`: Supabase database configuration and helpers
+  - `utils/`: General utility functions
+
+- **`supabase/`**: Database configuration and management
+  - `migrations/`: Database schema migrations
+  - `tests/`: Database-related tests
+
+- **`types/`**: TypeScript type definitions for the project
+
+This structure follows a modular architecture that separates concerns between the frontend, backend APIs, smart contracts, and database layers while maintaining a clear organization for scaling the application.
