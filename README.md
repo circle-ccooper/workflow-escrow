@@ -5,6 +5,7 @@ Automated escrow agent that facilitates secure transactions.
 ## Table of contents
 
 - [Clone and run locally](#clone-and-run-locally)
+- [Project Structure](#project-structure)
 
 ## Clone and run locally
 
@@ -89,10 +90,10 @@ Automated escrow agent that facilitates secure transactions.
 
 ```
 .
-├── app/                      # Next.js 13+ app directory (main application code)
-│   ├── actions/             # Server actions for form handling and data mutations
-│   ├── api/                 # API routes and endpoints
-│   │   ├── contracts/       # Smart contract interaction endpoints
+├── app/                    # Next.js 13+ app directory (main application code)
+│   ├── actions/            # Server actions for form handling and data mutations
+│   ├── api/                # API routes and endpoints
+│   │   ├── contracts/      # Smart contract interaction endpoints
 │   │   ├── wallet/         # Digital wallet management endpoints
 │   │   ├── wallet-set/     # Wallet configuration endpoints
 │   │   └── webhooks/       # Webhook handlers (e.g., Circle payment notifications)
@@ -103,22 +104,22 @@ Automated escrow agent that facilitates secure transactions.
 │   └── services/           # Business logic and external service integrations
 │
 ├── components/             # Reusable React components
-│   ├── tutorial/          # Tutorial and onboarding components
-│   ├── typography/        # Text styling components
-│   └── ui/               # UI components library
+│   ├── tutorial/           # Tutorial and onboarding components
+│   ├── typography/         # Text styling components
+│   └── ui/                 # UI components library
 │
-├── contracts/             # Smart contract definitions and ABIs
-│   └── escrow-with-agent/ # Escrow contract implementation
+├── contracts/              # Smart contract definitions and ABIs
+│   └── escrow-with-agent/  # Escrow contract implementation
 │
-├── lib/                   # Library code and utilities
-│   ├── supabase/         # Supabase client configuration
-│   └── utils/            # Utility functions and helpers
+├── lib/                    # Library code and utilities
+│   ├── supabase/           # Supabase client configuration
+│   └── utils/              # Utility functions and helpers
 │
-├── supabase/             # Supabase-specific configuration
-│   ├── migrations/       # Database migration files
-│   └── tests/           # Supabase-related tests
+├── supabase/               # Supabase-specific configuration
+│   ├── migrations/         # Database migration files
+│   └── tests/              # Supabase-related tests
 │
-└── types/                # TypeScript type definitions
+└── types/                  # TypeScript type definitions
 ```
 
 ### Key Directories
