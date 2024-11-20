@@ -10,6 +10,14 @@ import { EscrowAgreements } from "@/components/escrow-agreements";
 import { WalletBalance } from "@/components/wallet-balance";
 import { SupabaseClient } from "@supabase/supabase-js";
 
+interface CircleTransaction {
+  id: string;
+  transactionType: string;
+  amount: string[];
+  status: string;
+  description?: string;
+}
+
 const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
   : "http://127.0.0.1:3000";
@@ -58,16 +66,28 @@ async function syncTransactions(
 
   // 4. Insert new transactions into the database
   if (newTransactions.length > 0) {
-    const transactionsToInsert = newTransactions.map((transaction: any) => ({
-      wallet_id: walletId,
-      profile_id: profileId,
-      circle_transaction_id: transaction.id,
-      transaction_type: transaction.transactionType,
-      amount: transaction.amount[0],
-      currency: transaction.amount.currency || "USDC",
-      status: transaction.status,
-      description: transaction.description || null,
-    }));
+    const transactionsToInsert = newTransactions.map(
+      (transaction: CircleTransaction) => {
+        if (
+          !transaction.id ||
+          !transaction.transactionType ||
+          !transaction.amount
+        ) {
+          throw new Error(
+            `Invalid transaction structure: ${JSON.stringify(transaction)}`
+          );
+        }
+        return {
+          wallet_id: walletId,
+          profile_id: profileId,
+          circle_transaction_id: transaction.id,
+          transaction_type: transaction.transactionType,
+          amount: parseFloat(transaction.amount[0].replace(/[$,]/g, "")),
+          currency: "USDC",
+          status: transaction.status,
+        };
+      }
+    );
 
     const { error } = await supabase
       .from("transactions")
