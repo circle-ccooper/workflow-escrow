@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 
-async function updateEscrowAgreement(transactionId: string, newStatus: string) {
+async function updateAgreementTransactionStatus(transactionId: string, newStatus: string) {
   const supabase = createSupabaseServerClient();
 
   // Fetch the current status in the database to check if the update is needed
@@ -36,25 +36,22 @@ export async function POST(req: NextRequest) {
 
     // Parse the JSON body only once
     const body = await req.json();
-    const bodyString = JSON.stringify(body); // Convert to a string for signature verification
+    // Convert to a string for signature verification
+    const bodyString = JSON.stringify(body);
 
     const isVerified = await verifyCircleSignature(bodyString, signature, keyId);
+
     if (!isVerified) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
     }
 
-    // Filter notifications based on criteria for smart contract deployment
-    if (
-      body.notificationType === "transactions.outbound" && // Outbound transaction type
-      body.notification.transactionType === "OUTBOUND" && // Transaction type indicating deployment
-      body.notification.state && // State should be defined
-      body.notification.contractAddress // Presence of contractAddress indicates contract interaction
-    ) {
-      const transactionId = body.notification.id;
+    const {
+      id: transactionId,
+      state: transactionState
+    } = body.notification;
 
-      // Update or handle the contract deployment status in escrow_agreements
-      await updateEscrowAgreement(transactionId, body.notification.state);
-    }
+    // Update or handle the contract deployment status in escrow_agreements
+    await updateAgreementTransactionStatus(transactionId, transactionState);
 
     console.log("Received notification:", body);
 

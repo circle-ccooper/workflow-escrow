@@ -18,8 +18,8 @@ interface CircleTransaction {
   description?: string;
 }
 
-const baseUrl = process.env.VERCEL_URL
-  ? process.env.VERCEL_URL
+const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://127.0.0.1:3000";
 
 async function syncTransactions(
@@ -190,7 +190,11 @@ export default async function ProtectedPage() {
 
       {/* Agreements Section */}
       <div className="break-inside-avoid mb-4">
-        <EscrowAgreements userId={user.id} profileId={profile?.id} />
+        <EscrowAgreements
+          userId={user.id}
+          profileId={profile?.id}
+          walletId={wallet.circle_wallet_id}
+        />
       </div>
 
       {/* Transactions Section */}

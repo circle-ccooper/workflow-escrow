@@ -6,8 +6,8 @@ import type {
   AgreementStatus,
   EscrowAgreementWithDetails,
 } from "@/types/escrow";
-import { useEffect, useCallback } from "react";
-import { FileText, ExternalLink, RotateCw } from "lucide-react";
+import { useEffect, useCallback, useState } from "react";
+import { FileText, ExternalLink, RotateCw, CircleDollarSign, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getStatusColor } from "@/lib/utils/escrow";
@@ -19,6 +19,8 @@ import { CreateSmartContractButton } from "./deploy-smart-contract-button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { Separator } from "@/components/ui/separator";
 import { SmartContractResponse } from "@/app/hooks/useSmartContract";
+import { createAgreementService } from "@/app/services/agreement.service";
+import { parseAmount } from "@/lib/utils/amount";
 
 interface Task {
   description: string;
@@ -33,25 +35,140 @@ interface Amount {
   location: string;
 }
 
+const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? process.env.NEXT_PUBLIC_VERCEL_URL
+  : "http://127.0.0.1:3000";
+
 export const EscrowAgreements = (props: EscrowListProps) => {
+  const [depositing, setDepositing] = useState(false);
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
   const supabase = createSupabaseBrowserClient();
+  const agreementService = createAgreementService(supabase);
 
+  const depositFunds = async (agreement: EscrowAgreementWithDetails) => {
+    try {
+      setDepositing(true);
+
+      const response = await fetch(`${baseUrl}/api/contracts/escrow/deposit`, {
+        method: "POST",
+        body: JSON.stringify({
+          circleContractId: agreement.circle_contract_id
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      setDepositing(false);
+
+      await supabase
+        .from("escrow_agreements")
+        .update({ status: "PENDING" })
+        .eq("id", agreement.id);
+
+      const parsedResponse = await response.json();
+
+      if (parsedResponse.error) {
+        toast.error("Failed to deposit funds into smart contract", {
+          description: parsedResponse.error
+        });
+
+        await supabase
+          .from("escrow_agreements")
+          .update({ status: "OPEN" })
+          .eq("id", agreement.id);
+
+        return;
+      }
+
+      if (!agreement.terms.amounts?.[0].amount) {
+        toast.error("The contract does not specifies an amount to be paid");
+        return;
+      }
+
+      refresh();
+
+      const amount = parseAmount(agreement.terms.amounts?.[0].amount);
+      await agreementService.createTransaction({
+        walletId: agreement.depositor_wallet_id,
+        circleTransactionId: parsedResponse.transactionId,
+        escrowAgreementId: agreement.id,
+        transactionType: "FUNDS_DEPOSIT",
+        profileId: props.profileId,
+        amount,
+        description: agreement.terms.amounts?.[0]?.for || "Funds deposited by depositor",
+      });
+    } catch (error) {
+      console.error("Deposit operation failed:", error);
+      toast.error("Failed to complete deposit operation");
+    }
+  }
+
+  // Runs exclusively after smart contract creation
   const updateTransactionId = async (agreement: EscrowAgreementWithDetails, response: SmartContractResponse) => {
-    // Update circle_transaction_id (is "PENDING" by default on creation)
+    // Update circle_contract_id
+    // This is needed so we can find the agreement later on to deposit funds to it
+    const { error: agreementError } = await supabase
+      .from("escrow_agreements")
+      .update({ circle_contract_id: response.id })
+      .eq("id", agreement.id);
+
+    if (agreementError) {
+      console.error("Failed to update Circle contract ID:", agreementError);
+      toast.error("An error occurred while updating the Circle contract ID");
+    }
+
+    // Update circle_transaction_id (is "NULL" by default on creation)
     // This is needed so we can find the transaction later on and update it's status
-    const { error } = await supabase
+    const { error: transactionError } = await supabase
       .from("transactions")
       .update({ circle_transaction_id: response.transactionId })
       .eq("id", agreement.transaction_id);
 
-    if (error) {
-      console.error("Failed to update Circle transaction ID:", error);
+    if (transactionError) {
+      console.error("Failed to update Circle transaction ID:", transactionError);
       toast.error("An error occured while updating the Circle transaction ID");
     }
   }
 
-  const updateEscrowAgreements = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
+  // Runs when there are changes to "FUNDS_DEPOSIT" transactions
+  const updateAgreementDepositStatus = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
+    const { data: agreementUser, error: agreementUserError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("auth_user_id", props.userId)
+      .single();
+
+    if (agreementUserError) {
+      console.error("Could not retrieve the currently logged in user id:", agreementUserError);
+      toast.error("Could not retrieve the currently logged in user id", {
+        description: agreementUserError.message
+      });
+
+      return;
+    }
+
+    const isDepositAuthor = agreementUser.id === payload.new.profile_id;
+
+    if (!isDepositAuthor) return;
+
+    const fundsDepositStatus = payload.new.status;
+
+    console.log("Funds deposit status update:", fundsDepositStatus);
+    toast.info(`Funds deposit status update: ${fundsDepositStatus}`);
+
+    if (fundsDepositStatus !== "CONFIRMED") return;
+
+    await supabase
+      .from("escrow_agreements")
+      .update({ status: "LOCKED" })
+      .eq("id", payload.new.escrow_agreement_id);
+
+    refresh();
+  }, [supabase, refresh]);
+
+  // Runs when there are changes to "ESCROW_DEPOSIT" transactions
+  const updateAgreementsDeploymentStatus = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
     // Get the id of users involved in the agreement from their wallets
     const { data: agreementUsers, error: agreementUsersError } = await supabase
       .from("escrow_agreements")
@@ -79,7 +196,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       .single() as { data: EscrowAgreementWithDetails, error: PostgrestError | null };
 
     if (agreementUsersError) {
-      console.error("Could not find users involved in the given agreement", agreementUsersError);
+      console.error("Could not find an agreement linked to the given transaction", agreementUsersError);
       return;
     }
 
@@ -92,7 +209,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
 
     if (!isUserInvolvedInAgreement) return;
 
-    const smartContractDeploymentStatus = payload.new.status
+    const smartContractDeploymentStatus = payload.new.status;
 
     console.log("Escrow agreement status update:", smartContractDeploymentStatus);
     toast.info(`Escrow agreement status update: ${smartContractDeploymentStatus}`);
@@ -101,6 +218,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
 
     if (!shouldRefresh) return
 
+    // Updates the agreement status
     const { error: agreementStatusUpdateError } = await supabase
       .from("escrow_agreements")
       .update({
@@ -119,21 +237,36 @@ export const EscrowAgreements = (props: EscrowListProps) => {
   }, [supabase, refresh]);
 
   useEffect(() => {
-    const transactionsSubscription = supabase
-      .channel("transactions")
+    const agreementDeploymentSubscription = supabase
+      .channel("agreement_deployment_transactions")
       .on(
         "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
-          table: "transactions"
+          table: "transactions",
+          filter: "transaction_type=eq.ESCROW_DEPOSIT"
         },
-        updateEscrowAgreements
+        updateAgreementsDeploymentStatus
+      )
+      .subscribe();
+
+    const agreementDepositSubscription = supabase
+      .channel("agreement_deposit_transactions")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "transactions",
+          filter: "transaction_type=eq.FUNDS_DEPOSIT"
+        },
+        updateAgreementDepositStatus
       )
       .subscribe();
 
     const escrowAgreementsSubscription = supabase
-      .channel("escrow_agreements")
+      .channel("refresh_agreement_changes")
       .on(
         "postgres_changes",
         {
@@ -146,10 +279,11 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(transactionsSubscription);
+      supabase.removeChannel(agreementDeploymentSubscription);
+      supabase.removeChannel(agreementDepositSubscription);
       supabase.removeChannel(escrowAgreementsSubscription);
     }
-  }, [supabase, updateEscrowAgreements, refresh]);
+  }, [supabase, updateAgreementsDeploymentStatus, refresh]);
 
   if (error) {
     return (
@@ -239,6 +373,21 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                       }
                       onSuccess={response => updateTransactionId(agreement, response)}
                     />
+                  )}
+                  {(props.userId === agreement.depositor_wallet?.profiles?.auth_user_id && agreement.status === "OPEN") && (
+                    <Button disabled={depositing} onClick={() => depositFunds(agreement)}>
+                      {depositing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <CircleDollarSign className="mr-2 h-4 w-4" />
+                          Deposit funds
+                        </>
+                      )}
+                    </Button>
                   )}
                 </div>
                 <Separator className="my-4" />

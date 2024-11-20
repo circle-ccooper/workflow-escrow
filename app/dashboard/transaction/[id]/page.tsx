@@ -1,5 +1,5 @@
-const baseUrl = process.env.VERCEL_URL
-  ? process.env.VERCEL_URL
+const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://127.0.0.1:3000";
 
 export default async function Transaction({

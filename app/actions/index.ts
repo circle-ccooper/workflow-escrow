@@ -5,8 +5,8 @@ import { createClient } from "@/lib/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-const baseUrl = process.env.VERCEL_URL
-  ? process.env.VERCEL_URL
+const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://127.0.0.1:3000";
 
 export const signUpAction = async (formData: FormData) => {
