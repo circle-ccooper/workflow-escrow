@@ -46,57 +46,62 @@ export const EscrowAgreements = (props: EscrowListProps) => {
   const agreementService = createAgreementService(supabase);
 
   const depositFunds = async (agreement: EscrowAgreementWithDetails) => {
-    setDepositing(true);
+    try {
+      setDepositing(true);
 
-    const response = await fetch(`${baseUrl}/api/contracts/escrow/deposit`, {
-      method: "POST",
-      body: JSON.stringify({
-        circleContractId: agreement.circle_contract_id
-      }),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-
-    setDepositing(false);
-
-    await supabase
-      .from("escrow_agreements")
-      .update({ status: "PENDING" })
-      .eq("id", agreement.id);
-
-    const parsedResponse = await response.json();
-
-    if (parsedResponse.error) {
-      toast.error("Failed to deposit funds into smart contract", {
-        description: parsedResponse.error
+      const response = await fetch(`${baseUrl}/api/contracts/escrow/deposit`, {
+        method: "POST",
+        body: JSON.stringify({
+          circleContractId: agreement.circle_contract_id
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        }
       });
+
+      setDepositing(false);
 
       await supabase
         .from("escrow_agreements")
-        .update({ status: "OPEN" })
+        .update({ status: "PENDING" })
         .eq("id", agreement.id);
 
-      return;
+      const parsedResponse = await response.json();
+
+      if (parsedResponse.error) {
+        toast.error("Failed to deposit funds into smart contract", {
+          description: parsedResponse.error
+        });
+
+        await supabase
+          .from("escrow_agreements")
+          .update({ status: "OPEN" })
+          .eq("id", agreement.id);
+
+        return;
+      }
+
+      if (!agreement.terms.amounts?.[0].amount) {
+        toast.error("The contract does not specifies an amount to be paid");
+        return;
+      }
+
+      refresh();
+
+      const amount = parseAmount(agreement.terms.amounts?.[0].amount);
+      await agreementService.createTransaction({
+        walletId: agreement.depositor_wallet_id,
+        circleTransactionId: parsedResponse.transactionId,
+        escrowAgreementId: agreement.id,
+        transactionType: "FUNDS_DEPOSIT",
+        profileId: props.profileId,
+        amount,
+        description: agreement.terms.amounts?.[0]?.for || "Funds deposited by depositor",
+      });
+    } catch (error) {
+      console.error("Deposit operation failed:", error);
+      toast.error("Failed to complete deposit operation");
     }
-
-    if (!agreement.terms.amounts?.[0].amount) {
-      toast.error("The contract does not specifies an amount to be paid");
-      return;
-    }
-
-    refresh();
-
-    const amount = parseAmount(agreement.terms.amounts?.[0].amount);
-    await agreementService.createTransaction({
-      walletId: agreement.depositor_wallet_id,
-      circleTransactionId: parsedResponse.transactionId,
-      escrowAgreementId: agreement.id,
-      transactionType: "FUNDS_DEPOSIT",
-      profileId: props.profileId,
-      amount,
-      description: agreement.terms.amounts?.[0]?.for || "Funds deposited by depositor",
-    });
   }
 
   // Runs exclusively after smart contract creation
