@@ -4,59 +4,13 @@ Automated escrow agent that facilitates secure transactions.
 
 ## Table of contents
 
-- [Features](#features)
-- [Demo](#demo)
-- [Deploy to Vercel](#deploy-to-vercel)
 - [Clone and run locally](#clone-and-run-locally)
-
-## Features
-
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
-
-## Demo
-
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
-
-## Deploy to Vercel
-
-Vercel deployment will guide you through creating a Supabase account and project.
-
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
-
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
-
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
 
 ## Clone and run locally
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+1. Clone this repository and install dependencies.
 
-2. Create a Next.js app using the Supabase Starter template npx command
-
-   ```bash
-   npx create-next-app -e with-supabase
-   ```
-
-3. Use `cd` to change into the app's directory
-
-   ```bash
-   cd name-of-new-app
-   ```
-
-4. Rename `.env.example` to `.env.local` and update the following:
+2. Rename `.env.example` to `.env.local` and update the following:
 
    ```
    NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
@@ -83,7 +37,7 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
    - For development purposes, `NEXT_PUBLIC_AGENT_WALLET_ID` can be the address of any developer controlled wallet registered on [Circle](https://console.circle.com/wallets/dev/wallets), that might change for a production scenario.
 
-5. Then start a local instance of the Supabase server:
+3. Then start a local instance of the Supabase server:
 
    ```bash
    npx supabase start
@@ -91,7 +45,7 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
 > If that's your first time running the project, consider executing the migrations with `npx supabase migration up`
 
-6. You can now run the Next.js local development server:
+4. You can now run the Next.js local development server:
 
    ```bash
    npm run dev
@@ -99,14 +53,14 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
    The starter kit should now be running on [127.0.0.1:3000](http://127.0.0.1:3000/).
 
-7. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
+5. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
 
    ```bash
    ngrok http 3000
    ```
 
-8. Register a webhook at [Circle](https://console.circle.com/webhooks) with the URL provided by ngrok, it should look similar to this: `https://9940-170-239-106-57.ngrok-free.app`, this webhook should point to the `/api/webhooks/circle` endpoint, and ideally the webhook should be limited to the `transactions.outbound` event.
+6. Register a webhook at [Circle](https://console.circle.com/webhooks) with the URL provided by ngrok, it should look similar to this: `https://9940-170-239-106-57.ngrok-free.app`, this webhook should point to the `/api/webhooks/circle` endpoint, and ideally the webhook should be limited to the `transactions.outbound` event.
 
-9. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+7. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
