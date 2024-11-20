@@ -14,7 +14,12 @@ const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
   : "http://127.0.0.1:3000";
 
-async function syncTransactions(supabase: SupabaseClient, walletId: string, profileId: string, circleWalletId: string) {
+async function syncTransactions(
+  supabase: SupabaseClient,
+  walletId: string,
+  profileId: string,
+  circleWalletId: string
+) {
   // 1. Fetch transactions from Circle API
   const transactionsResponse = await fetch(
     `${baseUrl}/api/wallet/transactions`,
@@ -29,17 +34,18 @@ async function syncTransactions(supabase: SupabaseClient, walletId: string, prof
     }
   );
 
-  const parsedTransactions: WalletTransactionsResponse = await transactionsResponse.json();
-  
+  const parsedTransactions: WalletTransactionsResponse =
+    await transactionsResponse.json();
+
   if (parsedTransactions.error || !parsedTransactions.transactions) {
     return [];
   }
 
   // 2. Get existing transactions from database
   const { data: existingTransactions } = await supabase
-    .from('transactions')
-    .select('circle_transaction_id')
-    .eq('wallet_id', walletId);
+    .from("transactions")
+    .select("circle_transaction_id")
+    .eq("wallet_id", walletId);
 
   const existingTransactionIds = new Set(
     existingTransactions?.map((t: any) => t.circle_transaction_id) || []
@@ -64,20 +70,20 @@ async function syncTransactions(supabase: SupabaseClient, walletId: string, prof
     }));
 
     const { error } = await supabase
-      .from('transactions')
+      .from("transactions")
       .insert(transactionsToInsert);
 
     if (error) {
-      console.error('Error inserting transactions:', error);
+      console.error("Error inserting transactions:", error);
     }
   }
 
   // 5. Return all transactions from database
   const { data: allTransactions } = await supabase
-    .from('transactions')
-    .select('*')
-    .eq('wallet_id', walletId)
-    .order('created_at', { ascending: false });
+    .from("transactions")
+    .select("*")
+    .eq("wallet_id", walletId)
+    .order("created_at", { ascending: false });
 
   return allTransactions || [];
 }
