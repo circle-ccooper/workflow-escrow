@@ -46,6 +46,11 @@ export async function POST(req: NextRequest) {
       data: { user }
     } = await supabase.auth.getUser();
 
+    if (!user) {
+      console.error("User is not authenticated");
+      return NextResponse.json({ error: "User is not authenticated" }, { status: 401 });
+    }
+
     // Gets the currently logged in user id from their auth_user_id
     // This will be used to get the user circle_wallet_id
     const { data: userId, error: userIdError } = await supabase

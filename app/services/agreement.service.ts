@@ -16,7 +16,7 @@ export const createAgreementService = (supabase: SupabaseClient) => ({
       .insert({
         wallet_id: params.walletId,
         profile_id: params.profileId,
-        circle_transaction_id: params.circleTransactionId || "PENDING",
+        circle_transaction_id: params.circleTransactionId,
         escrow_agreement_id: params.escrowAgreementId,
         transaction_type: params.transactionType || "ESCROW_DEPOSIT",
         amount: params.amount,

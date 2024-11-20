@@ -1,8 +1,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { NextResponse } from "next/server";
 
-const baseUrl = process.env.VERCEL_URL
-  ? process.env.VERCEL_URL
+const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://127.0.0.1:3000";
 
 export async function GET(request: Request) {

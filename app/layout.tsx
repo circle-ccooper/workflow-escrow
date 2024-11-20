@@ -9,8 +9,8 @@ import Link from "next/link";
 import { createSupabaseServerComponentClient } from "@/lib/supabase/server-client";
 import "./globals.css";
 
-const defaultUrl = process.env.VERCEL_URL
-  ? process.env.VERCEL_URL
+const defaultUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://127.0.0.1:3000";
 
 export const metadata = {

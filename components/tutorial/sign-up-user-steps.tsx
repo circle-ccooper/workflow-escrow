@@ -16,7 +16,7 @@ export default function SignUpUserSteps() {
             </span>{" "}
             on
             <span className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-medium text-secondary-foreground border">
-              {process.env.VERCEL_URL}
+              {process.env.NEXT_PUBLIC_VERCEL_URL}
             </span>
             .
           </p>

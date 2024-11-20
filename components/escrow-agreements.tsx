@@ -35,8 +35,8 @@ interface Amount {
   location: string;
 }
 
-const baseUrl = process.env.VERCEL_URL
-  ? process.env.VERCEL_URL
+const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://127.0.0.1:3000";
 
 export const EscrowAgreements = (props: EscrowListProps) => {
@@ -113,7 +113,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       toast.error("An error occurred while updating the Circle contract ID");
     }
 
-    // Update circle_transaction_id (is "PENDING" by default on creation)
+    // Update circle_transaction_id (is "NULL" by default on creation)
     // This is needed so we can find the transaction later on and update it's status
     const { error: transactionError } = await supabase
       .from("transactions")
