@@ -8,12 +8,13 @@ import { CopyButton } from "@/components/copy-button";
 import { WalletTransactionsResponse } from "@/app/api/wallet/transactions/route";
 import { EscrowAgreements } from "@/components/escrow-agreements";
 import { WalletBalance } from "@/components/wallet-balance";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
   : "http://127.0.0.1:3000";
 
-async function syncTransactions(supabase: any, walletId: string, profileId: string, circleWalletId: string) {
+async function syncTransactions(supabase: SupabaseClient, walletId: string, profileId: string, circleWalletId: string) {
   // 1. Fetch transactions from Circle API
   const transactionsResponse = await fetch(
     `${baseUrl}/api/wallet/transactions`,
