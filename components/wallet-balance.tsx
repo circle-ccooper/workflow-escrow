@@ -18,16 +18,17 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
     const fetchBalance = async () => {
       setIsLoading(true);
       try {
-        // First, sync with Circle API
+        // Initial sync with Circle API
         await syncWalletBalance(walletId);
 
-        // Then fetch from database
-        const { data } = await supabase
+        // Fetch from database
+        const { data, error } = await supabase
           .from("wallets")
           .select("balance")
           .eq("circle_wallet_id", walletId)
           .single();
 
+        if (error) throw error;
         if (data) {
           setBalance(data.balance);
         }
@@ -41,12 +42,9 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
     // Fetch initial balance
     fetchBalance();
 
-    // Set up polling interval (every 30 seconds)
-    const intervalId = setInterval(fetchBalance, 30000);
-
     // Subscribe to real-time updates
     const channel = supabase
-      .channel("wallets")
+      .channel(`wallet-${walletId}`) // Unique channel name per wallet
       .on(
         "postgres_changes",
         {
@@ -56,16 +54,19 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
           filter: `circle_wallet_id=eq.${walletId}`,
         },
         (payload) => {
-          setBalance(payload.new.balance);
+          if (payload.new.balance !== balance) {
+            setBalance(payload.new.balance);
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Subscription status for wallet ${walletId}:`, status);
+      });
 
     return () => {
-      clearInterval(intervalId);
       supabase.removeChannel(channel);
     };
-  }, [supabase, walletId]);
+  }, [supabase, walletId, balance]);
 
   if (isLoading || balance === null) {
     return <Skeleton className="w-[56px] h-[28px] rounded-full" />;
@@ -74,6 +75,8 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
   const formattedBalance = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(balance);
 
   return (
