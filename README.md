@@ -69,7 +69,17 @@ Automated escrow agent that facilitates secure transactions.
    ngrok http 3000
    ```
 
-7. Register a webhook at [Circle](https://console.circle.com/webhooks) with the URL provided by ngrok, it should look similar to this: `https://9940-170-239-106-57.ngrok-free.app`, this webhook should point to the `/api/webhooks/circle` endpoint, and ideally the webhook should be limited to the `transactions.outbound` event.
+7. Configure the Circle webhook:
+   
+   a. Go to [Circle Webhooks Dashboard](https://console.circle.com/webhooks)
+   b. Click "Add Webhook"
+   c. Configure the following settings:
+      - Endpoint URL: Your ngrok URL + `/api/webhooks/circle` (e.g., `https://9940-170-239-106-57.ngrok-free.app/api/webhooks/circle`)
+      - Events: Select only `transactions.outbound`
+      - Status: Enabled
+   d. Save the webhook configuration
+   
+   Note: The webhook is essential for processing transaction status updates. Ensure it's properly configured before testing transactions.
 
 8. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
 
