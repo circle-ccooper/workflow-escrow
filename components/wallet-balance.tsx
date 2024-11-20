@@ -73,15 +73,15 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
   }
 
   const formattedBalance = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
+    
+    
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(balance);
 
   return (
     <p className="text-xl text-muted-foreground cursor-pointer mb-4">
-      {formattedBalance}
+      {formattedBalance} USDC
     </p>
   );
 }
