@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
     if (!circleContractId || typeof circleContractId !== "string") {
       console.error("Contract agreement ID is missing or invalid");
-      return NextResponse.json({ error: "Contract agreement ID is missing or invalid" });
+      return NextResponse.json({ error: "Contract agreement ID is missing or invalid" }, { status: 400 });
     }
 
     const { data: agreement, error: agreementError } = await supabase
@@ -160,7 +160,7 @@ export async function POST(request: Request) {
 
     if (!workMeetsRequirements) {
       console.error("Image does not meet all requirements", parsedPromptAnswerContent);
-      return NextResponse.json({ error: "Image does not meet all requirements" });
+      return NextResponse.json({ error: "Image does not meet all requirements" }, { status: 400 });
     }
 
     // Retrieves contract data from Circle's SDK
