@@ -157,7 +157,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     console.log("Funds deposit status update:", fundsDepositStatus);
     toast.info(`Funds deposit status update: ${fundsDepositStatus}`);
 
-    if (fundsDepositStatus !== "CONFIRMED") return;
+    if (fundsDepositStatus !== "COMPLETE") return;
 
     await supabase
       .from("escrow_agreements")
@@ -214,7 +214,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     console.log("Escrow agreement status update:", smartContractDeploymentStatus);
     toast.info(`Escrow agreement status update: ${smartContractDeploymentStatus}`);
 
-    const shouldRefresh = smartContractDeploymentStatus === "PENDING" || smartContractDeploymentStatus === "CONFIRMED";
+    const shouldRefresh = smartContractDeploymentStatus === "PENDING" || smartContractDeploymentStatus === "COMPLETE";
 
     if (!shouldRefresh) return
 
@@ -222,7 +222,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     const { error: agreementStatusUpdateError } = await supabase
       .from("escrow_agreements")
       .update({
-        status: smartContractDeploymentStatus === "CONFIRMED"
+        status: smartContractDeploymentStatus === "COMPLETE"
           ? "OPEN"
           : smartContractDeploymentStatus
       })
