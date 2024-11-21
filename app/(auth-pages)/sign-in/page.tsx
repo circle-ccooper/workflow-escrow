@@ -8,40 +8,78 @@ import Link from "next/link";
 
 export default function Login({ searchParams }: { searchParams: Message }) {
   return (
-    <div>
+    <div className="flex flex-col gap-6">
       <form className="flex-1 flex flex-col min-w-64">
-        <h1 className="text-2xl font-medium">Sign in</h1>
-        <p className="text-sm text-foreground">
+        <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-amber-600">
+          Sign in
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Don't have an account?{" "}
-          <Link className="text-foreground font-medium underline" href="/sign-up">
+          <Link 
+            className="text-blue-600 hover:text-blue-500 transition-colors font-medium" 
+            href="/sign-up"
+          >
             Sign up
           </Link>
         </p>
-        <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-          <Label htmlFor="email">Email</Label>
-          <Input name="email" placeholder="you@example.com" required />
-          <div className="flex justify-between items-center">
-            <Label htmlFor="password">Password</Label>
-            <Link
-              className="text-xs text-foreground underline"
-              href="/forgot-password"
-            >
-              Forgot Password?
-            </Link>
+        
+        <div className="flex flex-col gap-4 mt-8">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input 
+              id="email"
+              name="email" 
+              placeholder="you@example.com" 
+              required 
+            />
           </div>
-          <Input
-            type="password"
-            name="password"
-            placeholder="Your password"
-            required
-          />
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label htmlFor="password">Password</Label>
+              <Link
+                className="text-xs text-blue-600 hover:text-blue-500 transition-colors"
+                href="/forgot-password"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+            <Input
+              id="password"
+              type="password"
+              name="password"
+              placeholder="Your password"
+              required
+            />
+          </div>
+
           <FormMessage message={searchParams} />
-          <SubmitButton className="mb-2" pendingText="Signing In..." formAction={signInAction}>
+          
+          <SubmitButton 
+            className="w-full" 
+            pendingText="Signing In..." 
+            formAction={signInAction}
+          >
             Sign in
           </SubmitButton>
         </div>
       </form>
-      <GoogleLoginButton nextUrl="/dashboard" />
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">
+            Or continue with
+          </span>
+        </div>
+      </div>
+
+      <GoogleLoginButton 
+        nextUrl="/dashboard" 
+        
+      />
     </div>
   );
 }
