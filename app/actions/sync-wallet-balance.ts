@@ -1,4 +1,4 @@
-'use server'
+"use server";
 
 import { createSupabaseServerComponentClient } from "@/lib/supabase/server-client";
 import { revalidatePath } from "next/cache";
@@ -12,52 +12,48 @@ export async function syncWalletBalance(circleWalletId: string) {
     const supabase = createSupabaseServerComponentClient();
 
     // 1. Fetch balance from Circle API
-    const balanceResponse = await fetch(
-      `${baseUrl}/api/wallet/balance`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          walletId: circleWalletId,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const balanceResponse = await fetch(`${baseUrl}/api/wallet/balance`, {
+      method: "POST",
+      body: JSON.stringify({
+        walletId: circleWalletId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     const parsedBalance = await balanceResponse.json();
-    
-    if (parsedBalance.error || !parsedBalance.balance) {
-      if (parsedBalance.error || !parsedBalance.balance) {
-        if (parsedBalance.error) {
-          console.error('Error fetching balance:', parsedBalance.error);
-          return { error: parsedBalance.error };
-        }
-        console.log('Wallet has no balance');
-        return { error: 'No balance available' };
-      }
+
+    if (parsedBalance.error) {
+      console.error("Error fetching balance:", parsedBalance.error);
+      return { error: parsedBalance.error };
+    }
+
+    if (!parsedBalance.balance) {
+      console.log("Wallet has no balance");
+      return { error: "No balance available" };
     }
 
     // 2. Update the wallet balance in the database
     const { error: updateError } = await supabase
-      .from('wallets')
-      .update({ 
+      .from("wallets")
+      .update({
         balance: parsedBalance.balance,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
-      .eq('circle_wallet_id', circleWalletId);
+      .eq("circle_wallet_id", circleWalletId);
 
     if (updateError) {
-      console.error('Error updating wallet balance:', updateError);
-      return { error: 'Failed to update balance' };
+      console.error("Error updating wallet balance:", updateError);
+      return { error: "Failed to update balance" };
     }
 
     // Revalidate the page to trigger a refresh
-    revalidatePath('/');
-    
+    revalidatePath("/");
+
     return { balance: parsedBalance.balance };
   } catch (error) {
-    console.error('Error in syncWalletBalance:', error);
-    return { error: 'Internal server error' };
+    console.error("Error in syncWalletBalance:", error);
+    return { error: "Internal server error" };
   }
 }
