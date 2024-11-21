@@ -77,25 +77,26 @@ async function syncTransactions(
             `Invalid transaction structure: ${JSON.stringify(transaction)}`
           );
         }
+
         return {
           wallet_id: walletId,
           profile_id: profileId,
           circle_transaction_id: transaction.id,
           transaction_type: transaction.transactionType,
-          amount: parseFloat(transaction.amount[0].replace(/[$,]/g, "")),
+          amount: parseFloat(transaction.amount[0]?.replace(/[$,]/g, "")) || 0,
           currency: "USDC",
           status: transaction.status,
         };
       }
     );
 
-    const { error } = await supabase
+    /* const { error } = await supabase
       .from("transactions")
       .insert(transactionsToInsert);
 
     if (error) {
       console.error("Error inserting transactions:", error);
-    }
+    } */
   }
 
   // 5. Return all transactions from database
