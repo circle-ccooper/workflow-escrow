@@ -38,7 +38,15 @@ export async function POST(request: Request) {
     const imageFile = formData.get("file");
 
     if (!imageFile || !(imageFile instanceof Blob)) {
-      throw new Error("Image file is missing or invalid");
+      console.error("Image file is missing or invalid");
+      return NextResponse.json({ error: "Image file is missing or invalid" }, { status: 400 });
+    }
+
+    const circleContractId = formData.get("circleContractId");
+
+    if (!circleContractId || typeof circleContractId !== "string") {
+      console.error("Contract agreement ID is missing or invalid");
+      return NextResponse.json({ error: "Contract agreement ID is missing or invalid" }, { status: 400 });
     }
 
     const { data: agreement, error: agreementError } = await supabase
@@ -50,10 +58,11 @@ export async function POST(request: Request) {
           circle_wallet_id
         )
       `)
-      .eq("beneficiary_wallet.profiles.auth_user_id", user.id)
+      .eq("circle_contract_id", circleContractId)
       .single();
 
     if (agreementError) {
+      console.error("Failed to retrieve agreement requirements", agreementError);
       return NextResponse.json(
         { error: "Failed to retrieve agreement requirements" },
         { status: 500 }
@@ -118,8 +127,9 @@ export async function POST(request: Request) {
     const promptAnswerContent = promptAnswer.message.content;
 
     if (!promptAnswerContent) {
+      console.error("Failed to retrieve the work validation result", promptAnswerContent);
       return NextResponse.json(
-        { error: "Failed to validate the work" },
+        { error: "Failed to retrieve the work validation result" },
         { status: 500 }
       )
     }
@@ -139,13 +149,18 @@ export async function POST(request: Request) {
       });
 
     if (uploadError) {
-      throw new Error(`Failed to upload file: ${uploadError.message}`);
+      console.error("Failed to upload file:", uploadError);
+      return NextResponse.json(
+        { error: `Failed to upload file: ${uploadError.message}` },
+        { status: 500 }
+      );
     }
 
     const workMeetsRequirements = parsedPromptAnswerContent.valid && parsedPromptAnswerContent.confidence === "HIGH"
 
     if (!workMeetsRequirements) {
-      return NextResponse.json({ error: "Image does not meet all requirements" });
+      console.error("Image does not meet all requirements", parsedPromptAnswerContent);
+      return NextResponse.json({ error: "Image does not meet all requirements" }, { status: 400 });
     }
 
     // Retrieves contract data from Circle's SDK
@@ -161,6 +176,7 @@ export async function POST(request: Request) {
     const [, contractAddress] = contractData.data?.contract.name.split(" ");
 
     if (!contractAddress) {
+      console.error("Could not retrieve contract address:", contractAddress);
       return NextResponse.json({ error: "Could not retrieve contract address" }, { status: 500 })
     }
 

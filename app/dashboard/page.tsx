@@ -90,13 +90,13 @@ async function syncTransactions(
       }
     );
 
-    /* const { error } = await supabase
+    const { error } = await supabase
       .from("transactions")
       .insert(transactionsToInsert);
 
     if (error) {
       console.error("Error inserting transactions:", error);
-    } */
+    }
   }
 
   // 5. Return all transactions from database

@@ -40,8 +40,10 @@ const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://127.0.0.1:3000";
 
 export const EscrowAgreements = (props: EscrowListProps) => {
+  // We're using circle_contract_id instead of a boolean here to temporarily disable other agreements
+  // that are also pending work validation when one of them is busy uploading
+  const [submittingWork, setSubmittingWork] = useState<string>();
   const [depositing, setDepositing] = useState(false);
-  const [submittingWork, setSubmittingWork] = useState(false);
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
   const supabase = createSupabaseBrowserClient();
   const agreementService = createAgreementService(supabase);
@@ -54,13 +56,15 @@ export const EscrowAgreements = (props: EscrowListProps) => {
   };
 
   const submitWork = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
+    circleContractId: string
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      setSubmittingWork(true);
+      setSubmittingWork(circleContractId);
       try {
         const formData = new FormData();
+        formData.append("circleContractId", circleContractId)
         formData.append("file", file);
 
         const response = await fetch(
@@ -84,7 +88,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
         console.error("Error submitting work:", error);
         toast.error("An error occurred while submitting the work");
       } finally {
-        setSubmittingWork(false);
+        setSubmittingWork(undefined);
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
@@ -515,10 +519,10 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                         accept="image/*"
                         style={{ display: "none" }}
                         ref={fileInputRef}
-                        onChange={submitWork}
+                        onChange={event => submitWork(event, agreement.circle_contract_id)}
                       />
-                      <Button disabled={submittingWork} onClick={handleSubmitWork}>
-                        {submittingWork ? (
+                      <Button disabled={submittingWork !== undefined} onClick={handleSubmitWork}>
+                        {submittingWork === agreement.circle_contract_id ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Uploading...
