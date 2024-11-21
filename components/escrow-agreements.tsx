@@ -6,8 +6,8 @@ import type {
   AgreementStatus,
   EscrowAgreementWithDetails,
 } from "@/types/escrow";
-import { useEffect, useCallback, useState, useRef } from "react";
-import { FileText, ExternalLink, RotateCw, CircleDollarSign, Loader2, ImageUp } from "lucide-react";
+import { useEffect, useCallback, useState } from "react";
+import { FileText, ExternalLink, RotateCw, CircleDollarSign, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { getStatusColor } from "@/lib/utils/escrow";
@@ -41,56 +41,9 @@ const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
 
 export const EscrowAgreements = (props: EscrowListProps) => {
   const [depositing, setDepositing] = useState(false);
-  const [submittingWork, setSubmittingWork] = useState(false);
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
   const supabase = createSupabaseBrowserClient();
   const agreementService = createAgreementService(supabase);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleSubmitWork = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const submitWork = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSubmittingWork(true);
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch(
-          `${baseUrl}/api/contracts/validate-work`,
-          {
-            method: "POST",
-            body: formData,
-            credentials: "include",
-          }
-        );
-
-        const result = await response.json();
-
-        if (response.ok) {
-          toast.success(result.message || "Work submitted successfully");
-          refresh();
-        } else {
-          toast.error(result.error || "Failed to submit work");
-        }
-      } catch (error) {
-        console.error("Error submitting work:", error);
-        toast.error("An error occurred while submitting the work");
-      } finally {
-        setSubmittingWork(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      }
-    }
-  };
 
   const depositFunds = async (agreement: EscrowAgreementWithDetails) => {
     try {
@@ -178,52 +131,6 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     }
   }
 
-  // Runs when there are changes to "FUNDS_RELEASE" transactions
-  const updateAgreementReleaseStatus = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
-    const { data: agreementUser, error: agreementUserError } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("auth_user_id", props.userId)
-      .single();
-
-    if (agreementUserError) {
-      console.error("Could not retrieve the currently logged in user id:", agreementUserError);
-      toast.error("Could not retrieve the currently logged in user id", {
-        description: agreementUserError.message
-      });
-
-      return;
-    }
-
-    const isBeneficiary = agreementUser.id === payload.new.profile_id;
-
-    if (!isBeneficiary) return;
-
-    const fundsReleaseStatus = payload.new.status;
-
-    console.log("Funds release status update:", fundsReleaseStatus);
-    toast.info(`Funds release status update: ${fundsReleaseStatus}`);
-
-    if (fundsReleaseStatus === "FAILED") {
-      await supabase
-        .from("escrow_agreements")
-        .update({ status: "LOCKED" })
-        .eq("id", payload.new.escrow_agreement_id);
-
-      refresh();
-      return;
-    }
-
-    if (fundsReleaseStatus !== "COMPLETE") return;
-
-    await supabase
-      .from("escrow_agreements")
-      .update({ status: "CLOSED" })
-      .eq("id", payload.new.escrow_agreement_id);
-
-    refresh();
-  }, [supabase, refresh]);
-
   // Runs when there are changes to "FUNDS_DEPOSIT" transactions
   const updateAgreementDepositStatus = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
     const { data: agreementUser, error: agreementUserError } = await supabase
@@ -249,17 +156,6 @@ export const EscrowAgreements = (props: EscrowListProps) => {
 
     console.log("Funds deposit status update:", fundsDepositStatus);
     toast.info(`Funds deposit status update: ${fundsDepositStatus}`);
-
-    if (fundsDepositStatus === "FAILED") {
-      await supabase
-        .from("escrow_agreements")
-        .update({ status: "OPEN" })
-        .eq("id", payload.new.escrow_agreement_id);
-
-      refresh();
-
-      return;
-    }
 
     if (fundsDepositStatus !== "COMPLETE") return;
 
@@ -369,20 +265,6 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       )
       .subscribe();
 
-    const agreementReleaseSubscription = supabase
-      .channel("agreement_release_transactions")
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "transactions",
-          filter: "transaction_type=eq.FUNDS_RELEASE"
-        },
-        updateAgreementReleaseStatus
-      )
-      .subscribe();
-
     const escrowAgreementsSubscription = supabase
       .channel("refresh_agreement_changes")
       .on(
@@ -399,7 +281,6 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     return () => {
       supabase.removeChannel(agreementDeploymentSubscription);
       supabase.removeChannel(agreementDepositSubscription);
-      supabase.removeChannel(agreementReleaseSubscription);
       supabase.removeChannel(escrowAgreementsSubscription);
     }
   }, [supabase, updateAgreementsDeploymentStatus, refresh]);
@@ -507,30 +388,6 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                         </>
                       )}
                     </Button>
-                  )}
-                  {(props.userId === agreement.beneficiary_wallet?.profiles?.auth_user_id && agreement.status === "LOCKED") && (
-                    <>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        ref={fileInputRef}
-                        onChange={submitWork}
-                      />
-                      <Button disabled={submittingWork} onClick={handleSubmitWork}>
-                        {submittingWork ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Uploading...
-                          </>
-                        ) : (
-                          <>
-                            <ImageUp className="mr-2 h-4 w-4" />
-                            Submit work
-                          </>
-                        )}
-                      </Button>
-                    </>
                   )}
                 </div>
                 <Separator className="my-4" />

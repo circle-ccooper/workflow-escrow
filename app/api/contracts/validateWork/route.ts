@@ -1,29 +1,16 @@
+import type { EscrowAgreement } from "@/types/database.types"
+import type { PostgrestError } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { openai } from "@/lib/utils/openAIClient";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
-import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
-import { initiateSmartContractPlatformClient } from "@circle-fin/smart-contract-platform";
-import { createAgreementService } from "@/app/services/agreement.service";
-import { parseAmount } from "@/lib/utils/amount";
 
 interface ImageValidationResult {
   valid: boolean
   confidence: "HIGH" | "MEDIUM" | "LOW"
 }
 
-const circleContractSdk = initiateSmartContractPlatformClient({
-  apiKey: process.env.CIRCLE_API_KEY,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET
-});
-
-const circleDeveloperSdk = initiateDeveloperControlledWalletsClient({
-  apiKey: process.env.CIRCLE_API_KEY,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET,
-});
-
 export async function POST(request: Request) {
   const supabase = createSupabaseServerClient();
-  const agreementService = createAgreementService(supabase);
 
   const {
     data: { user }
@@ -41,29 +28,25 @@ export async function POST(request: Request) {
       throw new Error("Image file is missing or invalid");
     }
 
-    const { data: agreement, error: agreementError } = await supabase
+    const { data: agreement, error: fetchError } = await supabase
       .from("escrow_agreements")
       .select(`
         *,
-        beneficiary_wallet:wallets!escrow_agreements_beneficiary_wallet_id_fkey!inner(
-          profiles!inner(id,auth_user_id),
-          circle_wallet_id
+        beneficiary_wallet:wallets!inner(
+          profile:profiles!inner(auth_user_id)
         )
       `)
-      .eq("beneficiary_wallet.profiles.auth_user_id", user.id)
-      .single();
+      .eq("beneficiary_wallet.profile.auth_user_id", user.id)
+      .single() as { data: EscrowAgreement, error: PostgrestError | null };
 
-    if (agreementError) {
-      return NextResponse.json(
-        { error: "Failed to retrieve agreement requirements" },
-        { status: 500 }
-      );
+    if (fetchError || !agreement) {
+      throw new Error("Failed to retrieve agreement requirements");
     }
 
     const requirements = agreement.terms.tasks
-      .filter((requirement: any) => requirement.responsible_party === "ContentCreator")
-      .reduce((requirements: any, requirement: any) =>
-        `${requirements.length > 0 ? `${requirements}\n` : requirements}- ${requirement.description}`,
+      .filter(requirement => requirement.responsible_party === "Content Creator")
+      .reduce((requirements, requirement) =>
+        `${requirements.length > 0 ? `${requirements}\n` : requirements}- ${requirement.task_description}\n- ${requirement.additional_details}`,
         ""
       );
 
@@ -76,8 +59,7 @@ export async function POST(request: Request) {
         "confidence": "HIGH"
       }
 
-      Your answer should not contain anything else other than that, that include markdown formatting,
-      things like triple backticks should be completely stripped out.
+      Your answer should not contain anything else other than that.
 
       Where "valid" is a boolean and "confidence" is a string that can be either:
 
@@ -147,60 +129,6 @@ export async function POST(request: Request) {
     if (!workMeetsRequirements) {
       return NextResponse.json({ error: "Image does not meet all requirements" });
     }
-
-    // Retrieves contract data from Circle's SDK
-    const contractData = await circleContractSdk.getContract({
-      id: agreement.circle_contract_id
-    });
-
-    if (!contractData.data) {
-      console.error("Could not retrieve contract data");
-      return NextResponse.json({ error: "Could not retrieve contract data" }, { status: 500 });
-    }
-
-    const [, contractAddress] = contractData.data?.contract.name.split(" ");
-
-    if (!contractAddress) {
-      return NextResponse.json({ error: "Could not retrieve contract address" }, { status: 500 })
-    }
-
-    const beneficiaryWalletId = agreement.beneficiary_wallet?.circle_wallet_id;
-
-    if (!beneficiaryWalletId) {
-      console.error("Could not find a profile linked to the given wallet ID");
-      return NextResponse.json({ error: "Could not find a profile linked to the given wallet ID" }, { status: 500 });
-    }
-
-    const circleReleaseResponse = await circleDeveloperSdk.createContractExecutionTransaction({
-      walletId: beneficiaryWalletId,
-      contractAddress,
-      abiFunctionSignature: "release()",
-      abiParameters: [],
-      fee: {
-        type: "level",
-        config: {
-          feeLevel: "MEDIUM",
-        },
-      },
-    });
-
-    const amount = parseAmount((agreement.terms.amounts?.[0] as any).amount);
-    await agreementService.createTransaction({
-      walletId: agreement.beneficiary_wallet_id,
-      circleTransactionId: circleReleaseResponse.data?.id,
-      escrowAgreementId: agreement.id,
-      transactionType: "FUNDS_RELEASE",
-      profileId: agreement.beneficiary_wallet.profiles.id,
-      amount,
-      description: "Funds released after beneficiary work validation",
-    });
-
-    console.log("Funds release transaction created:", circleReleaseResponse.data);
-
-    await supabase
-      .from("escrow_agreements")
-      .update({ status: "PENDING" })
-      .eq("id", agreement.id);
 
     return NextResponse.json({ message: "Image meets all requirements" });
   } catch (error) {
