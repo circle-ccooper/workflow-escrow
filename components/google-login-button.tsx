@@ -16,7 +16,7 @@ export const GoogleLoginButton = (props: { nextUrl?: string }) => {
       provider: "google",
       options: {
         redirectTo: `${location.origin}/auth/callback?next=${
-          props.nextUrl || ""
+          props.nextUrl || "/"
         }`,
       },
     });

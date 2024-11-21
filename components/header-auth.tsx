@@ -1,8 +1,8 @@
-import { signOutAction } from "@/app/actions";
-import { hasEnvVars } from "@/lib/utils/supabase/check-env-vars";
 import Link from "next/link";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { signOutAction } from "@/app/actions";
+import { hasEnvVars } from "@/lib/utils/supabase/check-env-vars";
 import { createSupabaseServerComponentClient } from "@/lib/supabase/server-client";
 
 export default async function AuthButton() {
@@ -51,6 +51,9 @@ export default async function AuthButton() {
   return user ? (
     <div className="flex items-center gap-4">
       Hey, {user.email}!
+      <Button variant={"ghost"}>
+        <Link href="/dashboard">Dashboard</Link>
+      </Button>
       <form action={signOutAction}>
         <Button type="submit" variant={"outline"}>
           Sign out

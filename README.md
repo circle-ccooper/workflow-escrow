@@ -4,59 +4,20 @@ Automated escrow agent that facilitates secure transactions.
 
 ## Table of contents
 
-- [Features](#features)
-- [Demo](#demo)
-- [Deploy to Vercel](#deploy-to-vercel)
 - [Clone and run locally](#clone-and-run-locally)
-
-## Features
-
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
-
-## Demo
-
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
-
-## Deploy to Vercel
-
-Vercel deployment will guide you through creating a Supabase account and project.
-
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
-
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
-
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+- [Project Structure](#project-structure)
 
 ## Clone and run locally
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
-
-2. Create a Next.js app using the Supabase Starter template npx command
+1. Clone the repository and install dependencies:
 
    ```bash
-   npx create-next-app -e with-supabase
+   git clone https://github.com/[username]/workflow-escrow.git
+   cd workflow-escrow
+   npm install
    ```
 
-3. Use `cd` to change into the app's directory
-
-   ```bash
-   cd name-of-new-app
-   ```
-
-4. Rename `.env.example` to `.env.local` and update the following:
+2. Rename `.env.example` to `.env.local` and update the following:
 
    ```
    NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
@@ -83,15 +44,19 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
    - For development purposes, `NEXT_PUBLIC_AGENT_WALLET_ID` can be the address of any developer controlled wallet registered on [Circle](https://console.circle.com/wallets/dev/wallets), that might change for a production scenario.
 
-5. Then start a local instance of the Supabase server:
+3. Then start a local instance of the Supabase server:
 
    ```bash
    npx supabase start
    ```
 
-> If that's your first time running the project, consider executing the migrations with `npx supabase migration up`
+4. Initialize the database schema:
 
-6. You can now run the Next.js local development server:
+   ```bash
+   npx supabase migration up
+   ```
+
+5. You can now run the Next.js local development server:
 
    ```bash
    npm run dev
@@ -99,14 +64,90 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
    The starter kit should now be running on [127.0.0.1:3000](http://127.0.0.1:3000/).
 
-7. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
+6. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
 
    ```bash
    ngrok http 3000
    ```
 
-8. Register a webhook at [Circle](https://console.circle.com/webhooks) with the URL provided by ngrok, it should look similar to this: `https://9940-170-239-106-57.ngrok-free.app`, this webhook should point to the `/api/webhooks/circle` endpoint, and ideally the webhook should be limited to the `transactions.outbound` event.
+7. Configure the Circle webhook:
+   
+   a. Go to [Circle Webhooks Dashboard](https://console.circle.com/webhooks)
+   b. Click "Add Webhook"
+   c. Configure the following settings:
+      - Endpoint URL: Your ngrok URL + `/api/webhooks/circle` (e.g., `https://9940-170-239-106-57.ngrok-free.app/api/webhooks/circle`)
+      - Events: Select only `transactions.outbound`
+      - Status: Enabled
+   d. Save the webhook configuration
+   
+   Note: The webhook is essential for processing transaction status updates. Ensure it's properly configured before testing transactions.
 
-9. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+8. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+
+## Project Structure
+
+```
+.
+├── app/                    # Next.js 13+ app directory (main application code)
+│   ├── actions/            # Server actions for form handling and data mutations
+│   ├── api/                # API routes and endpoints
+│   │   ├── contracts/      # Smart contract interaction endpoints
+│   │   ├── wallet/         # Digital wallet management endpoints
+│   │   ├── wallet-set/     # Wallet configuration endpoints
+│   │   └── webhooks/       # Webhook handlers (e.g., Circle payment notifications)
+│   ├── auth/               # Authentication core functionality
+│   ├── (auth-pages)/       # Authentication-related pages (grouped route)
+│   ├── dashboard/          # Dashboard views and functionality
+│   ├── hooks/              # Custom React hooks
+│   └── services/           # Business logic and external service integrations
+│
+├── components/             # Reusable React components
+│   ├── tutorial/           # Tutorial and onboarding components
+│   ├── typography/         # Text styling components
+│   └── ui/                 # UI components library
+│
+├── contracts/              # Smart contract definitions and ABIs
+│   └── escrow-with-agent/  # Escrow contract implementation
+│
+├── lib/                    # Library code and utilities
+│   ├── supabase/           # Supabase client configuration
+│   └── utils/              # Utility functions and helpers
+│
+├── supabase/               # Supabase-specific configuration
+│   ├── migrations/         # Database migration files
+│   └── tests/              # Supabase-related tests
+│
+└── types/                  # TypeScript type definitions
+```
+
+### Key Directories
+
+- **`app/`**: Core application code using Next.js 13+ app directory structure
+  - `actions/`: Server-side actions for data mutations
+  - `api/`: Backend API endpoints for contracts, wallets, and webhooks
+  - `auth/`: Authentication system implementation
+  - `dashboard/`: Main application dashboard features
+  - `hooks/`: Reusable React hooks
+  - `services/`: Business logic layer
+
+- **`components/`**: Reusable React components organized by function
+  - `ui/`: Core UI component library
+  - `typography/`: Text and typography-related components
+  - `tutorial/`: User onboarding and tutorial components
+
+- **`contracts/`**: Smart contract related files
+  - `escrow-with-agent/`: Implementation of the escrow system with agent functionality
+
+- **`lib/`**: Utility functions and external service configurations
+  - `supabase/`: Supabase database configuration and helpers
+  - `utils/`: General utility functions
+
+- **`supabase/`**: Database configuration and management
+  - `migrations/`: Database schema migrations
+  - `tests/`: Database-related tests
+
+- **`types/`**: TypeScript type definitions for the project
+
+This structure follows a modular architecture that separates concerns between the frontend, backend APIs, smart contracts, and database layers while maintaining a clear organization for scaling the application.
