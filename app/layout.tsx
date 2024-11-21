@@ -14,7 +14,7 @@ const defaultUrl = process.env.NEXT_PUBLIC_VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Escrow Agent Workflow",
+  title: "Workflow Escrow",
   description: "Automated escrow agent that facilitates secure transactions",
 };
 
@@ -39,15 +39,15 @@ export default async function RootLayout({
                 <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
                   <div className="flex gap-5 items-center font-semibold">
                     <ThemeSwitcher />
-                    <Link href={"/"}>Escrow Agent Workflow</Link>
+                    <Link href={"/"}>Workflow Escrow</Link>
                     <div className="flex items-center gap-2"></div>
                   </div>
-                  {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}                  
+                  {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
                 </div>
               </nav>
               <div className="flex flex-col max-w-5xl w-full p-5">
                 {children}
-              </div>              
+              </div>
             </div>
           </main>
         </ThemeProvider>
