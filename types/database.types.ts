@@ -33,6 +33,7 @@ export interface EscrowAgreement {
   beneficiary_wallet_id: string;
   depositor_wallet_id: string;
   transaction_id: string;
+  circle_contract_id: string;
   status: string;
   terms: {
     amounts: Array<{

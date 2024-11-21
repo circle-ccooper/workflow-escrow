@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 
     if (depositorWalletError) {
       console.error("Could not find a profile linked to the given wallet ID", depositorWalletError);
-      return NextResponse.json({ error: "Could not find a profile linked to the given wallet ID" }, { status: 400 });
+      return NextResponse.json({ error: "Could not find a profile linked to the given wallet ID" }, { status: 500 });
     }
 
     // Retrieves contract data from Circle's SDK
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not retrieve contract address" }, { status: 500 })
     }
 
-    const response = await circleDeveloperSdk.createContractExecutionTransaction({
+    const circleDepositResponse = await circleDeveloperSdk.createContractExecutionTransaction({
       walletId: depositorWallet.circle_wallet_id,
       contractAddress,
       abiFunctionSignature: "deposit()",
@@ -106,13 +106,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.log("Funds deposit transaction created:", response.data)
+    console.log("Funds deposit transaction created:", circleDepositResponse.data);
 
     return NextResponse.json(
       {
         success: true,
-        transactionId: response.data?.id,
-        status: response.data?.state,
+        transactionId: circleDepositResponse.data?.id,
+        status: circleDepositResponse.data?.state,
         message: "Funds deposit transaction initiated"
       },
       { status: 201 }
