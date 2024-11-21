@@ -8,39 +8,62 @@ import Link from "next/link";
 export default function Signup({ searchParams }: { searchParams: Message }) {
   if ("message" in searchParams) {
     return (
-      <div className="w-full flex-1 flex items-center h-screen sm:max-w-md justify-center gap-2 p-4">
+      <div className="flex items-center justify-center p-4">
         <FormMessage message={searchParams} />
       </div>
     );
   }
 
   return (
-    <>
-      <form className="flex flex-col min-w-64 max-w-64 mx-auto">
-        <h1 className="text-2xl font-medium">Sign up</h1>
-        <p className="text-sm text text-foreground">
+    <div className="flex flex-col gap-6">
+      <form className="flex-1 flex flex-col min-w-64">
+        <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-amber-600">
+          Create an account
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Already have an account?{" "}
-          <Link className="text-primary font-medium underline" href="/sign-in">
+          <Link 
+            className="text-blue-600 hover:text-blue-500 transition-colors font-medium" 
+            href="/sign-in"
+          >
             Sign in
           </Link>
         </p>
-        <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-          <Label htmlFor="email">Email</Label>
-          <Input name="email" placeholder="you@example.com" required />
-          <Label htmlFor="password">Password</Label>
-          <Input
-            type="password"
-            name="password"
-            placeholder="Your password"
-            minLength={6}
-            required
-          />
-          <SubmitButton formAction={signUpAction} pendingText="Signing up...">
+
+        <div className="flex flex-col gap-4 mt-8">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input 
+              id="email"
+              name="email" 
+              placeholder="you@example.com" 
+              required 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              name="password"
+              placeholder="Create a password"
+              minLength={6}
+              required
+            />
+          </div>
+
+          <FormMessage message={searchParams} />
+          
+          <SubmitButton 
+            className="w-full" 
+            formAction={signUpAction} 
+            pendingText="Creating account..."
+          >
             Sign up
           </SubmitButton>
-          <FormMessage message={searchParams} />
         </div>
       </form>
-    </>
+    </div>
   );
 }
