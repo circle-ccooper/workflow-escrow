@@ -101,8 +101,6 @@ export async function POST(req: NextRequest) {
       walletId: depositorWallet.circle_wallet_id
     });
 
-    console.log("---------", depositorWallet);
-
     await agreementService.createTransaction({
       walletId: depositorWallet.id,
       circleTransactionId: circleApprovalResponse.data?.id,
