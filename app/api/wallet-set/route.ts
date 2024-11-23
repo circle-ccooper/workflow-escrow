@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { circleClient } from "@/lib/utils/circleClient";
-
-const client = circleClient();
+import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -14,7 +12,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const response = await client.createWalletSet({
+    const response = await circleDeveloperSdk.createWalletSet({
       name: entityName,
     });
 

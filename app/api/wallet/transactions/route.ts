@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
+import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 import { z } from "zod";
 
 const WalletIdSchema = z.object({
@@ -29,16 +29,11 @@ if (!process.env.CIRCLE_API_KEY || !process.env.CIRCLE_ENTITY_SECRET) {
   );
 }
 
-const client = initiateDeveloperControlledWalletsClient({
-  apiKey: process.env.CIRCLE_API_KEY,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET,
-});
-
 export async function POST(
   req: NextRequest,
 ): Promise<NextResponse<WalletTransactionsResponse>> {
   try {
-    const body = await req.json();    
+    const body = await req.json();
     const parseResult = WalletIdSchema.safeParse(body);
 
     if (!parseResult.success) {
@@ -50,7 +45,7 @@ export async function POST(
 
     const { walletId } = parseResult.data;
 
-    const response = await client.listTransactions({
+    const response = await circleDeveloperSdk.listTransactions({
       walletIds: [walletId],
       includeAll: true,
     });
@@ -64,7 +59,7 @@ export async function POST(
         { status: 404 },
       );
     }
-    
+
     return NextResponse.json({
       transactions: response.data.transactions.map((tx) => ({
         id: tx.id,

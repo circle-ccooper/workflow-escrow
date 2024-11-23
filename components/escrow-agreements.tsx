@@ -96,9 +96,34 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     }
   };
 
+  const approveDeposit = async (agreement: EscrowAgreementWithDetails) => {
+    const approveResponse = await fetch(`${baseUrl}/api/contracts/escrow/deposit/approve`, {
+      method: "POST",
+      body: JSON.stringify({
+        circleContractId: agreement.circle_contract_id
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    const parsedApproveResponse = await approveResponse.json();
+
+    if (parsedApproveResponse.error) {
+      console.error("Failed to approve funds deposit:", parsedApproveResponse.error);
+      toast.error("Failed to approve funds deposit", {
+        description: parsedApproveResponse.error
+      })
+    }
+
+    toast.info(parsedApproveResponse.message);
+  }
+
   const depositFunds = async (agreement: EscrowAgreementWithDetails) => {
     try {
       setDepositing(true);
+
+      await approveDeposit(agreement);
 
       const response = await fetch(`${baseUrl}/api/contracts/escrow/deposit`, {
         method: "POST",
@@ -227,6 +252,33 @@ export const EscrowAgreements = (props: EscrowListProps) => {
 
     refresh();
   }, [supabase, refresh]);
+
+  // Runs when there are changes to "DEPOSIT_APPROVAL" transactions
+  const updateAgreementDepositApprovalStatus = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
+    const { data: agreementUser, error: agreementUserError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("auth_user_id", props.userId)
+      .single();
+
+    if (agreementUserError) {
+      console.error("Could not retrieve the currently logged in user id:", agreementUserError);
+      toast.error("Could not retrieve the currently logged in user id", {
+        description: agreementUserError.message
+      });
+
+      return;
+    }
+
+    const isDepositAuthor = agreementUser.id === payload.new.profile_id;
+
+    if (!isDepositAuthor) return;
+
+    const fundsDepositStatus = payload.new.status;
+
+    console.log("Funds deposit approval status update:", fundsDepositStatus);
+    toast.info(`Funds deposit approval status update: ${fundsDepositStatus}`);
+  }, [supabase]);
 
   // Runs when there are changes to "FUNDS_DEPOSIT" transactions
   const updateAgreementDepositStatus = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
@@ -387,6 +439,20 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       )
       .subscribe();
 
+    const agreementApprovalSubscription = supabase
+      .channel("agreement_approval_transactions")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "transactions",
+          filter: "transaction_type=eq.DEPOSIT_APPROVAL"
+        },
+        updateAgreementDepositApprovalStatus
+      )
+      .subscribe();
+
     const escrowAgreementsSubscription = supabase
       .channel("refresh_agreement_changes")
       .on(
@@ -404,6 +470,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       supabase.removeChannel(agreementDeploymentSubscription);
       supabase.removeChannel(agreementDepositSubscription);
       supabase.removeChannel(agreementReleaseSubscription);
+      supabase.removeChannel(agreementApprovalSubscription);
       supabase.removeChannel(escrowAgreementsSubscription);
     }
   }, [supabase, updateAgreementsDeploymentStatus, refresh]);

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { circleContractSdk } from "@/lib/utils/smart-contract-platform-client";
 import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
+import { createAgreementService } from "@/app/services/agreement.service";
+import { parseAmount } from "@/lib/utils/amount";
 
 interface DepositRequest {
   circleContractId: string
@@ -10,6 +12,7 @@ interface DepositRequest {
 export async function POST(req: NextRequest) {
   try {
     const supabase = createSupabaseServerClient();
+    const agreementService = createAgreementService(supabase);
     const body: DepositRequest = await req.json();
 
     if (!body.circleContractId) {
@@ -58,7 +61,7 @@ export async function POST(req: NextRequest) {
     // This will be used to get the escrow agreement circle_contract_id
     const { data: depositorWallet, error: depositorWalletError } = await supabase
       .from("wallets")
-      .select("circle_wallet_id")
+      .select()
       .eq("profile_id", userId.id)
       .single();
 
@@ -83,35 +86,49 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not retrieve contract address" }, { status: 500 })
     }
 
-    const circleDepositResponse = await circleDeveloperSdk.createContractExecutionTransaction({
-      walletId: depositorWallet.circle_wallet_id,
+    const contractAmount = parseAmount(contractTransaction.terms.amounts?.[0].amount);
+
+    const circleApprovalResponse = await circleDeveloperSdk.createContractExecutionTransaction({
+      abiFunctionSignature: "approve(address,uint256)",
+      abiParameters: [process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS, contractAmount],
       contractAddress,
-      abiFunctionSignature: "deposit()",
-      abiParameters: [],
       fee: {
         type: "level",
         config: {
-          feeLevel: "MEDIUM",
-        },
+          feeLevel: "HIGH",
+        }
       },
+      walletId: depositorWallet.circle_wallet_id
     });
 
-    console.log("Funds deposit transaction created:", circleDepositResponse.data);
+    console.log("---------", depositorWallet);
+
+    await agreementService.createTransaction({
+      walletId: depositorWallet.id,
+      circleTransactionId: circleApprovalResponse.data?.id,
+      escrowAgreementId: contractTransaction.escrow_agreement_id,
+      transactionType: "DEPOSIT_APPROVAL",
+      profileId: depositorWallet.profile_id,
+      amount: contractAmount,
+      description: "Request for deposit approval",
+    });
+
+    console.log("Deposit approval transaction created:", circleApprovalResponse.data);
 
     return NextResponse.json(
       {
         success: true,
-        transactionId: circleDepositResponse.data?.id,
-        status: circleDepositResponse.data?.state,
-        message: "Funds deposit transaction initiated"
+        transactionId: circleApprovalResponse.data?.id,
+        status: circleApprovalResponse.data?.state,
+        message: "Funds deposit approval initiated"
       },
       { status: 201 }
     );
   } catch (error: any) {
-    console.error("Error during funds deposit initialization:", error);
+    console.error("Error during deposit approval:", error);
     return NextResponse.json(
       {
-        error: "Failed to initiate funds deposit",
+        error: "Failed to initiate deposit approval",
         details: error.message,
       },
       { status: 500 }
