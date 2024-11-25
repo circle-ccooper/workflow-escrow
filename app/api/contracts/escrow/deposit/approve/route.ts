@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     await agreementService.createTransaction({
       walletId: depositorWallet.id,
       circleTransactionId: circleApprovalResponse.data?.id,
-      escrowAgreementId: contractTransaction.escrow_agreement_id,
+      escrowAgreementId: contractTransaction.id,
       transactionType: "DEPOSIT_APPROVAL",
       profileId: depositorWallet.profile_id,
       amount: contractAmount,
