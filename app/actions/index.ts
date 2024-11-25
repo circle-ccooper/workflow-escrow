@@ -68,7 +68,7 @@ export const signUpAction = async (formData: FormData) => {
       return { error: "Could not create user" };
     }
 
-    const walletResult = await supabase
+    const { error: walletError } = await supabase
       .schema("public")
       .from("wallets")
       .insert({
@@ -83,13 +83,47 @@ export const signUpAction = async (formData: FormData) => {
       })
       .select();
 
-    if (walletResult.error) {
+    if (walletError) {
       console.error(
         "Error while attempting to create user's wallet:",
-        walletResult.error
+        walletError
       );
       return { error: "Could not create wallet" };
     }
+
+    const usdcAccessResponse = await fetch("https://api.circle.com/v1/w3s/ramp/sessions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Bearer ${process.env.CIRCLE_API_KEY}`
+      },
+      body: JSON.stringify({
+        mode: "QUOTE_SCREEN",
+        rampType: "BUY",
+        walletAddress: {
+          address: createdWallet.address,
+          blockchain: "MATIC-AMOY"
+        },
+        country: {
+          country: "US"
+        },
+        fiatAmount: {
+          currency: "USD"
+        },
+        cryptoAmount: {
+          currency: "USDC"
+        }
+      })
+    });
+
+    const parsedUsdcAccessResponse = await usdcAccessResponse.json();
+
+    await supabase.auth.updateUser({
+      data: {
+        usdc_access: parsedUsdcAccessResponse.data
+      }
+    });
   } catch (error: any) {
     console.error(error.message);
     return { error: error.message };
@@ -103,7 +137,7 @@ export const signInAction = async (formData: FormData) => {
   const password = formData.get("password") as string;
   const supabase = createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -111,6 +145,62 @@ export const signInAction = async (formData: FormData) => {
   if (error) {
     return encodedRedirect("error", "/sign-in", error.message);
   }
+
+  const { data: user, error: userError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("auth_user_id", data.user.id)
+    .single();
+
+  if (userError) {
+    console.error("Could not find an user with the given user ID", userError);
+    return { error: "Could not find an user with the given user ID" };
+  }
+
+  const { data: wallet, error: walletError } = await supabase
+    .from("wallets")
+    .select("wallet_address")
+    .eq("profile_id", user.id)
+    .single();
+
+  if (walletError) {
+    console.error("Could not find a wallet linked to the given user ID", walletError);
+    return { error: "Could not find a wallet linked to the given user ID" };
+  }
+
+  const usdcAccessResponse = await fetch("https://api.circle.com/v1/w3s/ramp/sessions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "Authorization": `Bearer ${process.env.CIRCLE_API_KEY}`
+    },
+    body: JSON.stringify({
+      mode: "QUOTE_SCREEN",
+      rampType: "BUY",
+      walletAddress: {
+        address: wallet.wallet_address,
+        blockchain: "MATIC-AMOY"
+      },
+      country: {
+        country: "US"
+      },
+      fiatAmount: {
+        currency: "USD"
+      },
+      cryptoAmount: {
+        currency: "USDC"
+      }
+    })
+  });
+
+  const parsedUsdcAccessResponse = await usdcAccessResponse.json();
+
+  await supabase.auth.updateUser({
+    data: {
+      usdc_access: parsedUsdcAccessResponse.data
+    }
+  });
 
   return redirect("/dashboard");
 };

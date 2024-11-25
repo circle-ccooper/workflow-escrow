@@ -15,22 +15,22 @@ export default function Login({ searchParams }: { searchParams: Message }) {
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           Don't have an account?{" "}
-          <Link 
+          <Link
             className="text-blue-600 hover:text-blue-500 transition-colors font-medium" 
             href="/sign-up"
           >
             Sign up
           </Link>
         </p>
-        
+
         <div className="flex flex-col gap-4 mt-8">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input 
+            <Input
               id="email"
-              name="email" 
-              placeholder="you@example.com" 
-              required 
+              name="email"
+              placeholder="you@example.com"
+              required
             />
           </div>
 
@@ -54,10 +54,10 @@ export default function Login({ searchParams }: { searchParams: Message }) {
           </div>
 
           <FormMessage message={searchParams} />
-          
-          <SubmitButton 
-            className="w-full" 
-            pendingText="Signing In..." 
+
+          <SubmitButton
+            className="w-full"
+            pendingText="Signing In..."
             formAction={signInAction}
           >
             Sign in
@@ -76,10 +76,7 @@ export default function Login({ searchParams }: { searchParams: Message }) {
         </div>
       </div>
 
-      <GoogleLoginButton 
-        nextUrl="/dashboard" 
-        
-      />
+      <GoogleLoginButton nextUrl="/dashboard" />
     </div>
   );
 }
