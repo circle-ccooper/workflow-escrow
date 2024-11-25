@@ -19,7 +19,6 @@ interface USDC {
 }
 
 contract EscrowWithAgent {
-    address public factoryAddress;
     address public depositor;
     address public beneficiary;
     address public agent;
