@@ -54,6 +54,9 @@ export default async function AuthButton() {
       <Button variant={"ghost"}>
         <Link href="/dashboard">Dashboard</Link>
       </Button>
+      <Button variant={"ghost"}>
+        <Link target="_blank" href={user.user_metadata.usdc_access.url}>Buy USDC</Link>
+      </Button>
       <form action={signOutAction}>
         <Button type="submit" variant={"outline"}>
           Sign out
