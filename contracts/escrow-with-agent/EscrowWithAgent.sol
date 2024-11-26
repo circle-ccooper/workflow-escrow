@@ -19,7 +19,6 @@ interface USDC {
 }
 
 contract EscrowWithAgent {
-    address public factoryAddress;
     address public depositor;
     address public beneficiary;
     address public agent;
@@ -38,20 +37,14 @@ contract EscrowWithAgent {
         CLOSED
     }
 
-    // Constructor to set the factory address
-    constructor(address _factoryAddress) {
-        factoryAddress = _factoryAddress;
-    }
-
-    function init(
+    // Constructor to initialize the contract
+    constructor(
         address _depositor,
         address _beneficiary,
         address _agent,
         uint256 _amount,
         address _usdcTokenAddress
-    ) public {
-        require(msg.sender == factoryAddress, "Only factory can initialize"); // ensure only the factory contract can call this function
-        require(currentStage == Stages(0), "Already initialized"); // ensure it's only called once
+    ) {
         depositor = _depositor;
         beneficiary = _beneficiary;
         agent = _agent;
@@ -105,77 +98,5 @@ contract EscrowWithAgent {
 
     function balanceOf() public view returns (uint256) {
         return usdcToken.balanceOf(address(this));
-    }
-}
-
-/// @title Escrow Factory Contract with Unique ID for Each Escrow
-/// @notice This contract creates and manages multiple EscrowWithAgent contracts and assigns a unique ID to each escrow
-contract EscrowFactory {
-    uint256 public escrowCounter; // counter for unique escrow IDs
-    struct EscrowDetails {
-        address escrowAddress;
-        address depositor;
-        address beneficiary;
-        address agent;
-        uint256 amount;
-        uint256 escrowId;
-    }
-
-    mapping(uint256 => EscrowDetails) public escrowsById; // mapping to store escrows by their unique ID
-    event EscrowCreated(
-        uint256 escrowId,
-        address escrowAddress,
-        address depositor,
-        address beneficiary,
-        address agent,
-        uint256 amount
-    );
-
-    function createEscrow(
-        address _depositor,
-        address _beneficiary,
-        address _agent,
-        uint256 _amount,
-        address _usdcTokenAddress
-    ) public returns (uint256) {
-        EscrowWithAgent newEscrow = new EscrowWithAgent(address(this));
-        newEscrow.init(
-            _depositor,
-            _beneficiary,
-            _agent,
-            _amount,
-            _usdcTokenAddress
-        );
-
-        // Increment the counter to get a new unique ID
-        escrowCounter++;
-        uint256 newEscrowId = escrowCounter;
-
-        // Store the details of the new escrow in the mapping
-        escrowsById[newEscrowId] = EscrowDetails({
-            escrowAddress: address(newEscrow),
-            depositor: _depositor,
-            beneficiary: _beneficiary,
-            agent: _agent,
-            amount: _amount,
-            escrowId: newEscrowId
-        });
-
-        emit EscrowCreated(
-            newEscrowId,
-            address(newEscrow),
-            _depositor,
-            _beneficiary,
-            _agent,
-            _amount
-        );
-        return newEscrowId;
-    }
-
-    // Function to retrieve escrow details by ID
-    function getEscrowById(
-        uint256 _escrowId
-    ) public view returns (EscrowDetails memory) {
-        return escrowsById[_escrowId];
     }
 }
