@@ -35,14 +35,20 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
       toast.error("Error fetching wallet balance", {
         description: parsedBalance.error
       });
+      setLoading(false);
       return;
     }
 
-    if (!parsedBalance.balance) {
+    if (parsedBalance.balance === null || parsedBalance.balance === undefined) {
       console.log("Wallet has no balance");
-      toast.error("Wallet has no balance");
+      toast.info("Wallet has no balance");
+      setBalance(0);
+      setLoading(false);
       return;
     }
+
+    setLoading(false);
+    setBalance(parsedBalance.balance);
 
     setLoading(false);
     setBalance(parsedBalance.balance);
