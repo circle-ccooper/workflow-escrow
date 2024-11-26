@@ -2,46 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { circleContractSdk } from "@/lib/utils/smart-contract-platform-client";
 import { ABIJSON, CONTRACT_BYTECODE } from "@/lib/constants";
 import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
-
-// Environment variable validation
-const requiredEnvVars = [
-  "CIRCLE_API_KEY",
-  "CIRCLE_ENTITY_SECRET",
-  "NEXT_PUBLIC_USDC_CONTRACT_ADDRESS",
-] as const;
-
-// Type for environment variables
-interface EnvVariables {
-  CIRCLE_API_KEY: string;
-  CIRCLE_ENTITY_SECRET: string;
-  NEXT_PUBLIC_USDC_CONTRACT_ADDRESS: string;
-}
-
-// Validate and get environment variables
-function getEnvVariables(): EnvVariables {
-  const missingVars = requiredEnvVars.filter(
-    (varName) => !process.env[varName]
-  );
-
-  if (missingVars.length > 0) {
-    throw new Error(
-      `Missing required environment variables: ${missingVars.join(", ")}`
-    );
-  }
-
-  return {
-    CIRCLE_API_KEY: process.env.CIRCLE_API_KEY!,
-    CIRCLE_ENTITY_SECRET: process.env.CIRCLE_ENTITY_SECRET!,
-    NEXT_PUBLIC_USDC_CONTRACT_ADDRESS: process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS!,
-  };
-}
-
-// Get environment variables
-const env = getEnvVariables();
-
-function convertUSDCToContractAmount(amount: number): string {
-  return (amount * 1000000).toString();
-}
+import { convertUSDCToContractAmount } from "@/lib/utils/amount";
 
 interface CreateEscrowRequest {
   depositorAddress: string;
@@ -121,7 +82,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Convert USDC amount to contract format
-    const contractAmount = convertUSDCToContractAmount(body.amountUSDC);
+    const contractAmount = Number(convertUSDCToContractAmount(body.amountUSDC));
 
     // Create contract execution transaction
     const createResponse = await circleContractSdk.deployContract({
@@ -140,7 +101,7 @@ export async function POST(req: NextRequest) {
         body.beneficiaryAddress,
         body.agentAddress,
         contractAmount,
-        env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS,
+        process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS,
       ],
       abiJson: ABIJSON,
       bytecode: CONTRACT_BYTECODE,

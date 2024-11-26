@@ -3,7 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { circleContractSdk } from "@/lib/utils/smart-contract-platform-client";
 import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 import { createAgreementService } from "@/app/services/agreement.service";
-import { parseAmount } from "@/lib/utils/amount";
+import { convertUSDCToContractAmount, parseAmount } from "@/lib/utils/amount";
 
 interface DepositRequest {
   circleContractId: string
@@ -80,13 +80,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not retrieve contract data" }, { status: 500 });
     }
 
-    const [, contractAddress] = contractData.data?.contract.name.split(" ");
-
+    const contractAddress = contractData.data?.contract.contractAddress;
     if (!contractAddress) {
       return NextResponse.json({ error: "Could not retrieve contract address" }, { status: 500 })
     }
 
-    const contractAmount = parseAmount(contractTransaction.terms.amounts?.[0].amount);
+    const parsedAmount = parseAmount(contractTransaction.terms.amounts?.[0].amount);
+    const contractAmount = Number(convertUSDCToContractAmount(parsedAmount))
 
     const circleApprovalResponse = await circleDeveloperSdk.createContractExecutionTransaction({
       abiFunctionSignature: "approve(address,uint256)",
