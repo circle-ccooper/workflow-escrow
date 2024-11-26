@@ -80,7 +80,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not retrieve contract data" }, { status: 500 });
     }
 
-    const contractAddress = contractData.data?.contract.contractAddress;
+    const contractAddress = contractData.data?.contract.contractAddress;    
+
     if (!contractAddress) {
       return NextResponse.json({ error: "Could not retrieve contract address" }, { status: 500 })
     }
@@ -90,8 +91,8 @@ export async function POST(req: NextRequest) {
 
     const circleApprovalResponse = await circleDeveloperSdk.createContractExecutionTransaction({
       abiFunctionSignature: "approve(address,uint256)",
-      abiParameters: [process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS, contractAmount],
-      contractAddress,
+      abiParameters: [contractAddress, contractAmount],
+      contractAddress: process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS,
       fee: {
         type: "level",
         config: {
