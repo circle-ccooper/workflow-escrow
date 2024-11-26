@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { circleClient } from "@/lib/utils/circleClient";
-
-const client = circleClient();
+import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,7 +12,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const response = await client.createWallets({
+    const response = await circleDeveloperSdk.createWallets({
       accountType: "SCA",
       blockchains: ["MATIC-AMOY"],
       count: 1,

@@ -1,7 +1,5 @@
 import { FeeLevel } from "@circle-fin/developer-controlled-wallets";
-import { circleClient } from "@/lib/utils/circleClient";
-
-const client = circleClient();
+import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 
 type ContractExecutionOptions = {
   walletId: string;
@@ -19,7 +17,7 @@ export const executeContract = async ({
   feeLevel = "MEDIUM",
 }: ContractExecutionOptions) => {
   try {
-    const response = await client.createContractExecutionTransaction({
+    const response = await circleDeveloperSdk.createContractExecutionTransaction({
       walletId,
       contractAddress,
       abiFunctionSignature,

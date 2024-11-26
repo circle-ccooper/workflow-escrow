@@ -1,50 +1,70 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
-import { Skeleton } from "@/components/ui/skeleton";
-import { syncWalletBalance } from "@/app/actions/sync-wallet-balance";
+import { toast } from "sonner";
+import { Skeleton } from "./ui/skeleton";
 
 interface WalletBalanceProps {
   walletId: string;
 }
 
+const baseUrl = process.env.VERCEL_URL
+  ? process.env.VERCEL_URL
+  : "http://127.0.0.1:3000";
+
 export function WalletBalance({ walletId }: WalletBalanceProps) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
-  const [balance, setBalance] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [balance, setBalance] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const fetchBalance = async () => {
+    const balanceResponse = await fetch(`${baseUrl}/api/wallet/balance`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ walletId })
+    });
+
+    const parsedBalance = await balanceResponse.json();
+
+    if (parsedBalance.error) {
+      console.error("Error fetching wallet balance:", parsedBalance.error);
+      toast.error("Error fetching wallet balance", {
+        description: parsedBalance.error
+      });
+      return;
+    }
+
+    if (!parsedBalance.balance) {
+      console.log("Wallet has no balance");
+      toast.error("Wallet has no balance");
+      return;
+    }
+
+    setLoading(false);
+    setBalance(parsedBalance.balance);
+  }
+
+  const updateWalletBalance = useCallback((payload: RealtimePostgresUpdatePayload<Record<string, string>>, balance: number) => {
+    const stringifiedBalance = balance.toString()
+    const shouldUpdateBalance = payload.new.balance !== stringifiedBalance;
+
+    if (shouldUpdateBalance) {
+      toast.info("Wallet balance updated");
+      setBalance(Number(payload.new.balance));
+    }
+  }, [supabase]);
 
   useEffect(() => {
-    const fetchBalance = async () => {
-      setIsLoading(true);
-      try {
-        // Initial sync with Circle API
-        await syncWalletBalance(walletId);
+    fetchBalance()
+  }, []);
 
-        // Fetch from database
-        const { data, error } = await supabase
-          .from("wallets")
-          .select("balance")
-          .eq("circle_wallet_id", walletId)
-          .single();
-
-        if (error) throw error;
-        if (data) {
-          setBalance(data.balance);
-        }
-      } catch (error) {
-        console.error("Error fetching balance:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // Fetch initial balance
-    fetchBalance();
-
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel(`wallet-${walletId}`) // Unique channel name per wallet
+  useEffect(() => {
+    const walletSubscription = supabase
+      .channel("wallet")
       .on(
         "postgres_changes",
         {
@@ -53,28 +73,20 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
           table: "wallets",
           filter: `circle_wallet_id=eq.${walletId}`,
         },
-        (payload) => {
-          if (payload.new.balance !== balance) {
-            setBalance(payload.new.balance);
-          }
-        }
+        payload => updateWalletBalance(payload, balance)
       )
-      .subscribe((status) => {
-        console.log(`Subscription status for wallet ${walletId}:`, status);
-      });
+      .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(walletSubscription);
     };
-  }, [supabase, walletId, balance]);
+  }, [supabase, walletId]);
 
-  if (isLoading || balance === null) {
-    return <Skeleton className="w-[56px] h-[28px] rounded-full" />;
+  if (loading) {
+    return <Skeleton className="w-[103px] h-[28px] rounded-full" />;
   }
 
   const formattedBalance = new Intl.NumberFormat("en-US", {
-    
-    
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(balance);

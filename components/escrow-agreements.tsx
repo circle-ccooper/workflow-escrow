@@ -96,10 +96,40 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     }
   };
 
+  const approveDeposit = async (agreement: EscrowAgreementWithDetails) => {
+    setDepositing(true);
+
+    const approveResponse = await fetch(`${baseUrl}/api/contracts/escrow/deposit/approve`, {
+      method: "POST",
+      body: JSON.stringify({
+        circleContractId: agreement.circle_contract_id
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    const parsedApproveResponse = await approveResponse.json();
+
+    if (parsedApproveResponse.error) {
+      console.error("Failed to approve funds deposit:", parsedApproveResponse.error);
+      toast.error("Failed to approve funds deposit", {
+        description: parsedApproveResponse.error
+      })
+    }
+
+    await supabase
+      .from("escrow_agreements")
+      .update({ status: "PENDING" })
+      .eq("id", agreement.id);
+
+    refresh();
+
+    toast.info(parsedApproveResponse.message);
+  }
+
   const depositFunds = async (agreement: EscrowAgreementWithDetails) => {
     try {
-      setDepositing(true);
-
       const response = await fetch(`${baseUrl}/api/contracts/escrow/deposit`, {
         method: "POST",
         body: JSON.stringify({
@@ -227,6 +257,65 @@ export const EscrowAgreements = (props: EscrowListProps) => {
 
     refresh();
   }, [supabase, refresh]);
+
+  // Runs when there are changes to "DEPOSIT_APPROVAL" transactions
+  const updateAgreementDepositApprovalStatus = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
+    const { data: agreementUser, error: agreementUserError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("auth_user_id", props.userId)
+      .single();
+
+    if (agreementUserError) {
+      console.error("Could not retrieve the currently logged in user id:", agreementUserError);
+      toast.error("Could not retrieve the currently logged in user id", {
+        description: agreementUserError.message
+      });
+
+      return;
+    }
+
+    const isDepositAuthor = agreementUser.id === payload.new.profile_id;
+
+    if (!isDepositAuthor) return;
+
+    const fundsDepositStatus = payload.new.status;
+
+    console.log("Funds deposit approval status update:", fundsDepositStatus);
+    toast.info(`Funds deposit approval status update: ${fundsDepositStatus}`);
+
+    if (fundsDepositStatus === "FAILED") {
+      await supabase
+        .from("escrow_agreements")
+        .update({ status: "OPEN" })
+        .eq("id", payload.new.escrow_agreement_id);
+
+      refresh();
+
+      setDepositing(false);
+
+      return;
+    }
+
+    if (fundsDepositStatus !== "COMPLETE") return;
+
+    const { data: agreement, error: agreementError } = await supabase
+      .from("escrow_agreements")
+      .select()
+      .eq("id", payload.new.escrow_agreement_id)
+      .single() as { data: EscrowAgreementWithDetails, error: PostgrestError | null };
+
+    if (agreementError) {
+      console.error("Error retrieving agreement details", agreementError);
+      toast.error("Error retrieving agreement details", {
+        description: agreementError.message
+      });
+
+      return;
+    }
+
+    await depositFunds(agreement);
+  }, [supabase]);
 
   // Runs when there are changes to "FUNDS_DEPOSIT" transactions
   const updateAgreementDepositStatus = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
@@ -359,6 +448,20 @@ export const EscrowAgreements = (props: EscrowListProps) => {
       )
       .subscribe();
 
+    const agreementApprovalSubscription = supabase
+      .channel("agreement_approval_transactions")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "transactions",
+          filter: "transaction_type=eq.DEPOSIT_APPROVAL"
+        },
+        updateAgreementDepositApprovalStatus
+      )
+      .subscribe();
+
     const agreementDepositSubscription = supabase
       .channel("agreement_deposit_transactions")
       .on(
@@ -402,6 +505,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
 
     return () => {
       supabase.removeChannel(agreementDeploymentSubscription);
+      supabase.removeChannel(agreementApprovalSubscription);
       supabase.removeChannel(agreementDepositSubscription);
       supabase.removeChannel(agreementReleaseSubscription);
       supabase.removeChannel(escrowAgreementsSubscription);
@@ -498,7 +602,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                     />
                   )}
                   {(props.userId === agreement.depositor_wallet?.profiles?.auth_user_id && agreement.status === "OPEN") && (
-                    <Button disabled={depositing} onClick={() => depositFunds(agreement)}>
+                    <Button disabled={depositing} onClick={() => approveDeposit(agreement)}>
                       {depositing ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
-import { initiateSmartContractPlatformClient } from "@circle-fin/smart-contract-platform";
+import { circleContractSdk } from "@/lib/utils/smart-contract-platform-client";
 import { ABIJSON, CONTRACT_BYTECODE } from "@/lib/constants";
+import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 
 // Environment variable validation
 const requiredEnvVars = [
@@ -39,17 +39,6 @@ function getEnvVariables(): EnvVariables {
 // Get environment variables
 const env = getEnvVariables();
 
-// Initialize Circle client
-const circleClient = initiateDeveloperControlledWalletsClient({
-  apiKey: env.CIRCLE_API_KEY,
-  entitySecret: env.CIRCLE_ENTITY_SECRET,
-});
-// Initialize Circle Smart Contract client
-const circleContractClient = initiateSmartContractPlatformClient({
-  apiKey: env.CIRCLE_API_KEY,
-  entitySecret: env.CIRCLE_ENTITY_SECRET,
-});
-
 function convertUSDCToContractAmount(amount: number): string {
   return (amount * 1000000).toString();
 }
@@ -68,7 +57,7 @@ async function waitForTransactionStatus(id: string) {
 
   while (attempts < maxAttempts) {
     try {
-      const response = await circleClient.getTransaction({ id });
+      const response = await circleDeveloperSdk.getTransaction({ id });
 
       if (!response.data) {
         throw new Error("No data returned from transaction status check");
@@ -135,7 +124,7 @@ export async function POST(req: NextRequest) {
     const contractAmount = convertUSDCToContractAmount(body.amountUSDC);
 
     // Create contract execution transaction
-    const createResponse = await circleContractClient.deployContract({
+    const createResponse = await circleContractSdk.deployContract({
       name: `Escrow ${body.beneficiaryAddress}`,
       description: `Escrow ${body.beneficiaryAddress}`,
       walletId: body.agentWalletId,

@@ -22,8 +22,8 @@ export default function Signup({ searchParams }: { searchParams: Message }) {
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
           Already have an account?{" "}
-          <Link 
-            className="text-blue-600 hover:text-blue-500 transition-colors font-medium" 
+          <Link
+            className="text-blue-600 hover:text-blue-500 transition-colors font-medium"
             href="/sign-in"
           >
             Sign in
@@ -33,11 +33,11 @@ export default function Signup({ searchParams }: { searchParams: Message }) {
         <div className="flex flex-col gap-4 mt-8">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input 
+            <Input
               id="email"
-              name="email" 
-              placeholder="you@example.com" 
-              required 
+              name="email"
+              placeholder="you@example.com"
+              required
             />
           </div>
 
@@ -54,10 +54,10 @@ export default function Signup({ searchParams }: { searchParams: Message }) {
           </div>
 
           <FormMessage message={searchParams} />
-          
-          <SubmitButton 
-            className="w-full" 
-            formAction={signUpAction} 
+
+          <SubmitButton
+            className="w-full"
+            formAction={signUpAction}
             pendingText="Creating account..."
           >
             Sign up

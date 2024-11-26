@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 import { z } from "zod";
-import { circleClient } from "@/lib/utils/circleClient";
 
 const WalletIdSchema = z.object({
   walletId: z.string().uuid(),
@@ -12,8 +12,6 @@ const ResponseSchema = z.object({
 });
 
 type WalletBalanceResponse = z.infer<typeof ResponseSchema>;
-
-const client = circleClient();
 
 export async function POST(
   req: NextRequest
@@ -31,7 +29,7 @@ export async function POST(
 
     const { walletId } = parseResult.data;
 
-    const response = await client.getWalletTokenBalance({
+    const response = await circleDeveloperSdk.getWalletTokenBalance({
       id: walletId,
     });
 
@@ -39,14 +37,7 @@ export async function POST(
       ({ token }) => token.name === "USDC"
     )?.amount;
 
-    if (balance === undefined) {
-      return NextResponse.json(
-        { error: "USDC balance not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ balance });
+    return NextResponse.json({ balance: balance || "0" });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

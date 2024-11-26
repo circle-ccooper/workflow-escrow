@@ -1,25 +1,15 @@
 import { NextResponse } from "next/server";
 import { openai } from "@/lib/utils/openAIClient";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
-import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
-import { initiateSmartContractPlatformClient } from "@circle-fin/smart-contract-platform";
+import { circleContractSdk } from "@/lib/utils/smart-contract-platform-client";
 import { createAgreementService } from "@/app/services/agreement.service";
 import { parseAmount } from "@/lib/utils/amount";
+import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 
 interface ImageValidationResult {
   valid: boolean
   confidence: "HIGH" | "MEDIUM" | "LOW"
 }
-
-const circleContractSdk = initiateSmartContractPlatformClient({
-  apiKey: process.env.CIRCLE_API_KEY,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET
-});
-
-const circleDeveloperSdk = initiateDeveloperControlledWalletsClient({
-  apiKey: process.env.CIRCLE_API_KEY,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET,
-});
 
 export async function POST(request: Request) {
   const supabase = createSupabaseServerClient();
@@ -188,7 +178,7 @@ export async function POST(request: Request) {
     }
 
     const circleReleaseResponse = await circleDeveloperSdk.createContractExecutionTransaction({
-      walletId: beneficiaryWalletId,
+      walletId: process.env.NEXT_PUBLIC_AGENT_WALLET_ID,
       contractAddress,
       abiFunctionSignature: "release()",
       abiParameters: [],

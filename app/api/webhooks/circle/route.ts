@@ -1,6 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server-client";
+
+const baseUrl = process.env.VERCEL_URL
+  ? process.env.VERCEL_URL
+  : "http://127.0.0.1:3000";
 
 async function updateAgreementTransactionStatus(transactionId: string, newStatus: string) {
   const supabase = createSupabaseServerClient();
@@ -24,6 +28,7 @@ async function updateAgreementTransactionStatus(transactionId: string, newStatus
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = createSupabaseServerClient();
     const signature = req.headers.get("x-circle-signature");
     const keyId = req.headers.get("x-circle-key-id");
 
@@ -34,8 +39,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Parse the JSON body only once
     const body = await req.json();
+
     // Convert to a string for signature verification
     const bodyString = JSON.stringify(body);
 
@@ -45,19 +50,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
     }
 
+    console.log("Received notification:", body);
+
     const {
       id: transactionId,
+      transactionType,
+      walletId,
       state: transactionState
     } = body.notification;
+
+    const isInboundTransaction = transactionType === "INBOUND"
+
+    if (isInboundTransaction && transactionState === "COMPLETE") {
+      const response = await fetch(`${baseUrl}/api/wallet/balance`, {
+        method: "POST",
+        body: JSON.stringify({
+          walletId,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const parsedResponse = await response.json()
+
+      await supabase
+        .from("wallets")
+        .update({ balance: parsedResponse.balance })
+        .eq("circle_wallet_id", walletId);
+    }
 
     // Update or handle the contract deployment status in escrow_agreements
     await updateAgreementTransactionStatus(transactionId, transactionState);
 
-    console.log("Received notification:", body);
-
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {
-    console.log(error);
+    console.log("Failed to process notification:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       { error: `Failed to process notification: ${message}` },

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createSupabaseServerComponentClient } from "@/lib/supabase/server-client";
 import { redirect } from "next/navigation";
 import { Transactions } from "@/components/transactions";
@@ -9,6 +10,8 @@ import { WalletTransactionsResponse } from "@/app/api/wallet/transactions/route"
 import { EscrowAgreements } from "@/components/escrow-agreements";
 import { WalletBalance } from "@/components/wallet-balance";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { Button } from "@/components/ui/button";
+import { RequestUsdcButton } from "@/components/request-usdc-button";
 
 interface CircleTransaction {
   id: string;
@@ -179,6 +182,14 @@ export default async function ProtectedPage() {
               <p className="text-xl text-muted-foreground cursor-pointer mb-4">
                 {wallet?.blockchain || "No wallet found"}
               </p>
+            </div>
+            <div className="flex space-x-2">
+              <Button>
+                <Link target="_blank" href={user.user_metadata.usdc_access.url}>
+                  Buy USDC
+                </Link>
+              </Button>
+              {process.env.NODE_ENV === "development" && <RequestUsdcButton walletAddress={wallet.wallet_address} />}
             </div>
           </div>
         </CardContent>

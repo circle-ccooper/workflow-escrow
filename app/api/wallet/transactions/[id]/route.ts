@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
+import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 import { z } from "zod";
-import { Transaction } from "@/types/database.types";
 
 const ResponseSchema = z.object({
   transaction: z
@@ -26,11 +25,6 @@ if (!process.env.CIRCLE_API_KEY || !process.env.CIRCLE_ENTITY_SECRET) {
   );
 }
 
-const client = initiateDeveloperControlledWalletsClient({
-  apiKey: process.env.CIRCLE_API_KEY,
-  entitySecret: process.env.CIRCLE_ENTITY_SECRET,
-});
-
 export async function GET(
   _: NextRequest,
   { params }: { params: { id: string } },
@@ -46,7 +40,7 @@ export async function GET(
       );
     }
 
-    const response = await client.getTransaction({
+    const response = await circleDeveloperSdk.getTransaction({
       id: params.id,
     });
 
