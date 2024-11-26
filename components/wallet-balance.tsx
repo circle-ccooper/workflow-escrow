@@ -63,7 +63,7 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
 
   useEffect(() => {
     fetchBalance()
-  }, []);
+  }, [fetchBalance]);
 
   useEffect(() => {
     const walletSubscription = supabase
