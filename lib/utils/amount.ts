@@ -13,3 +13,7 @@ export const parseAmount = (amountStr: string): number => {
 
   return amount;
 };
+
+export function convertUSDCToContractAmount(amount: number): string {
+  return (amount * 1000000).toString();
+}
