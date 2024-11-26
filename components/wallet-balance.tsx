@@ -22,10 +22,10 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
   const fetchBalance = async () => {
     const balanceResponse = await fetch(`${baseUrl}/api/wallet/balance`, {
       method: "POST",
-      body: JSON.stringify({ walletId, }),
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({ walletId })
     });
 
     const parsedBalance = await balanceResponse.json();
