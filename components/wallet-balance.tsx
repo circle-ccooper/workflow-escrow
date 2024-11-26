@@ -49,9 +49,6 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
 
     setLoading(false);
     setBalance(parsedBalance.balance);
-
-    setLoading(false);
-    setBalance(parsedBalance.balance);
   }
 
   const updateWalletBalance = useCallback((payload: RealtimePostgresUpdatePayload<Record<string, string>>, balance: number) => {
