@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
     const createResponse = await circleContractSdk.deployContract({
       name: `Escrow ${body.beneficiaryAddress}`,
       description: `Escrow ${body.beneficiaryAddress}`,
-      walletId: body.agentWalletId,
+      walletId: process.env.NEXT_PUBLIC_AGENT_WALLET_ID,
       blockchain: "MATIC-AMOY",
       fee: {
         type: "level",
