@@ -20,7 +20,7 @@ export function WalletBalance({ walletId }: WalletBalanceProps) {
   const [loading, setLoading] = useState(true);
 
   const fetchBalance = async () => {
-    const balanceResponse = await fetch(`${baseUrl}/api/wallet/balance`, {
+    const balanceResponse = await fetch(`/api/wallet/balance`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
