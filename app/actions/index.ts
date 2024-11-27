@@ -4,6 +4,7 @@ import { encodedRedirect } from "@/lib/utils/utils";
 import { createClient } from "@/lib/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { createRampSession } from "@/lib/utils/create-circle-ramp-session";
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
@@ -91,61 +92,8 @@ export const signUpAction = async (formData: FormData) => {
       return { error: "Could not create wallet" };
     }
 
-    const usdcAccessBuyResponse = await fetch("https://api.circle.com/v1/w3s/ramp/sessions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": `Bearer ${process.env.CIRCLE_API_KEY}`
-      },
-      body: JSON.stringify({
-        mode: "QUOTE_SCREEN",
-        rampType: "BUY",
-        walletAddress: {
-          address: createdWallet.address,
-          blockchain: "MATIC-AMOY"
-        },
-        country: {
-          country: "US"
-        },
-        fiatAmount: {
-          currency: "USD"
-        },
-        cryptoAmount: {
-          currency: "USDC"
-        }
-      })
-    });
-
-    const parsedUsdcAccessBuyResponse = await usdcAccessBuyResponse.json();
-
-    const usdcAccessSellResponse = await fetch("https://api.circle.com/v1/w3s/ramp/sessions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": `Bearer ${process.env.CIRCLE_API_KEY}`
-      },
-      body: JSON.stringify({
-        mode: "QUOTE_SCREEN",
-        rampType: "SELL",
-        walletAddress: {
-          address: createdWallet.address,
-          blockchain: "MATIC-AMOY"
-        },
-        country: {
-          country: "US"
-        },
-        fiatAmount: {
-          currency: "USD"
-        },
-        cryptoAmount: {
-          currency: "USDC"
-        }
-      })
-    });
-
-    const parsedUsdcAccessSellResponse = await usdcAccessSellResponse.json();
+    const parsedUsdcAccessBuyResponse = await createRampSession("BUY", createdWallet.address);
+    const parsedUsdcAccessSellResponse = await createRampSession("SELL", createdWallet.address);
 
     await supabase.auth.updateUser({
       data: {
@@ -197,37 +145,13 @@ export const signInAction = async (formData: FormData) => {
     return { error: "Could not find a wallet linked to the given user ID" };
   }
 
-  const usdcAccessResponse = await fetch("https://api.circle.com/v1/w3s/ramp/sessions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      "Authorization": `Bearer ${process.env.CIRCLE_API_KEY}`
-    },
-    body: JSON.stringify({
-      mode: "QUOTE_SCREEN",
-      rampType: "BUY",
-      walletAddress: {
-        address: wallet.wallet_address,
-        blockchain: "MATIC-AMOY"
-      },
-      country: {
-        country: "US"
-      },
-      fiatAmount: {
-        currency: "USD"
-      },
-      cryptoAmount: {
-        currency: "USDC"
-      }
-    })
-  });
-
-  const parsedUsdcAccessResponse = await usdcAccessResponse.json();
+  const parsedUsdcAccessBuyResponse = await createRampSession("BUY", wallet.wallet_address);
+  const parsedUsdcAccessSellResponse = await createRampSession("SELL", wallet.wallet_address);
 
   await supabase.auth.updateUser({
     data: {
-      usdc_access: parsedUsdcAccessResponse.data
+      usdc_access_buy: parsedUsdcAccessBuyResponse.data,
+      usdc_access_sell: parsedUsdcAccessSellResponse.data
     }
   });
 
