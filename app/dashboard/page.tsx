@@ -185,8 +185,13 @@ export default async function ProtectedPage() {
             </div>
             <div className="flex space-x-2">
               <Button>
-                <Link target="_blank" href={user.user_metadata.usdc_access.url}>
+                <Link target="_blank" href={user.user_metadata.usdc_access_buy.url}>
                   Buy USDC
+                </Link>
+              </Button>
+              <Button>
+                <Link target="_blank" href={user.user_metadata.usdc_access_sell.url}>
+                  Sell USDC
                 </Link>
               </Button>
               {process.env.NODE_ENV === "development" && <RequestUsdcButton walletAddress={wallet.wallet_address} />}

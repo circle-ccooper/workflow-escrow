@@ -91,7 +91,7 @@ export const signUpAction = async (formData: FormData) => {
       return { error: "Could not create wallet" };
     }
 
-    const usdcAccessResponse = await fetch("https://api.circle.com/v1/w3s/ramp/sessions", {
+    const usdcAccessBuyResponse = await fetch("https://api.circle.com/v1/w3s/ramp/sessions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -117,11 +117,40 @@ export const signUpAction = async (formData: FormData) => {
       })
     });
 
-    const parsedUsdcAccessResponse = await usdcAccessResponse.json();
+    const parsedUsdcAccessBuyResponse = await usdcAccessBuyResponse.json();
+
+    const usdcAccessSellResponse = await fetch("https://api.circle.com/v1/w3s/ramp/sessions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Bearer ${process.env.CIRCLE_API_KEY}`
+      },
+      body: JSON.stringify({
+        mode: "QUOTE_SCREEN",
+        rampType: "SELL",
+        walletAddress: {
+          address: createdWallet.address,
+          blockchain: "MATIC-AMOY"
+        },
+        country: {
+          country: "US"
+        },
+        fiatAmount: {
+          currency: "USD"
+        },
+        cryptoAmount: {
+          currency: "USDC"
+        }
+      })
+    });
+
+    const parsedUsdcAccessSellResponse = await usdcAccessSellResponse.json();
 
     await supabase.auth.updateUser({
       data: {
-        usdc_access: parsedUsdcAccessResponse.data
+        usdc_access_buy: parsedUsdcAccessBuyResponse.data,
+        usdc_access_sell: parsedUsdcAccessSellResponse.data
       }
     });
   } catch (error: any) {
