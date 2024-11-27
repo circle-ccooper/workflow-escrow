@@ -7,8 +7,7 @@ import { convertUSDCToContractAmount } from "@/lib/utils/amount";
 interface CreateEscrowRequest {
   depositorAddress: string;
   beneficiaryAddress: string;
-  agentAddress: string;
-  agentWalletId: string;
+  agentAddress: string;  
   amountUSDC: number;
 }
 
@@ -58,8 +57,7 @@ export async function POST(req: NextRequest) {
     if (
       !body.depositorAddress ||
       !body.beneficiaryAddress ||
-      !body.agentAddress ||
-      !body.agentWalletId ||
+      !body.agentAddress ||      
       !body.amountUSDC
     ) {
       return NextResponse.json(
@@ -99,7 +97,7 @@ export async function POST(req: NextRequest) {
       constructorParameters: [
         body.depositorAddress,
         body.beneficiaryAddress,
-        body.agentAddress,
+        process.env.NEXT_PUBLIC_AGENT_WALLET_ADDRESS,
         contractAmount,
         process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS,
       ],
