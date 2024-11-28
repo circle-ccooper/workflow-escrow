@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         address: body.walletAddress,
-        blockchain: "MATIC-AMOY",
+        blockchain: process.env.CIRCLE_BLOCKCHAIN,
         usdc: true
       })
     });

@@ -26,6 +26,7 @@ Automated escrow agent that facilitates secure transactions.
    NEXT_PUBLIC_AGENT_WALLET_ID=[INSERT AGENT WALLET ID]
    CIRCLE_API_KEY=[INSERT CIRCLE API KEY]
    CIRCLE_ENTITY_SECRET=[INSERT CIRCLE ENTITY SECRET]
+   CIRCLE_BLOCKCHAIN=[INSERT CIRCLE BLOCKCHAIN]
    GOOGLE_CLIENT_ID=[INSERT GOOGLE CLIENT ID]
    GOOGLE_CLIENT_SECRET=[INSERT GOOGLE CLIENT SECRET]
    OPENAI_API_KEY=[INSERT OPENAI API KEY]
@@ -35,6 +36,8 @@ Automated escrow agent that facilitates secure transactions.
    - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api).
 
    - `CIRCLE_API_KEY` can be found in the [API Keys](https://console.circle.com/api-keys) section of Circle's console, while `CIRCLE_ENTITY_SECRET` must be shared, or rotated [here](https://console.circle.com/wallets/dev/configurator/entity-secret) in case it's lost.
+
+   - `CIRCLE_BLOCKCHAIN` can be set to `MATIC-AMOY` for development purposes
 
    - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` can be found in the [Google Cloud Developer Console](https://console.cloud.google.com/apis/credentials?project=workflow-escrow) of the project (APIs & Services > Credentials > Web).
 
@@ -71,7 +74,7 @@ Automated escrow agent that facilitates secure transactions.
    ```
 
 7. Configure the Circle webhook:
-   
+
    a. Go to [Circle Webhooks Dashboard](https://console.circle.com/webhooks)
    b. Click "Add Webhook"
    c. Configure the following settings:
@@ -79,7 +82,7 @@ Automated escrow agent that facilitates secure transactions.
       - Events: Select only `transactions.outbound`
       - Status: Enabled
    d. Save the webhook configuration
-   
+
    Note: The webhook is essential for processing transaction status updates. Ensure it's properly configured before testing transactions.
 
 8. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)

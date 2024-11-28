@@ -1,3 +1,4 @@
+import type { Blockchain } from "@circle-fin/smart-contract-platform";
 import { NextRequest, NextResponse } from "next/server";
 import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     const response = await circleDeveloperSdk.createWallets({
       accountType: "SCA",
-      blockchains: ["MATIC-AMOY"],
+      blockchains: [process.env.CIRCLE_BLOCKCHAIN as Blockchain],
       count: 1,
       walletSetId,
     });

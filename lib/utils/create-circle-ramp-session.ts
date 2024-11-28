@@ -11,7 +11,7 @@ export const createRampSession = async (rampType: "BUY" | "SELL", walletAddress:
       rampType,
       walletAddress: {
         address: walletAddress,
-        blockchain: "MATIC-AMOY"
+        blockchain: process.env.CIRCLE_BLOCKCHAIN
       },
       country: {
         country: "US"
