@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 
 const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
-  : "http://127.0.0.1:3000";
+  : "http://localhost:3000";
 
 async function updateAgreementTransactionStatus(transactionId: string, newStatus: string) {
   const supabase = createSupabaseServerClient();

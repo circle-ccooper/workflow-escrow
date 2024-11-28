@@ -62,7 +62,7 @@ Automated escrow agent that facilitates secure transactions.
    npm run dev
    ```
 
-   The starter kit should now be running on [127.0.0.1:3000](http://127.0.0.1:3000/).
+   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
 
 6. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
 

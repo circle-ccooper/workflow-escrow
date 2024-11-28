@@ -36,7 +36,7 @@ export default function SignUpUserSteps() {
             <li>
               -{" "}
               <span className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-xs font-medium text-secondary-foreground border">
-                http://127.0.0.1:3000/**
+                http://localhost:3000/**
               </span>
             </li>
             <li>

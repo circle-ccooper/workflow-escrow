@@ -8,7 +8,7 @@ import { createRampSession } from "@/lib/utils/create-circle-ramp-session";
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
-  : "http://127.0.0.1:3000";
+  : "http://localhost:3000";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
-  : "http://127.0.0.1:3000";
+  : "http://localhost:3000";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
