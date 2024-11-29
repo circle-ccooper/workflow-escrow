@@ -1,4 +1,8 @@
 export const createRampSession = async (rampType: "BUY" | "SELL", walletAddress: string) => {
+  if (!process.env.CIRCLE_BLOCKCHAIN) {
+    throw new Error("CIRCLE_BLOCKCHAIN environment variable is not set");
+  }
+
   const response = await fetch("https://api.circle.com/v1/w3s/ramp/sessions", {
     method: "POST",
     headers: {

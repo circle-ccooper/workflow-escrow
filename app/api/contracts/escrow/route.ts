@@ -83,6 +83,10 @@ export async function POST(req: NextRequest) {
     // Convert USDC amount to contract format
     const contractAmount = Number(convertUSDCToContractAmount(body.amountUSDC));
 
+    if (!process.env.CIRCLE_BLOCKCHAIN) {
+      throw new Error("CIRCLE_BLOCKCHAIN environment variable is not set");
+    }
+
     // Create contract execution transaction
     const createResponse = await circleContractSdk.deployContract({
       name: `Escrow ${body.beneficiaryAddress}`,

@@ -13,6 +13,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!process.env.CIRCLE_BLOCKCHAIN) {
+      throw new Error("CIRCLE_BLOCKCHAIN environment variable is not set");
+    }
+
     const response = await circleDeveloperSdk.createWallets({
       accountType: "SCA",
       blockchains: [process.env.CIRCLE_BLOCKCHAIN as Blockchain],
