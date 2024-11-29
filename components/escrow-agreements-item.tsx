@@ -13,7 +13,7 @@ interface EscrowAgreementCardProps {
   agreement: EscrowAgreementWithDetails;
   profileId: string;
   userId: string;
-  depositing: boolean;
+  depositing?: string;
   refresh: () => Promise<void>;
   preApproveCallback: () => void;
 }
@@ -198,8 +198,8 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
           />
         )}
         {(userId === agreement.depositor_wallet?.profiles?.auth_user_id && agreement.status === "OPEN") && (
-          <Button disabled={depositing} onClick={() => approveDeposit(agreement)}>
-            {depositing ? (
+          <Button disabled={depositing === agreement.id} onClick={() => approveDeposit(agreement)}>
+            {depositing === agreement.id ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading...

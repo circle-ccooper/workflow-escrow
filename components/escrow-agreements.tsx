@@ -20,7 +20,7 @@ const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://localhost:3000";
 
 export const EscrowAgreements = (props: EscrowListProps) => {
-  const [depositing, setDepositing] = useState(false);
+  const [depositing, setDepositing] = useState<string>();
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
   const supabase = createSupabaseBrowserClient();
   const agreementService = createAgreementService(supabase);
@@ -37,7 +37,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
         }
       });
 
-      setDepositing(false);
+      setDepositing(undefined);
 
       await supabase
         .from("escrow_agreements")
@@ -162,7 +162,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
 
       refresh();
 
-      setDepositing(false);
+      setDepositing(undefined);
 
       return;
     }
@@ -435,7 +435,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                 userId={props.userId}
                 depositing={depositing}
                 refresh={refresh}
-                preApproveCallback={() => setDepositing(true)}
+                preApproveCallback={() => setDepositing(agreement.id)}
               />
             ))}
           </div>
