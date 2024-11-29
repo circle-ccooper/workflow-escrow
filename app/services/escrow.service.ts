@@ -51,7 +51,7 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
       )
       .or(
         `depositor_wallet_id.in.(${profileWallet.id}),beneficiary_wallet_id.in.(${profileWallet.id})`
-      );
+      ).order("created_at", { ascending: false });
 
     if (error) {
       throw new Error(`Failed to fetch agreements: ${error.message}`);
