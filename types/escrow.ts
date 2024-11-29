@@ -22,11 +22,12 @@ export interface EscrowAgreementWithDetails extends EscrowAgreement {
       auth_user_id: string;
     };
   };
-  transactions: {
+  transaction: {
     amount: number;
     currency: string;
     status: string;
-  }[];
+    circle_contract_address: string;
+  };
 }
 
 export interface EscrowListProps {

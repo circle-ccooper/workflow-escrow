@@ -21,6 +21,8 @@ import { Separator } from "@/components/ui/separator";
 import { SmartContractResponse } from "@/app/hooks/useSmartContract";
 import { createAgreementService } from "@/app/services/agreement.service";
 import { parseAmount } from "@/lib/utils/amount";
+import { Input } from "@/components/ui/input";
+import { CopyButton } from "@/components/copy-button";
 
 interface Task {
   description: string;
@@ -37,7 +39,7 @@ interface Amount {
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
-  : "http://127.0.0.1:3000";
+  : "http://localhost:3000";
 
 export const EscrowAgreements = (props: EscrowListProps) => {
   // We're using circle_contract_id instead of a boolean here to temporarily disable other agreements
@@ -642,6 +644,17 @@ export const EscrowAgreements = (props: EscrowListProps) => {
                   )}
                 </div>
                 <Separator className="my-4" />
+                {agreement.transactions.circle_contract_address && (
+                  <>
+                    <p className="text-sm font-medium leading-none mb-2">
+                      Contract address:
+                    </p>
+                    <div className="flex w-full items-center space-x-2 mb-3">
+                      <Input disabled value={agreement.transactions.circle_contract_address} />
+                      <CopyButton text={agreement.transactions.circle_contract_address} />
+                    </div>
+                  </>
+                )}
                 {agreement.terms.documentUrl && (
                   <a
                     href={agreement.terms.documentUrl}

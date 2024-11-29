@@ -15,6 +15,7 @@ const ResponseSchema = z.object({
         status: z.string(),
         transactionType: z.string(),
         createDate: z.string(),
+        circleContractAddress: z.string().optional()
       }),
     )
     .optional(),

@@ -1,3 +1,4 @@
+import type { Blockchain } from "@circle-fin/smart-contract-platform";
 import { NextRequest, NextResponse } from "next/server";
 import { circleContractSdk } from "@/lib/utils/smart-contract-platform-client";
 import { ABIJSON, CONTRACT_BYTECODE } from "@/lib/constants";
@@ -7,7 +8,7 @@ import { convertUSDCToContractAmount } from "@/lib/utils/amount";
 interface CreateEscrowRequest {
   depositorAddress: string;
   beneficiaryAddress: string;
-  agentAddress: string;  
+  agentAddress: string;
   amountUSDC: number;
 }
 
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
     if (
       !body.depositorAddress ||
       !body.beneficiaryAddress ||
-      !body.agentAddress ||      
+      !body.agentAddress ||
       !body.amountUSDC
     ) {
       return NextResponse.json(
@@ -82,12 +83,16 @@ export async function POST(req: NextRequest) {
     // Convert USDC amount to contract format
     const contractAmount = Number(convertUSDCToContractAmount(body.amountUSDC));
 
+    if (!process.env.CIRCLE_BLOCKCHAIN) {
+      throw new Error("CIRCLE_BLOCKCHAIN environment variable is not set");
+    }
+
     // Create contract execution transaction
     const createResponse = await circleContractSdk.deployContract({
       name: `Escrow ${body.beneficiaryAddress}`,
       description: `Escrow ${body.beneficiaryAddress}`,
       walletId: process.env.NEXT_PUBLIC_AGENT_WALLET_ID,
-      blockchain: "MATIC-AMOY",
+      blockchain: process.env.CIRCLE_BLOCKCHAIN as Blockchain,
       fee: {
         type: "level",
         config: {

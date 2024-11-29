@@ -4,9 +4,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 
 const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
-  : "http://127.0.0.1:3000";
+  : "http://localhost:3000";
 
-async function updateAgreementTransactionStatus(transactionId: string, newStatus: string) {
+async function updateAgreementTransaction(transactionId: string, notification: Record<string, any>) {
   const supabase = createSupabaseServerClient();
 
   // Fetch the current status in the database to check if the update is needed
@@ -17,12 +17,15 @@ async function updateAgreementTransactionStatus(transactionId: string, newStatus
     .single();
 
   // Exit if no update is needed
-  if (error || data.status === newStatus) return;
+  if (error || data.status === notification.state) return;
 
   // Perform the update only if the status has changed
   await supabase
     .from("transactions")
-    .update({ status: newStatus })
+    .update({
+      status: notification.state,
+      circle_contract_address: notification.contractAddress
+    })
     .eq("circle_transaction_id", transactionId);
 }
 
@@ -81,7 +84,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Update or handle the contract deployment status in escrow_agreements
-    await updateAgreementTransactionStatus(transactionId, transactionState);
+    await updateAgreementTransaction(transactionId, body.notification);
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {
