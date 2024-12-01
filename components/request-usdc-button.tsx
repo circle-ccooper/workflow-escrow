@@ -11,7 +11,7 @@ interface Props {
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
-  : "http://127.0.0.1:3000";
+  : "http://localhost:3000";
 
 export const RequestUsdcButton: FunctionComponent<Props> = ({ walletAddress }) => {
   const [requesting, setRequesting] = useState(false);

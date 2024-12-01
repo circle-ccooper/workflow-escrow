@@ -11,6 +11,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!process.env.CIRCLE_BLOCKCHAIN) {
+      throw new Error("CIRCLE_BLOCKCHAIN environment variable is not defined");
+    }
+
     await fetch("https://api.circle.com/v1/faucet/drips", {
       method: "POST",
       headers: {
@@ -19,7 +23,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         address: body.walletAddress,
-        blockchain: "MATIC-AMOY",
+        blockchain: process.env.CIRCLE_BLOCKCHAIN,
         usdc: true
       })
     });

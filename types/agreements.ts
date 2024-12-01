@@ -54,7 +54,8 @@ export interface EscrowAgreement {
     amount: number;
     currency: string;
     status: string;
-  }[];
+    circle_contract_address: string;
+  };
 }
 
 

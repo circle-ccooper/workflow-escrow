@@ -12,7 +12,7 @@ interface WalletBalanceProps {
 
 const baseUrl = process.env.VERCEL_URL
   ? process.env.VERCEL_URL
-  : "http://127.0.0.1:3000";
+  : "http://localhost:3000";
 
 export function WalletBalance({ walletId }: WalletBalanceProps) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);

@@ -19,11 +19,12 @@ interface CircleTransaction {
   amount: string[];
   status: string;
   description?: string;
+  circle_contract_address?: string;
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
-  : "http://127.0.0.1:3000";
+  : "http://localhost:3000";
 
 async function syncTransactions(
   supabase: SupabaseClient,
