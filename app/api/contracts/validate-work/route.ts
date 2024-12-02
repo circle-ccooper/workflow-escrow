@@ -9,6 +9,7 @@ import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-cli
 interface ImageValidationResult {
   valid: boolean
   confidence: "HIGH" | "MEDIUM" | "LOW"
+  reasons: string[]
 }
 
 export async function POST(request: Request) {
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     const requirements = agreement.terms.tasks
-      .filter((requirement: any) => requirement.responsible_party === "ContentCreator")
+      .filter((requirement: any) => requirement.responsible_party === "Content Creator")
       .reduce((requirements: any, requirement: any) =>
         `${requirements.length > 0 ? `${requirements}\n` : requirements}- ${requirement.description}`,
         ""
@@ -72,7 +73,11 @@ export async function POST(request: Request) {
 
       {
         "valid": true,
-        "confidence": "HIGH"
+        "confidence": "MEDIUM",
+        "reasons": [
+          "First reason why the image does not match the criteria",
+          "Second reason why the image does not match the criteria"
+        ]
       }
 
       Your answer should not contain anything else other than that, that include markdown formatting,
@@ -83,6 +88,10 @@ export async function POST(request: Request) {
       - "LOW": You don"t think the given image match the requirements.
       - "MEDIUM": You are unsure or the image loosely match some requirements but not all.
       - "HIGH": You are absolutely certain that the provided image strictly fulfills all the requirements.
+
+      The "reasons" property must be an array of strings that contains a list of reasons to why the
+      image is not valid or does not have "HIGH" confidence, this array can be left empty in case the
+      attached image meets all the criteria.
 
       Here are the requirements:
 
@@ -150,7 +159,13 @@ export async function POST(request: Request) {
 
     if (!workMeetsRequirements) {
       console.error("Image does not meet all requirements", parsedPromptAnswerContent);
-      return NextResponse.json({ error: "Image does not meet all requirements" }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Image does not meet all requirements",
+          reasons: parsedPromptAnswerContent.reasons
+        },
+        { status: 400 }
+      );
     }
 
     // Retrieves contract data from Circle's SDK
