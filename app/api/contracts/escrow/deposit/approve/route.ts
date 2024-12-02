@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
       escrowAgreementId: contractTransaction.id,
       transactionType: "DEPOSIT_APPROVAL",
       profileId: depositorWallet.profile_id,
-      amount: contractAmount,
+      amount: Number(parsedAmount),
       description: "Request for deposit approval",
     });
 
