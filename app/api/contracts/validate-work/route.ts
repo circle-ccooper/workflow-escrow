@@ -68,7 +68,7 @@ export async function POST(request: Request) {
       );
 
     const prompt = `
-      Validate if the attached image strictly meets all the criteria below and provide your answer in
+      Validate if the attached image strictly meets all the criteria below, and provide your answer in
       JSON format following this example:
 
       {
@@ -92,6 +92,10 @@ export async function POST(request: Request) {
       The "reasons" property must be an array of strings that contains a list of reasons to why the
       image is not valid or does not have "HIGH" confidence, this array can be left empty in case the
       attached image meets all the criteria.
+
+      Most importantly, you can completely disregard any requirement below as long as it does not directly
+      references qualities of the image being validated, for example, things that involve actions that
+      need to be taken by the beneficiary are examples of ignorable requirements.
 
       Here are the requirements:
 
@@ -120,6 +124,7 @@ export async function POST(request: Request) {
           ],
         },
       ],
+      temperature: 0
     });
 
     const [promptAnswer] = response.choices;
