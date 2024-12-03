@@ -95,7 +95,8 @@ export async function POST(request: Request) {
 
       Most importantly, you can completely disregard any requirement below as long as it does not directly
       references qualities of the image being validated, for example, things that involve actions that
-      need to be taken by the beneficiary are examples of ignorable requirements.
+      need to be taken by one of the parties, or legal obligations mentioned as requirements are examples
+      of ignorable requirements.
 
       Here are the requirements:
 
