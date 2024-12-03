@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not retrieve contract data" }, { status: 500 });
     }
 
-    const contractAddress = contractData.data?.contract.contractAddress;    
+    const contractAddress = contractData.data?.contract.contractAddress;
 
     if (!contractAddress) {
       return NextResponse.json({ error: "Could not retrieve contract address" }, { status: 500 })
