@@ -57,19 +57,14 @@ export async function POST(req: NextRequest) {
 
     const {
       id: transactionId,
-      transactionType,
       walletId,
       state: transactionState
     } = body.notification;
 
-    const isInboundTransaction = transactionType === "INBOUND"
-
-    if (isInboundTransaction && transactionState === "COMPLETE") {
+    if (walletId && transactionState === "CONFIRMED") {
       const response = await fetch(`${baseUrl}/api/wallet/balance`, {
         method: "POST",
-        body: JSON.stringify({
-          walletId,
-        }),
+        body: JSON.stringify({ walletId }),
         headers: {
           "Content-Type": "application/json",
         },
