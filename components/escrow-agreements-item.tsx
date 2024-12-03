@@ -250,7 +250,14 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <Trash2 stroke="red" className="cursor-pointer" onClick={() => setDeleteDialog(true)} />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive/90"
+                onClick={() => setDeleteDialog(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           )}
           {(userId === agreement.depositor_wallet?.profiles?.auth_user_id && agreement.status === "OPEN") && (
