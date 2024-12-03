@@ -1,6 +1,6 @@
 import type { SmartContractResponse } from "@/app/hooks/useSmartContract";
 import { useRef, useState } from "react";
-import { FileText, ExternalLink, CircleDollarSign, Loader2, ImageUp } from "lucide-react";
+import { FileText, ExternalLink, CircleDollarSign, Loader2, ImageUp, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AgreementStatus, EscrowAgreementWithDetails } from "@/types/escrow";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -57,6 +58,7 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
   const supabase = createSupabaseBrowserClient();
   const [submittingWork, setSubmittingWork] = useState<string>();
   const [validationResult, setValidationResult] = useState([]);
+  const [deleteDialog, setDeleteDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmitWork = () => {
@@ -166,6 +168,20 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
     }
   }
 
+  const handleDeleteEscrow = (id: string) => async () => {
+    const { error } = await supabase
+      .from("escrow_agreements")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Failed to delete escrow agreement:", error);
+      toast.error("An error occurred while deleting the escrow agreement");
+    }
+
+    refresh();
+  };
+
   return (
     <>
       <div key={agreement.id} className="rounded-lg border p-4">
@@ -196,20 +212,53 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
         </div>
         <div>
           {(userId === agreement.depositor_wallet?.profiles?.auth_user_id && agreement.status === "INITIATED") && (
-            <CreateSmartContractButton
-              depositorAddress={
-                agreement.depositor_wallet?.wallet_address
-              }
-              beneficiaryAddress={
-                agreement.beneficiary_wallet?.wallet_address
-              }
-              amountUSDC={
-                agreement.terms.amounts && agreement.terms.amounts.length > 0
-                  ? parseFloat(agreement.terms.amounts[0]?.amount.replace(/[$,]/g, ""))
-                  : undefined
-              }
-              onSuccess={response => updateTransactionId(agreement, response)}
-            />
+            <div className="flex justify-between place-items-center">
+              <CreateSmartContractButton
+                depositorAddress={
+                  agreement.depositor_wallet?.wallet_address
+                }
+                beneficiaryAddress={
+                  agreement.beneficiary_wallet?.wallet_address
+                }
+                amountUSDC={
+                  agreement.terms.amounts && agreement.terms.amounts.length > 0
+                    ? parseFloat(agreement.terms.amounts[0]?.amount.replace(/[$,]/g, ""))
+                    : undefined
+                }
+                onSuccess={response => updateTransactionId(agreement, response)}
+              />
+              <AlertDialog open={deleteDialog}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Escrow Agreement with {profileId === agreement.depositor_wallet?.profile_id
+                      ? agreement.beneficiary_wallet?.profiles.name
+                      : agreement.depositor_wallet?.profiles.name}?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this escrow agreement?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogAction onClick={() => {
+                      handleDeleteEscrow(agreement.id)();
+                      setDeleteDialog(false);
+                    }} >
+                      Yes
+                    </AlertDialogAction>
+                    <AlertDialogCancel onClick={() => setDeleteDialog(false)}>
+                      No
+                    </AlertDialogCancel>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive/90"
+                onClick={() => setDeleteDialog(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           )}
           {(userId === agreement.depositor_wallet?.profiles?.auth_user_id && agreement.status === "OPEN") && (
             <Button disabled={depositing === agreement.id} onClick={() => approveDeposit(agreement)}>
