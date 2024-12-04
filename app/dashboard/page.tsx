@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { createSupabaseServerComponentClient } from "@/lib/supabase/server-client";
 import { redirect } from "next/navigation";
-import { Transactions } from "@/components/transactions";
 import { CreateAgreementPage } from "@/components/ui/createAgreementPage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +11,7 @@ import { WalletBalance } from "@/components/wallet-balance";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { RequestUsdcButton } from "@/components/request-usdc-button";
+import dynamic from "next/dynamic";
 
 interface CircleTransaction {
   id: string;
@@ -112,6 +112,8 @@ async function syncTransactions(
 
   return allTransactions || [];
 }
+
+const Transactions = dynamic(() => import('@/components/transactions').then(mod => mod.Transactions), { ssr: false })
 
 export default async function ProtectedPage() {
   const supabase = createSupabaseServerComponentClient();
