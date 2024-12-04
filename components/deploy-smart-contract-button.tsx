@@ -1,5 +1,6 @@
 "use client";
 
+import type { EscrowAgreementWithDetails } from "@/types/escrow";
 import { type SmartContractResponse, useSmartContract } from "@/app/hooks/useSmartContract";
 import { Button } from "@/components/ui/button";
 import { SYSTEM_AGENT_ADDRESS, SYSTEM_AGENT_WALLET_ID } from "@/lib/constants";
@@ -7,18 +8,12 @@ import { Loader2, WalletCards } from "lucide-react";
 import { toast } from "sonner";
 
 interface CreateSmartContractButtonProps {
-  depositorAddress: string;
-  beneficiaryAddress: string;
-  amountUSDC: number | undefined;
-  onSuccess?: (response: SmartContractResponse) => void;
+  agreement: EscrowAgreementWithDetails
   disabled?: boolean;
 }
 
 export const CreateSmartContractButton = ({
-  depositorAddress,
-  beneficiaryAddress,
-  amountUSDC,
-  onSuccess,
+  agreement,
   disabled,
 }: CreateSmartContractButtonProps) => {
   const { createSmartContract, isLoading } = useSmartContract();
@@ -32,6 +27,10 @@ export const CreateSmartContractButton = ({
       return;
     }
 
+    const amountUSDC = agreement.terms.amounts && agreement.terms.amounts.length > 0
+      ? parseFloat(agreement.terms.amounts[0]?.amount.replace(/[$,]/g, ""))
+      : undefined;
+
     if (!amountUSDC) {
       toast.error("Invalid amount for the contract", {
         description:
@@ -41,19 +40,12 @@ export const CreateSmartContractButton = ({
     }
 
     try {
-      const response = await createSmartContract({
-        depositorAddress,
-        beneficiaryAddress,
+      await createSmartContract({
+        agreement,
         agentAddress: SYSTEM_AGENT_ADDRESS,
         agentWalletId: SYSTEM_AGENT_WALLET_ID,
         amountUSDC,
       });
-
-      toast.success("Smart contract created", {
-        description: "Your smart contract is being processed",
-      });
-
-      onSuccess?.(response);
     } catch (error) {
       toast.error("Failed to create smart contract", {
         description:

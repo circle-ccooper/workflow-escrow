@@ -131,41 +131,9 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
       })
     }
 
-    await supabase
-      .from("escrow_agreements")
-      .update({ status: "PENDING" })
-      .eq("id", agreement.id);
-
     refresh();
 
     toast.info(parsedApproveResponse.message);
-  }
-
-  // Runs exclusively after smart contract creation
-  const updateTransactionId = async (agreement: EscrowAgreementWithDetails, response: SmartContractResponse) => {
-    // Update circle_contract_id
-    // This is needed so we can find the agreement later on to deposit funds to it
-    const { error: agreementError } = await supabase
-      .from("escrow_agreements")
-      .update({ circle_contract_id: response.id })
-      .eq("id", agreement.id);
-
-    if (agreementError) {
-      console.error("Failed to update Circle contract ID:", agreementError);
-      toast.error("An error occurred while updating the Circle contract ID");
-    }
-
-    // Update circle_transaction_id (is "NULL" by default on creation)
-    // This is needed so we can find the transaction later on and update it's status
-    const { error: transactionError } = await supabase
-      .from("transactions")
-      .update({ circle_transaction_id: response.transactionId })
-      .eq("id", agreement.transaction_id);
-
-    if (transactionError) {
-      console.error("Failed to update Circle transaction ID:", transactionError);
-      toast.error("An error occured while updating the Circle transaction ID");
-    }
   }
 
   const handleDeleteEscrow = (id: string) => async () => {
@@ -213,20 +181,7 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
         <div>
           {(userId === agreement.depositor_wallet?.profiles?.auth_user_id && agreement.status === "INITIATED") && (
             <div className="flex justify-between place-items-center">
-              <CreateSmartContractButton
-                depositorAddress={
-                  agreement.depositor_wallet?.wallet_address
-                }
-                beneficiaryAddress={
-                  agreement.beneficiary_wallet?.wallet_address
-                }
-                amountUSDC={
-                  agreement.terms.amounts && agreement.terms.amounts.length > 0
-                    ? parseFloat(agreement.terms.amounts[0]?.amount.replace(/[$,]/g, ""))
-                    : undefined
-                }
-                onSuccess={response => updateTransactionId(agreement, response)}
-              />
+              <CreateSmartContractButton agreement={agreement} />
               <AlertDialog open={deleteDialog}>
                 <AlertDialogContent>
                   <AlertDialogHeader>

@@ -80,8 +80,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Could not retrieve contract data" }, { status: 500 });
     }
 
-    console.log("---", contractData);
-
     const contractAddress = contractData.data?.contract.contractAddress;
 
     if (!contractAddress) {
@@ -115,6 +113,11 @@ export async function POST(req: NextRequest) {
     });
 
     console.log("Deposit approval transaction created:", circleApprovalResponse.data);
+
+    await supabase
+      .from("escrow_agreements")
+      .update({ status: "PENDING" })
+      .eq("circle_contract_id", contractData.data.contract.id);
 
     return NextResponse.json(
       {

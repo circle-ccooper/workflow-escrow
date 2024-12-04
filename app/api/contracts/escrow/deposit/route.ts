@@ -98,6 +98,11 @@ export async function POST(req: NextRequest) {
 
     console.log("Funds deposit transaction created:", circleDepositResponse.data);
 
+    await supabase
+      .from("escrow_agreements")
+      .update({ status: "PENDING" })
+      .eq("circle_contract_id", contractTransaction.circle_contract_id);
+
     return NextResponse.json(
       {
         success: true,

@@ -1,13 +1,14 @@
 import type { Blockchain } from "@circle-fin/smart-contract-platform";
+import type { EscrowAgreementWithDetails } from "@/types/escrow";
 import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server-client";
 import { circleContractSdk } from "@/lib/utils/smart-contract-platform-client";
 import { ABIJSON, CONTRACT_BYTECODE } from "@/lib/constants";
 import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 import { convertUSDCToContractAmount } from "@/lib/utils/amount";
 
 interface CreateEscrowRequest {
-  depositorAddress: string;
-  beneficiaryAddress: string;
+  agreement: EscrowAgreementWithDetails;
   agentAddress: string;
   amountUSDC: number;
 }
@@ -52,12 +53,13 @@ async function waitForTransactionStatus(id: string) {
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = createSupabaseServerClient();
     const body: CreateEscrowRequest = await req.json();
 
     // Validate request
     if (
-      !body.depositorAddress ||
-      !body.beneficiaryAddress ||
+      !body.agreement.depositor_wallet?.wallet_address ||
+      !body.agreement.beneficiary_wallet?.wallet_address ||
       !body.agentAddress ||
       !body.amountUSDC
     ) {
@@ -70,8 +72,8 @@ export async function POST(req: NextRequest) {
     // Validate Ethereum addresses
     const addressRegex = /^0x[a-fA-F0-9]{40}$/;
     if (
-      !addressRegex.test(body.depositorAddress) ||
-      !addressRegex.test(body.beneficiaryAddress) ||
+      !addressRegex.test(body.agreement.depositor_wallet?.wallet_address) ||
+      !addressRegex.test(body.agreement.beneficiary_wallet?.wallet_address) ||
       !addressRegex.test(body.agentAddress)
     ) {
       return NextResponse.json(
@@ -89,8 +91,8 @@ export async function POST(req: NextRequest) {
 
     // Create contract execution transaction
     const createResponse = await circleContractSdk.deployContract({
-      name: `Escrow ${body.beneficiaryAddress}`,
-      description: `Escrow ${body.beneficiaryAddress}`,
+      name: `Escrow ${body.agreement.beneficiary_wallet?.wallet_address}`,
+      description: `Escrow ${body.agreement.beneficiary_wallet?.wallet_address}`,
       walletId: process.env.NEXT_PUBLIC_AGENT_WALLET_ID,
       blockchain: process.env.CIRCLE_BLOCKCHAIN as Blockchain,
       fee: {
@@ -100,8 +102,8 @@ export async function POST(req: NextRequest) {
         },
       },
       constructorParameters: [
-        body.depositorAddress,
-        body.beneficiaryAddress,
+        body.agreement.depositor_wallet?.wallet_address,
+        body.agreement.beneficiary_wallet?.wallet_address,
         process.env.NEXT_PUBLIC_AGENT_WALLET_ADDRESS,
         contractAmount,
         process.env.NEXT_PUBLIC_USDC_CONTRACT_ADDRESS,
@@ -116,6 +118,28 @@ export async function POST(req: NextRequest) {
 
     console.log("Transaction created:", createResponse.data);
 
+    // Update circle_contract_id
+    // This is needed so we can find the agreement later on to deposit funds to it
+    const { error: agreementError } = await supabase
+      .from("escrow_agreements")
+      .update({ circle_contract_id: createResponse.data.contractId })
+      .eq("id", body.agreement.id);
+
+    if (agreementError) {
+      throw new Error("Failed to update Circle contract ID")
+    }
+
+    // Update circle_transaction_id (is "NULL" by default on creation)
+    // This is needed so we can find the transaction later on and update it's status
+    const { error: transactionError } = await supabase
+      .from("transactions")
+      .update({ circle_transaction_id: createResponse.data.transactionId })
+      .eq("id", body.agreement.transaction_id);
+
+    if (transactionError) {
+      throw new Error("Failed to update Circle transaction ID");
+    }
+
     return NextResponse.json(
       {
         success: true,
@@ -124,8 +148,8 @@ export async function POST(req: NextRequest) {
         status: "PENDING",
         message: "Escrow contract creation initiated",
         addresses: {
-          depositor: body.depositorAddress,
-          beneficiary: body.beneficiaryAddress,
+          depositor: body.agreement.depositor_wallet?.wallet_address,
+          beneficiary: body.agreement.beneficiary_wallet?.wallet_address,
           agent: body.agentAddress,
         },
       },
