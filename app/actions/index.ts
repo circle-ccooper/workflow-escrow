@@ -4,7 +4,6 @@ import { encodedRedirect } from "@/lib/utils/utils";
 import { createClient } from "@/lib/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createRampSession } from "@/lib/utils/create-circle-ramp-session";
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
@@ -91,16 +90,6 @@ export const signUpAction = async (formData: FormData) => {
       );
       return { error: "Could not create wallet" };
     }
-
-    const parsedUsdcAccessBuyResponse = await createRampSession("BUY", createdWallet.address);
-    const parsedUsdcAccessSellResponse = await createRampSession("SELL", createdWallet.address);
-
-    await supabase.auth.updateUser({
-      data: {
-        usdc_access_buy: parsedUsdcAccessBuyResponse.data,
-        usdc_access_sell: parsedUsdcAccessSellResponse.data
-      }
-    });
   } catch (error: any) {
     console.error(error.message);
     return { error: error.message };
@@ -114,7 +103,7 @@ export const signInAction = async (formData: FormData) => {
   const password = formData.get("password") as string;
   const supabase = createClient();
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -122,38 +111,6 @@ export const signInAction = async (formData: FormData) => {
   if (error) {
     return encodedRedirect("error", "/sign-in", error.message);
   }
-
-  const { data: user, error: userError } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("auth_user_id", data.user.id)
-    .single();
-
-  if (userError) {
-    console.error("Could not find an user with the given user ID", userError);
-    return { error: "Could not find an user with the given user ID" };
-  }
-
-  const { data: wallet, error: walletError } = await supabase
-    .from("wallets")
-    .select("wallet_address")
-    .eq("profile_id", user.id)
-    .single();
-
-  if (walletError) {
-    console.error("Could not find a wallet linked to the given user ID", walletError);
-    return { error: "Could not find a wallet linked to the given user ID" };
-  }
-
-  const parsedUsdcAccessBuyResponse = await createRampSession("BUY", wallet.wallet_address);
-  const parsedUsdcAccessSellResponse = await createRampSession("SELL", wallet.wallet_address);
-
-  await supabase.auth.updateUser({
-    data: {
-      usdc_access_buy: parsedUsdcAccessBuyResponse.data,
-      usdc_access_sell: parsedUsdcAccessSellResponse.data
-    }
-  });
 
   return redirect("/dashboard");
 };
