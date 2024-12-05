@@ -39,22 +39,12 @@ export const EscrowAgreements = (props: EscrowListProps) => {
 
       setDepositing(undefined);
 
-      await supabase
-        .from("escrow_agreements")
-        .update({ status: "PENDING" })
-        .eq("id", agreement.id);
-
       const parsedResponse = await response.json();
 
       if (parsedResponse.error) {
         toast.error("Failed to deposit funds into smart contract", {
           description: parsedResponse.error
         });
-
-        await supabase
-          .from("escrow_agreements")
-          .update({ status: "OPEN" })
-          .eq("id", agreement.id);
 
         return;
       }
@@ -109,21 +99,11 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     toast.info(`Funds release status update: ${fundsReleaseStatus}`);
 
     if (fundsReleaseStatus === "FAILED") {
-      await supabase
-        .from("escrow_agreements")
-        .update({ status: "LOCKED" })
-        .eq("id", payload.new.escrow_agreement_id);
-
       refresh();
       return;
     }
 
     if (fundsReleaseStatus !== "CONFIRMED") return;
-
-    await supabase
-      .from("escrow_agreements")
-      .update({ status: "CLOSED" })
-      .eq("id", payload.new.escrow_agreement_id);
 
     refresh();
   }, [supabase, refresh]);
@@ -155,15 +135,8 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     toast.info(`Funds deposit approval status update: ${fundsDepositStatus}`);
 
     if (fundsDepositStatus === "FAILED") {
-      await supabase
-        .from("escrow_agreements")
-        .update({ status: "OPEN" })
-        .eq("id", payload.new.escrow_agreement_id);
-
       refresh();
-
       setDepositing(undefined);
-
       return;
     }
 
@@ -214,22 +187,11 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     toast.info(`Funds deposit status update: ${fundsDepositStatus}`);
 
     if (fundsDepositStatus === "FAILED") {
-      await supabase
-        .from("escrow_agreements")
-        .update({ status: "OPEN" })
-        .eq("id", payload.new.escrow_agreement_id);
-
       refresh();
-
       return;
     }
 
     if (fundsDepositStatus !== "CONFIRMED") return;
-
-    await supabase
-      .from("escrow_agreements")
-      .update({ status: "LOCKED" })
-      .eq("id", payload.new.escrow_agreement_id);
 
     refresh();
   }, [supabase, refresh]);
@@ -259,7 +221,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
           )
         )
       `)
-      .eq("transaction_id", payload.old.id)
+      .eq("id", payload.old.id)
       .single() as { data: EscrowAgreementWithDetails, error: PostgrestError | null };
 
     if (agreementUsersError) {
@@ -278,27 +240,23 @@ export const EscrowAgreements = (props: EscrowListProps) => {
 
     const smartContractDeploymentStatus = payload.new.status;
 
-    console.log("Escrow agreement status update:", smartContractDeploymentStatus);
-    toast.info(`Escrow agreement status update: ${smartContractDeploymentStatus}`);
+    // This means that the smart contract has just been created
+    if (payload.new.circle_contract_id && smartContractDeploymentStatus === "INITIATED") {
+      toast.success("Smart contract created", {
+        description: "Your smart contract is being processed",
+      });
 
-    const shouldRefresh = smartContractDeploymentStatus === "PENDING" || smartContractDeploymentStatus === "COMPLETE";
+      return;
+    };
+
+    if (smartContractDeploymentStatus === "INITIATED") return;
+
+    console.log("Smart contract status update:", smartContractDeploymentStatus);
+    toast.info(`Smart contract status update: ${smartContractDeploymentStatus}`);
+
+    const shouldRefresh = ["PENDING", "OPEN"].includes(smartContractDeploymentStatus);
 
     if (!shouldRefresh) return
-
-    // Updates the agreement status
-    const { error: agreementStatusUpdateError } = await supabase
-      .from("escrow_agreements")
-      .update({
-        status: smartContractDeploymentStatus === "COMPLETE"
-          ? "OPEN"
-          : smartContractDeploymentStatus
-      })
-      .eq("transaction_id", payload.old.id);
-
-    if (agreementStatusUpdateError) {
-      console.error("Could not update smart contract status", agreementStatusUpdateError);
-      return;
-    }
 
     refresh();
   }, [supabase, refresh]);
@@ -311,8 +269,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
         {
           event: "UPDATE",
           schema: "public",
-          table: "transactions",
-          filter: "transaction_type=eq.ESCROW_DEPOSIT"
+          table: "escrow_agreements"
         },
         updateAgreementsDeploymentStatus
       )

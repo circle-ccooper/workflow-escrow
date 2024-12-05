@@ -10,14 +10,14 @@ async function updateAgreementTransaction(transactionId: string, notification: R
   const supabase = createSupabaseServerClient();
 
   // Fetch the current status in the database to check if the update is needed
-  const { data, error } = await supabase
+  const { data: transactionToUpdate, error: transactionError } = await supabase
     .from("transactions")
-    .select("status")
+    .select()
     .eq("circle_transaction_id", transactionId)
     .single();
 
   // Exit if no update is needed
-  if (error || data.status === notification.state) return;
+  if (transactionError || transactionToUpdate.status === notification.state) return;
 
   // Perform the update only if the status has changed
   await supabase
@@ -27,6 +27,84 @@ async function updateAgreementTransaction(transactionId: string, notification: R
       circle_contract_address: notification.contractAddress
     })
     .eq("circle_transaction_id", transactionId);
+
+  const { data: agreement, error: agreementError } = await supabase
+    .from("escrow_agreements")
+    .select()
+    .eq(
+      transactionToUpdate.escrow_agreement_id ? "id" : "transaction_id",
+      transactionToUpdate.escrow_agreement_id || transactionToUpdate.id
+    )
+    .single();
+
+  if (agreementError) {
+    console.error("Could not find an escrow agreement with the given transaction id", agreementError);
+    return;
+  }
+
+  if (transactionToUpdate.transaction_type === "ESCROW_DEPOSIT") {
+    if (notification.state === "COMPLETE") {
+      await supabase
+        .from("escrow_agreements")
+        .update({ status: "OPEN" })
+        .eq("id", agreement.id);
+
+      return;
+    }
+
+    // Exit if no update is needed
+    if (agreement.status === "PENDING") return;
+
+    await supabase
+      .from("escrow_agreements")
+      .update({ status: "PENDING" })
+      .eq("id", agreement.id);
+
+    return
+  }
+
+  if (transactionToUpdate.transaction_type === "DEPOSIT_APPROVAL" && notification.state === "FAILED") {
+    await supabase
+      .from("escrow_agreements")
+      .update({ status: "OPEN" })
+      .eq("id", agreement.id);
+
+    return;
+  }
+
+  if (transactionToUpdate.transaction_type === "FUNDS_DEPOSIT") {
+    if (notification.state === "FAILED") {
+      await supabase
+        .from("escrow_agreements")
+        .update({ status: "OPEN" })
+        .eq("id", agreement.id);
+    }
+
+    if (notification.state !== "CONFIRMED") return;
+
+    await supabase
+      .from("escrow_agreements")
+      .update({ status: "LOCKED" })
+      .eq("id", agreement.id);
+
+    return;
+  }
+
+  if (transactionToUpdate.transaction_type === "FUNDS_RELEASE") {
+    if (notification.state === "FAILED") {
+      await supabase
+        .from("escrow_agreements")
+        .update({ status: "LOCKED" })
+        .eq("id", agreement.id);
+    }
+
+    if (notification.state !== "CONFIRMED") return;
+
+    await supabase
+      .from("escrow_agreements")
+      .update({ status: "CLOSED" })
+      .eq("id", agreement.id);
+  }
 }
 
 export async function POST(req: NextRequest) {

@@ -1,8 +1,8 @@
+import type { EscrowAgreementWithDetails } from '@/types/escrow';
 import { useState, useCallback } from 'react';
 
 interface CreateSmartContractRequest {
-  depositorAddress: string;
-  beneficiaryAddress: string;
+  agreement: EscrowAgreementWithDetails;
   agentAddress: string;
   agentWalletId: string;
   amountUSDC: number;
@@ -69,8 +69,6 @@ export function useSmartContract(): UseSmartContractReturn {
       const errorMessage = err.message || 'An error occurred while creating the Smart contract';
       setError(errorMessage);
       throw new Error(errorMessage);
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
@@ -94,8 +92,6 @@ export function useSmartContract(): UseSmartContractReturn {
       const errorMessage = err.message || 'An error occurred while checking the transaction status';
       setError(errorMessage);
       throw new Error(errorMessage);
-    } finally {
-      setIsLoading(false);
     }
   }, []);
 
