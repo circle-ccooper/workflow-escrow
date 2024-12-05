@@ -10,7 +10,7 @@ export async function POST(
     if (!body.wallet_address) {
       return NextResponse.json(
         { error: "Missing wallet_address" },
-        { status: 500 }
+        { status: 400 }
       )
     }
 
