@@ -11,6 +11,7 @@ import { WalletBalance } from "@/components/wallet-balance";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { RequestUsdcButton } from "@/components/request-usdc-button";
+import { USDCButton } from "@/components/usdc-button";
 import dynamic from "next/dynamic";
 
 interface CircleTransaction {
@@ -187,16 +188,8 @@ export default async function ProtectedPage() {
               </p>
             </div>
             <div className="flex space-x-2">
-              <Button>
-                <Link target="_blank" href={user.user_metadata.usdc_access_buy.url}>
-                  Buy USDC
-                </Link>
-              </Button>
-              <Button>
-                <Link target="_blank" href={user.user_metadata.usdc_access_sell.url}>
-                  Sell USDC
-                </Link>
-              </Button>
+              <USDCButton mode="BUY" walletAddress={wallet?.wallet_address} />
+              <USDCButton mode="SELL" walletAddress={wallet?.wallet_address} />
               {process.env.NODE_ENV === "development" && <RequestUsdcButton walletAddress={wallet.wallet_address} />}
             </div>
           </div>
