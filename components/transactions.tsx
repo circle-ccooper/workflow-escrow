@@ -139,18 +139,23 @@ export const Transactions: FunctionComponent<Props> = props => {
   const [loading, setLoading] = useState(false);
 
   const updateTransactions = async () => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    // Sync and get transactions
-    const transactions = await syncTransactions(
-      supabase,
-      props.wallet?.id,
-      props.profile?.id,
-      props.wallet?.circle_wallet_id
-    );
+      // Sync and get transactions
+      const transactions = await syncTransactions(
+        supabase,
+        props.wallet?.id,
+        props.profile?.id,
+        props.wallet?.circle_wallet_id
+      );
 
-    setData(transactions);
-    setLoading(false);
+      setData(transactions);
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
