@@ -1,6 +1,9 @@
 "use client"
 
-import type { FunctionComponent } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { WalletTransactionsResponse } from "@/app/api/wallet/transactions/route";
+import type { Wallet } from "@/types/database.types";
+import { useEffect, useState, type FunctionComponent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -10,6 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Transaction {
   id: string
@@ -20,25 +25,179 @@ interface Transaction {
   amount: string[]
 }
 
-interface Props {
-  data?: Transaction[]
+interface CircleTransaction {
+  id: string;
+  transactionType: string;
+  amount: string[];
+  status: string;
+  description?: string;
+  circle_contract_address?: string;
 }
+
+interface Props {
+  wallet: Wallet;
+  profile: {
+    id: any;
+  } | null;
+}
+
+async function syncTransactions(
+  supabase: SupabaseClient,
+  walletId: string,
+  profileId: string,
+  circleWalletId: string
+) {
+  // 1. Fetch transactions from Circle API
+  const transactionsResponse = await fetch(
+    `${baseUrl}/api/wallet/transactions`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        walletId: circleWalletId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  const parsedTransactions: WalletTransactionsResponse =
+    await transactionsResponse.json();
+
+  if (parsedTransactions.error || !parsedTransactions.transactions) {
+    return [];
+  }
+
+  // 2. Get existing transactions from database
+  const { data: existingTransactions } = await supabase
+    .from("transactions")
+    .select("circle_transaction_id")
+    .eq("wallet_id", walletId);
+
+  const existingTransactionIds = new Set(
+    existingTransactions?.map((t: any) => t.circle_transaction_id) || []
+  );
+
+  // 3. Filter out transactions that already exist
+  const newTransactions = parsedTransactions.transactions.filter(
+    (transaction: any) => !existingTransactionIds.has(transaction.id)
+  );
+
+  // 4. Insert new transactions into the database
+  if (newTransactions.length > 0) {
+    const transactionsToInsert = newTransactions.map(
+      (transaction: CircleTransaction) => {
+        if (
+          !transaction.id ||
+          !transaction.transactionType ||
+          !transaction.amount
+        ) {
+          throw new Error(
+            `Invalid transaction structure: ${JSON.stringify(transaction)}`
+          );
+        }
+
+        return {
+          wallet_id: walletId,
+          profile_id: profileId,
+          circle_transaction_id: transaction.id,
+          transaction_type: transaction.transactionType,
+          amount: parseFloat(transaction.amount[0]?.replace(/[$,]/g, "")) || 0,
+          currency: "USDC",
+          status: transaction.status,
+        };
+      }
+    );
+
+    const { error } = await supabase
+      .from("transactions")
+      .insert(transactionsToInsert);
+
+    if (error) {
+      console.error("Error inserting transactions:", error);
+    }
+  }
+
+  // 5. Return all transactions from database
+  const { data: allTransactions } = await supabase
+    .from("transactions")
+    .select("*")
+    .eq("wallet_id", walletId)
+    .order("created_at", { ascending: false });
+
+  return allTransactions || [];
+}
+
+const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? process.env.NEXT_PUBLIC_VERCEL_URL
+  : "http://localhost:3000";
 
 export const Transactions: FunctionComponent<Props> = props => {
   const router = useRouter();
+  const supabase = createSupabaseBrowserClient();
+  const [data, setData] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  if (props.data && props.data.length < 1) {
+  const updateTransactions = async () => {
+    try {
+      setLoading(true);
+
+      // Sync and get transactions
+      const transactions = await syncTransactions(
+        supabase,
+        props.wallet?.id,
+        props.profile?.id,
+        props.wallet?.circle_wallet_id
+      );
+
+      setData(transactions);
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    const transactionSubscription = supabase
+      .channel("transactions")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "transactions",
+          filter: `profile_id=eq.${props.profile?.id}`
+        },
+        () => updateTransactions()
+      )
+      .subscribe();
+
+    updateTransactions();
+
+    return () => {
+      supabase.removeChannel(transactionSubscription);
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <Skeleton className="w-[206px] h-[28px] rounded-full" />
+    )
+  }
+
+  if (data && data.length < 1) {
     return (
       <p className="text-xl text-muted-foreground cursor-pointer">
         No transactions found
       </p>
     )
   }
-  
+
   return (
     <Table className="mb-4">
       <TableHeader>
-        <TableRow>    
+        <TableRow>
           <TableHead>Date</TableHead>
           <TableHead>Type</TableHead>
           <TableHead>Status</TableHead>
@@ -46,8 +205,8 @@ export const Transactions: FunctionComponent<Props> = props => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {props.data?.map(transaction => (
-          <TableRow onClick={() => router.push(`/dashboard/transaction/${transaction.circle_transaction_id}`)} className="cursor-pointer" key={transaction.id}>            
+        {data?.map(transaction => (
+          <TableRow onClick={() => router.push(`/dashboard/transaction/${transaction.circle_transaction_id}`)} className="cursor-pointer" key={transaction.id}>
             <TableCell>{new Date(transaction.created_at).toLocaleString()}</TableCell>
             <TableCell>{transaction.transaction_type}</TableCell>
             <TableCell>{transaction.status}</TableCell>
