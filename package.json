@@ -35,6 +35,7 @@
     "pdfjs-dist": "^4.7.76",
     "prettier": "^3.3.3",
     "react": "18.2.0",
+    "react-confetti": "^6.1.0",
     "react-dom": "18.2.0",
     "sonner": "^1.5.0",
     "uuid": "^10.0.0",
