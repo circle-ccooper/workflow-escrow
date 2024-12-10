@@ -137,8 +137,6 @@ Automated escrow agent that facilitates secure transactions.
 
 - **`components/`**: Reusable React components organized by function
   - `ui/`: Core UI component library
-  - `typography/`: Text and typography-related components
-  - `tutorial/`: User onboarding and tutorial components
 
 - **`contracts/`**: Smart contract related files
   - `escrow-with-agent/`: Implementation of the escrow system with agent functionality
