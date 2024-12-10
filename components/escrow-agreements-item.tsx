@@ -21,7 +21,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/copy-button";
 import Confetti from 'react-confetti'
-import { set } from "zod";
 
 interface EscrowAgreementCardProps {
   agreement: EscrowAgreementWithDetails;
