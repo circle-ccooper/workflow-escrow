@@ -97,8 +97,10 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
           setValidationResult(parsedResponse.reasons);
           return;
         }
-        else {
+        if (response.ok && !parsedResponse.error) {
           setWorkAccepted(true);
+        } else {
+          toast.error("Unexpected error occurred during work submission");
         }
 
         toast.success(parsedResponse.message || "Work submitted successfully");
