@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/copy-button";
+import Confetti from 'react-confetti'
 
 interface EscrowAgreementCardProps {
   agreement: EscrowAgreementWithDetails;
@@ -58,6 +59,8 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
   const supabase = createSupabaseBrowserClient();
   const [submittingWork, setSubmittingWork] = useState<string>();
   const [validationResult, setValidationResult] = useState([]);
+  const [workAccepted, setWorkAccepted] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -93,6 +96,11 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
         if (parsedResponse.error) {
           setValidationResult(parsedResponse.reasons);
           return;
+        }
+        if (response.ok && !parsedResponse.error) {
+          setWorkAccepted(true);
+        } else {
+          toast.error("Unexpected error occurred during work submission");
         }
 
         toast.success(parsedResponse.message || "Work submitted successfully");
@@ -149,6 +157,12 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
 
     refresh();
   };
+
+  const handleCongratulate = () => {
+    setWorkAccepted(false);
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 5000);
+  }
 
   return (
     <>
@@ -326,6 +340,7 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
             </ul>
           </>
         )}
+        {showConfetti && <Confetti width={window.innerWidth - 14} />}
       </div>
       <AlertDialog open={validationResult.length > 0}>
         <AlertDialogContent>
@@ -349,6 +364,23 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <AlertDialog open={workAccepted}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Work Approved! {String.fromCodePoint(0x1F60A)} </AlertDialogTitle>
+            <AlertDialogDescription>
+              <h1>Congratulations, your work was accepted!</h1>
+            </AlertDialogDescription>
+            <h3>Your payment is on the way. {String.fromCodePoint(0x1F911)}</h3>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => handleCongratulate()}>
+              Close
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </>
   );
 };
