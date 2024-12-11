@@ -61,7 +61,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
         walletId: agreement.depositor_wallet_id,
         circleTransactionId: parsedResponse.transactionId,
         escrowAgreementId: agreement.id,
-        transactionType: "FUNDS_DEPOSIT",
+        transactionType: "DEPOSIT_PAYMENT",
         profileId: props.profileId,
         amount,
         description: agreement.terms.amounts?.[0]?.for || "Funds deposited by depositor",
@@ -72,7 +72,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     }
   }
 
-  // Runs when there are changes to "FUNDS_RELEASE" transactions
+  // Runs when there are changes to "RELEASE_PAYMENT" transactions
   const updateAgreementReleaseStatus = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
     const { data: agreementUser, error: agreementUserError } = await supabase
       .from("profiles")
@@ -160,7 +160,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     await depositFunds(agreement);
   }, [supabase]);
 
-  // Runs when there are changes to "FUNDS_DEPOSIT" transactions
+  // Runs when there are changes to "DEPOSIT_PAYMENT" transactions
   const updateAgreementDepositStatus = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
     const { data: agreementUser, error: agreementUserError } = await supabase
       .from("profiles")
@@ -196,7 +196,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
     refresh();
   }, [supabase, refresh]);
 
-  // Runs when there are changes to "ESCROW_DEPOSIT" transactions
+  // Runs when there are changes to "DEPLOY_CONTRACT" transactions
   const updateAgreementsDeploymentStatus = useCallback(async (payload: RealtimePostgresUpdatePayload<Record<string, string>>) => {
     // Get the id of users involved in the agreement from their wallets
     const { data: agreementUsers, error: agreementUsersError } = await supabase
@@ -297,7 +297,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
           event: "UPDATE",
           schema: "public",
           table: "transactions",
-          filter: "transaction_type=eq.FUNDS_DEPOSIT"
+          filter: "transaction_type=eq.DEPOSIT_PAYMENT"
         },
         updateAgreementDepositStatus
       )
@@ -311,7 +311,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
           event: "UPDATE",
           schema: "public",
           table: "transactions",
-          filter: "transaction_type=eq.FUNDS_RELEASE"
+          filter: "transaction_type=eq.RELEASE_PAYMENT"
         },
         updateAgreementReleaseStatus
       )

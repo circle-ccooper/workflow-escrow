@@ -216,7 +216,7 @@ export async function POST(request: Request) {
       walletId: agreement.beneficiary_wallet_id,
       circleTransactionId: circleReleaseResponse.data?.id,
       escrowAgreementId: agreement.id,
-      transactionType: "FUNDS_RELEASE",
+      transactionType: "RELEASE_PAYMENT",
       profileId: agreement.beneficiary_wallet.profiles.id,
       amount,
       description: "Funds released after beneficiary work validation",

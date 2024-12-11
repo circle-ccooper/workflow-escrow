@@ -18,7 +18,7 @@ export const createAgreementService = (supabase: SupabaseClient) => ({
         profile_id: params.profileId,
         circle_transaction_id: params.circleTransactionId,
         escrow_agreement_id: params.escrowAgreementId,
-        transaction_type: params.transactionType || "ESCROW_DEPOSIT",
+        transaction_type: params.transactionType || "DEPLOY_CONTRACT",
         amount: params.amount,
         currency: "USD",
         status: "PENDING",
