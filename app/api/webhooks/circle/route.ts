@@ -42,7 +42,7 @@ async function updateAgreementTransaction(transactionId: string, notification: R
     return;
   }
 
-  if (transactionToUpdate.transaction_type === "ESCROW_DEPOSIT") {
+  if (transactionToUpdate.transaction_type === "DEPLOY_CONTRACT") {
     if (notification.state === "COMPLETE") {
       await supabase
         .from("escrow_agreements")
@@ -72,7 +72,7 @@ async function updateAgreementTransaction(transactionId: string, notification: R
     return;
   }
 
-  if (transactionToUpdate.transaction_type === "FUNDS_DEPOSIT") {
+  if (transactionToUpdate.transaction_type === "DEPOSIT_PAYMENT") {
     if (notification.state === "FAILED") {
       await supabase
         .from("escrow_agreements")
@@ -90,7 +90,7 @@ async function updateAgreementTransaction(transactionId: string, notification: R
     return;
   }
 
-  if (transactionToUpdate.transaction_type === "FUNDS_RELEASE") {
+  if (transactionToUpdate.transaction_type === "RELEASE_PAYMENT") {
     if (notification.state === "FAILED") {
       await supabase
         .from("escrow_agreements")
