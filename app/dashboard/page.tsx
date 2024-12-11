@@ -37,80 +37,82 @@ export default async function ProtectedPage() {
     .single();
 
   return (
-    <div className="columns-2 gap-4">
-      {/* Wallet Card */}
-      <Card className="break-inside-avoid mb-4 w-full">
-        <CardHeader>
-          <CardTitle>Your wallet</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid w-full items-center gap-4">
-            <div className="flex flex-col space-y-1.5">
-              <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                Balance
-              </h4>
-              <WalletBalance walletId={wallet?.circle_wallet_id} />
-              <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                ID
-              </h4>
-              <div className="flex w-full items-center space-x-2">
-                <Input disabled value={wallet?.circle_wallet_id} />
-                <CopyButton text={wallet?.circle_wallet_id} />
+    <>
+      <div className="flex flex-wrap space-x-4 mb-4">
+        {/* Wallet */}
+        <Card className="break-inside-avoid w-[calc(50%-0.5rem)]">
+          <CardHeader>
+            <CardTitle>Your wallet</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid w-full items-center gap-4">
+              <div className="flex flex-col space-y-1.5">
+                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+                  Balance
+                </h4>
+                <WalletBalance walletId={wallet?.circle_wallet_id} />
+                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+                  ID
+                </h4>
+                <div className="flex w-full items-center space-x-2">
+                  <Input disabled value={wallet?.circle_wallet_id} />
+                  <CopyButton text={wallet?.circle_wallet_id} />
+                </div>
+              </div>
+              <div className="flex flex-col space-y-1.5">
+                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+                  Address
+                </h4>
+                <div className="flex w-full items-center space-x-2">
+                  <Input disabled value={wallet?.wallet_address} />
+                  <CopyButton text={wallet?.wallet_address} />
+                </div>
+              </div>
+              <div className="flex flex-col space-y-1.5">
+                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+                  Blockchain
+                </h4>
+                <p className="text-xl text-muted-foreground cursor-pointer mb-4">
+                  {wallet?.blockchain || "No wallet found"}
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <USDCButton mode="BUY" walletAddress={wallet?.wallet_address} />
+                <USDCButton mode="SELL" walletAddress={wallet?.wallet_address} />
+                {process.env.NODE_ENV === "development" && <RequestUsdcButton walletAddress={wallet.wallet_address} />}
               </div>
             </div>
-            <div className="flex flex-col space-y-1.5">
-              <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                Address
-              </h4>
-              <div className="flex w-full items-center space-x-2">
-                <Input disabled value={wallet?.wallet_address} />
-                <CopyButton text={wallet?.wallet_address} />
-              </div>
-            </div>
-            <div className="flex flex-col space-y-1.5">
-              <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                Blockchain
-              </h4>
-              <p className="text-xl text-muted-foreground cursor-pointer mb-4">
-                {wallet?.blockchain || "No wallet found"}
-              </p>
-            </div>
-            <div className="flex space-x-2">
-              <USDCButton mode="BUY" walletAddress={wallet?.wallet_address} />
-              <USDCButton mode="SELL" walletAddress={wallet?.wallet_address} />
-              {process.env.NODE_ENV === "development" && <RequestUsdcButton walletAddress={wallet.wallet_address} />}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Create Agreement Section */}
-      <div className="break-inside-avoid mb-4">
-        <CreateAgreementPage />
+        {/* Create Agreement Section */}
+        <div className="break-inside-avoid w-[calc(50%-0.5rem)] flex">
+          <CreateAgreementPage />
+        </div>
       </div>
 
       {/* Agreements Section */}
       <div className="break-inside-avoid mb-4">
-        <EscrowAgreements
-          userId={user.id}
-          profileId={profile?.id}
-          walletId={wallet.circle_wallet_id}
-        />
-      </div>
-
-      {/* Transactions Section */}
-      <div className="break-inside-avoid mb-4">
-        <div className="flex flex-col gap-2 items-start">
-          <Card className="break-inside-avoid mb-4 w-full">
-            <CardHeader>
-              <CardTitle>Your transactions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Transactions wallet={wallet} profile={profile} />
-            </CardContent>
-          </Card>
+          <EscrowAgreements
+            userId={user.id}
+            profileId={profile?.id}
+            walletId={wallet.circle_wallet_id}
+          />
         </div>
-      </div>
-    </div>
+
+        {/* Transactions Section */}
+        <div className="break-inside-avoid mb-4">
+          <div className="flex flex-col gap-2 items-start">
+            <Card className="break-inside-avoid mb-4 w-full">
+              <CardHeader>
+                <CardTitle>Your transactions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Transactions wallet={wallet} profile={profile} />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+    </>
   );
 }
