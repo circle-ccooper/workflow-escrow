@@ -2,13 +2,12 @@ import { createSupabaseServerComponentClient } from "@/lib/supabase/server-clien
 import { redirect } from "next/navigation";
 import { CreateAgreementPage } from "@/components/ui/createAgreementPage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { CopyButton } from "@/components/copy-button";
 import { EscrowAgreements } from "@/components/escrow-agreements";
 import { WalletBalance } from "@/components/wallet-balance";
 import { RequestUsdcButton } from "@/components/request-usdc-button";
 import { USDCButton } from "@/components/usdc-button";
 import dynamic from "next/dynamic";
+import { WalletInformationDialog } from "@/components/wallet-information-dialog";
 
 const Transactions = dynamic(() => import('@/components/transactions').then(mod => mod.Transactions), { ssr: false })
 
@@ -39,46 +38,22 @@ export default async function ProtectedPage() {
   return (
     <>
       <div className="flex flex-wrap space-x-4 mb-4">
-        {/* Wallet */}
+        {/* Wallet Card */}
         <Card className="break-inside-avoid w-[calc(50%-0.5rem)]">
-          <CardHeader>
-            <CardTitle>Your wallet</CardTitle>
+          <CardHeader className="flex-row items-center space-between">
+            <CardTitle>Account balance</CardTitle>
+            <WalletInformationDialog wallet={wallet} />
           </CardHeader>
           <CardContent>
-            <div className="grid w-full items-center gap-4">
+            <div className="grid w-full items-center gap-6">
               <div className="flex flex-col space-y-1.5">
-                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                  Balance
-                </h4>
-                <WalletBalance walletId={wallet?.circle_wallet_id} />
-                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                  ID
-                </h4>
-                <div className="flex w-full items-center space-x-2">
-                  <Input disabled value={wallet?.circle_wallet_id} />
-                  <CopyButton text={wallet?.circle_wallet_id} />
-                </div>
+                <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+                  <WalletBalance walletId={wallet?.circle_wallet_id} />
+                </h1>
               </div>
-              <div className="flex flex-col space-y-1.5">
-                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                  Address
-                </h4>
-                <div className="flex w-full items-center space-x-2">
-                  <Input disabled value={wallet?.wallet_address} />
-                  <CopyButton text={wallet?.wallet_address} />
-                </div>
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-                  Blockchain
-                </h4>
-                <p className="text-xl text-muted-foreground cursor-pointer mb-4">
-                  {wallet?.blockchain || "No wallet found"}
-                </p>
-              </div>
-              <div className="flex space-x-2">
-                <USDCButton mode="BUY" walletAddress={wallet?.wallet_address} />
-                <USDCButton mode="SELL" walletAddress={wallet?.wallet_address} />
+              <div className="flex gap-2">
+                <USDCButton className="flex-1" mode="BUY" walletAddress={wallet?.wallet_address} />
+                <USDCButton className="flex-1" mode="SELL" walletAddress={wallet?.wallet_address} />
                 {process.env.NODE_ENV === "development" && <RequestUsdcButton walletAddress={wallet.wallet_address} />}
               </div>
             </div>

@@ -10,6 +10,7 @@ export interface Wallet {
   profile_id: string;
   wallet_address: string;
   circle_wallet_id: string;
+  balance: string;
   blockchain: string;
   created_at: string;
   profile?: Profile;

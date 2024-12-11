@@ -1,15 +1,15 @@
 "use client";
 
-import { FunctionComponent, useState } from "react";
+import { type FunctionComponent, type HTMLProps, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
-interface Props {
+interface Props extends HTMLProps<HTMLElement> {
   mode: "BUY" | "SELL";
   walletAddress: string;
 }
 
-export const USDCButton: FunctionComponent<Props> = ({ mode, walletAddress }) => {
+export const USDCButton: FunctionComponent<Props> = ({ mode, walletAddress, className }) => {
   const [loading, setLoading] = useState(false);
 
   const redirectToRamp = async () => {
@@ -29,7 +29,7 @@ export const USDCButton: FunctionComponent<Props> = ({ mode, walletAddress }) =>
   }
 
   return (
-    <Button disabled={loading} onClick={redirectToRamp}>
+    <Button className={className} disabled={loading} onClick={redirectToRamp}>
       {loading
         ? (
           <>
@@ -37,7 +37,7 @@ export const USDCButton: FunctionComponent<Props> = ({ mode, walletAddress }) =>
             Loading...
           </>
         )
-        : `${mode === "BUY" ? "Buy" : "Sell"} USDC`}
+        : mode === "BUY" ? "Deposit" : "Withdraw"}
     </Button>
   )
 }
