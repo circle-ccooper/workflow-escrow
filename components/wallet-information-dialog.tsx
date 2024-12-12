@@ -13,13 +13,19 @@ import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/copy-button";
-import { WalletBalance } from "@/components/wallet-balance";
 
 interface Props {
   wallet: Wallet;
 }
 
 export const WalletInformationDialog: FunctionComponent<Props> = props => {
+  const formattedBalance = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(props.wallet.balance));
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -37,7 +43,7 @@ export const WalletInformationDialog: FunctionComponent<Props> = props => {
               Balance
             </h4>
             <div className="text-xl text-muted-foreground cursor-pointer mb-4">
-              <WalletBalance walletId={props.wallet.circle_wallet_id} />
+              {formattedBalance}
             </div>
             <h4 className="scroll-m-20 text-xl font-semibold tracking-tight mb-2">
               ID
