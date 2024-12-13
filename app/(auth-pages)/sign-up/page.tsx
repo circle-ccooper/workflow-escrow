@@ -60,6 +60,8 @@ export default function Signup({ searchParams }: { searchParams: Message }) {
               name="company-name"
               placeholder="Company Name"
               minLength={3}
+              maxLength={255}
+              aria-label="Company Name"
             />
           </div>
 
