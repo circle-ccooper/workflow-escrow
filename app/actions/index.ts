@@ -12,9 +12,13 @@ const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
-  const companyName = formData.get("company-name")?.toString();
+  const companyName = formData.get("company-name")?.toString().trim();  
   const supabase = createClient();
   const origin = headers().get("origin");
+
+  if (companyName && (companyName.length < 3 || companyName.length > 255)) {
+    return { error: "Company name must be between 3 and 255 characters" };
+  }
 
   if (!email || !password) {
     return { error: "Email and password are required" };
