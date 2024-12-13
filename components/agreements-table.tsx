@@ -150,19 +150,20 @@ export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
                             className="cursor-pointer hover:bg-muted/50"
                             onClick={() => handleRowClick(agreement)}
                           >
-                            {/* TODO, add company name */}
-                            {/* <TableCell>{agreement.terms?.company || 'N/A'}</TableCell> */}
-                            <TableCell>{"N/A"}</TableCell>
+                            <TableCell>
+                              {agreement.company_name ?? "N/A"}
+                            </TableCell>
+
                             <TableCell>
                               {agreement.beneficiary_wallet?.profiles?.name ||
                                 "N/A"}
                             </TableCell>
                             <TableCell>{agreement.status}</TableCell>
                             <TableCell>
-                              {agreement.terms?.amounts?.[0]?.amount || "N/A"}
+                              {agreement.terms?.amounts?.[0]?.amount ?? "N/A"}
                             </TableCell>
                             <TableCell className="max-w-md truncate">
-                              {agreement.terms?.tasks?.[0]?.description ||
+                              {agreement.terms?.tasks?.[0]?.description ??
                                 "N/A"}
                             </TableCell>
                             <TableCell>

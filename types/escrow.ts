@@ -5,6 +5,7 @@ export interface EscrowAgreementWithDetails extends EscrowAgreement {
   beneficiary_wallet_id: string;
   depositor_wallet_id: string;
   circle_contract_id: string;
+  company_name: string;
 
   depositor_wallet: {
     profile_id: string;
