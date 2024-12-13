@@ -1,4 +1,3 @@
-import type { SmartContractResponse } from "@/app/hooks/useSmartContract";
 import { useRef, useState } from "react";
 import { FileText, ExternalLink, CircleDollarSign, Loader2, ImageUp, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,19 +7,12 @@ import { getStatusColor } from "@/lib/utils/escrow";
 import { CreateSmartContractButton } from "@/components/deploy-smart-contract-button";
 import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/copy-button";
 import Confetti from 'react-confetti'
+import { AgreementDeleteDialog } from "./agreement-delete-dialog";
+import { ValidationFailedDialog } from "./validation-failed-dialog";
+import { ValidationSucceededDialog } from "./validation-succeeded-dialog";
 
 interface EscrowAgreementCardProps {
   agreement: EscrowAgreementWithDetails;
@@ -144,7 +136,7 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
     toast.info(parsedApproveResponse.message);
   }
 
-  const handleDeleteEscrow = (id: string) => async () => {
+  const handleDeleteEscrow = async (id: string) => {
     const { error } = await supabase
       .from("escrow_agreements")
       .delete()
@@ -196,37 +188,20 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
           {(userId === agreement.depositor_wallet?.profiles?.auth_user_id && agreement.status === "INITIATED") && (
             <div className="flex justify-between place-items-center">
               <CreateSmartContractButton agreement={agreement} />
-              <AlertDialog open={deleteDialog}>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Escrow Agreement with {profileId === agreement.depositor_wallet?.profile_id
-                      ? agreement.beneficiary_wallet?.profiles.name
-                      : agreement.depositor_wallet?.profiles.name}?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this escrow agreement?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogAction onClick={() => {
-                      handleDeleteEscrow(agreement.id)();
-                      setDeleteDialog(false);
-                    }} >
-                      Yes
-                    </AlertDialogAction>
-                    <AlertDialogCancel onClick={() => setDeleteDialog(false)}>
-                      No
-                    </AlertDialogCancel>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:text-destructive/90"
-                onClick={() => setDeleteDialog(true)}
+              <AgreementDeleteDialog
+                agreement={agreement}
+                profileId={profileId}
+                handleDeleteEscrow={handleDeleteEscrow}
               >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive hover:text-destructive/90"
+                  onClick={() => setDeleteDialog(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AgreementDeleteDialog>
             </div>
           )}
           {(userId === agreement.depositor_wallet?.profiles?.auth_user_id && agreement.status === "OPEN") && (
@@ -270,17 +245,6 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
           )}
         </div>
         <Separator className="my-4" />
-        {agreement.transactions.circle_contract_address && (
-          <>
-            <p className="text-sm font-medium leading-none mb-2">
-              Contract address:
-            </p>
-            <div className="flex w-full items-center space-x-2 mb-3">
-              <Input disabled value={agreement.transactions.circle_contract_address} />
-              <CopyButton text={agreement.transactions.circle_contract_address} />
-            </div>
-          </>
-        )}
         {agreement.terms.documentUrl && (
           <a
             href={agreement.terms.documentUrl}
@@ -342,45 +306,14 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
         )}
         {showConfetti && <Confetti width={window.innerWidth - 14} />}
       </div>
-      <AlertDialog open={validationResult.length > 0}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Work validation failed</AlertDialogTitle>
-            <AlertDialogDescription>
-              Consider addressing the issues listed below before trying again:
-            </AlertDialogDescription>
-            <ul className="my-6 ml-6 list-disc text-sm text-muted-foreground [&>li]:mt-2 [&>li:first-child]:mt-0">
-              {validationResult.map((issue, index) => (
-                <li key={index}>
-                  {issue}
-                </li>
-              ))}
-            </ul>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setValidationResult([])}>
-              Close
-            </AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <AlertDialog open={workAccepted}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Work Approved! {String.fromCodePoint(0x1F60A)} </AlertDialogTitle>
-            <AlertDialogDescription>
-              <h1>Congratulations, your work was accepted!</h1>
-            </AlertDialogDescription>
-            <h3>Your payment is on the way. {String.fromCodePoint(0x1F911)}</h3>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => handleCongratulate()}>
-              Close
-            </AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
+      <ValidationFailedDialog
+        validationResult={validationResult}
+        handleClose={() => setValidationResult([])}
+      />
+      <ValidationSucceededDialog
+        workAccepted={workAccepted}
+        handleCongratulate={handleCongratulate}
+      />
     </>
   );
 };
