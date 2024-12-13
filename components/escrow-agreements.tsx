@@ -388,8 +388,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
             <EscrowAgreementsTable
               agreements={agreements}
               profileId={props.profileId}
-              userId={props.userId}
-              depositing={depositing}
+              userId={props.userId}              
               refresh={refresh}            
             />    
           </div>

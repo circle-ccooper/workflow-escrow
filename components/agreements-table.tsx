@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RotateCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { EscrowAgreementItem } from "./escrow-agreements-item";
 import {
     Table,
@@ -16,44 +16,10 @@ import { EscrowAgreementWithDetails } from '@/types/escrow';
 
 const ITEMS_PER_PAGE = 5;
 
-interface Agreement {
-    id: string;
-    status: string;
-    terms?: {
-        company?: string;
-        amounts?: { amount: string }[];
-        tasks?: { description: string }[];
-    };
-    beneficiary_wallet?: {
-        profiles?: {
-            name?: string;
-        };
-    };
-    created_at: string;
-    beneficiary_wallet_id: string;
-    depositor_wallet_id: string;
-    circle_contract_id: string; // Ensure this is always a string
-    depositor_wallet?: {
-        profile_id: string;
-        wallet_address: string;
-        profiles: {
-            name: string;
-            auth_user_id: string;
-        };
-    };
-    circle_contract?: object;
-    escrow_contract?: object;
-    escrow_contract_id?: string;
-    transaction?: object;
-    transaction_id?: string;
-    updated_at?: string;
-    transactions?: object[];
-}
 
 interface EscrowAgreementsTableProps {
     agreements: EscrowAgreementWithDetails[];
-    loading?: boolean;
-    depositing?: string;
+    loading?: boolean;    
     error?: string | null;
     profileId: string;
     userId: string;
@@ -63,7 +29,7 @@ interface EscrowAgreementsTableProps {
 export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
     const { agreements, loading, error, refresh } = props;
     const [activeTab, setActiveTab] = useState('inProgress');
-    const [selectedAgreement, setSelectedAgreement] = useState<Agreement | null>(null);
+    const [selectedAgreement, setSelectedAgreement] = useState<EscrowAgreementWithDetails | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [depositing, setDepositing] = useState<string | undefined>(undefined);
 
@@ -80,7 +46,7 @@ export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const paginatedAgreements = filteredAgreements.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-    const handleRowClick = (agreement: Agreement) => {
+    const handleRowClick = (agreement: EscrowAgreementWithDetails) => {
         setSelectedAgreement(selectedAgreement && selectedAgreement.id === agreement.id ? null : agreement);
     };
 
