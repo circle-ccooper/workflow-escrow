@@ -103,7 +103,7 @@ export const signInAction = async (formData: FormData) => {
   const password = formData.get("password") as string;
   const supabase = createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: user, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -111,6 +111,8 @@ export const signInAction = async (formData: FormData) => {
   if (error) {
     return encodedRedirect("error", "/sign-in", error.message);
   }
+
+  console.log(user);
 
   return redirect("/dashboard");
 };
