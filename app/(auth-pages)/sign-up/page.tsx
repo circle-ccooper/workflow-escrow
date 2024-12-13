@@ -54,7 +54,7 @@ export default function Signup({ searchParams }: { searchParams: Message }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Company Name</Label>
+            <Label htmlFor="company-name">Company Name</Label>
             <Input
               id="company-name"
               name="company-name"
