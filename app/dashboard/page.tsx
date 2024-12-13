@@ -54,7 +54,7 @@ export default async function ProtectedPage() {
               <div className="flex gap-2">
                 <USDCButton className="flex-1" mode="BUY" walletAddress={wallet?.wallet_address} />
                 <USDCButton className="flex-1" mode="SELL" walletAddress={wallet?.wallet_address} />
-                {process.env.NODE_ENV === "development" && <RequestUsdcButton walletAddress={wallet.wallet_address} />}
+                {process.env.NODE_ENV === "development" && <RequestUsdcButton walletAddress={wallet?.wallet_address} />}
               </div>
             </div>
           </CardContent>

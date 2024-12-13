@@ -11,13 +11,19 @@ import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/copy-button";
-import { WalletBalance } from "@/components/wallet-balance";
 
 interface Props {
   wallet: Wallet;
 }
 
 export const WalletInformationDialog: FunctionComponent<Props> = props => {
+  const formattedBalance = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(props.wallet.balance));
+
   return (
     <Dialog>
       <DialogTrigger asChild>
