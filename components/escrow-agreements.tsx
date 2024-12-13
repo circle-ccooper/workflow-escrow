@@ -390,20 +390,8 @@ export const EscrowAgreements = (props: EscrowListProps) => {
               profileId={props.profileId}
               userId={props.userId}
               depositing={depositing}
-              refresh={refresh}                  
-            
-            />
-            {/* {agreements.map(agreement => (
-              <EscrowAgreementItem
-                key={agreement.id}
-                agreement={agreement}
-                profileId={props.profileId}
-                userId={props.userId}
-                depositing={depositing}
-                refresh={refresh}
-                preApproveCallback={() => setDepositing(agreement.id)}
-              />
-            ))} */}
+              refresh={refresh}            
+            />    
           </div>
         )}
       </CardContent>
