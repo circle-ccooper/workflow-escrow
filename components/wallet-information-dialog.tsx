@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/copy-button";
+import { WalletBalance } from "@/components/wallet-balance";
 
 interface Props {
   wallet: Wallet;
