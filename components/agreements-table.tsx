@@ -61,7 +61,7 @@ interface EscrowAgreementsTableProps {
     refresh: () => void;
 }
 
-export const EscrowAgreementsTabble = (props: EscrowAgreementsTableProps) => {
+export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
     const { agreements, loading, error, refresh } = props;
     const [activeTab, setActiveTab] = useState('inProgress');
     const [selectedAgreement, setSelectedAgreement] = useState<Agreement | null>(null);
@@ -222,4 +222,4 @@ export const EscrowAgreementsTabble = (props: EscrowAgreementsTableProps) => {
     );
 };
 
-export default EscrowAgreementsTabble;
+export default EscrowAgreementsTable;

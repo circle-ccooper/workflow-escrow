@@ -14,7 +14,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { createAgreementService } from "@/app/services/agreement.service";
 import { parseAmount } from "@/lib/utils/amount";
 import { EscrowAgreementItem } from "./escrow-agreements-item";
-import EscrowAgreementsTabble from "./agreements-table";
+import EscrowAgreementsTable from "./agreements-table";
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
@@ -385,7 +385,7 @@ export const EscrowAgreements = (props: EscrowListProps) => {
           </div>
         ) : (
           <div className="space-y-4">
-            <EscrowAgreementsTabble
+            <EscrowAgreementsTable
               agreements={agreements}
               profileId={props.profileId}
               userId={props.userId}
