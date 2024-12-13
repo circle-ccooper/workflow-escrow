@@ -16,7 +16,6 @@ import { EscrowAgreementWithDetails } from '@/types/escrow';
 
 const ITEMS_PER_PAGE = 5;
 
-// Filter agreements based on status
 interface Agreement {
     id: string;
     status: string;
