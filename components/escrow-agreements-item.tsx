@@ -158,7 +158,7 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
 
   return (
     <>
-      <div key={agreement.id} className="rounded-lg border p-4">
+      <div key={agreement.id}>
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="font-medium">

@@ -3,7 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { WalletTransactionsResponse } from "@/app/api/wallet/transactions/route";
 import type { Wallet } from "@/types/database.types";
-import { useEffect, useState, type FunctionComponent } from "react";
+import { useEffect, useMemo, useState, type FunctionComponent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -13,6 +13,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -22,7 +31,7 @@ interface Transaction {
   created_at: string
   circle_transaction_id: string
   transaction_type: string
-  amount: string[]
+  amount: string
 }
 
 interface CircleTransaction {
@@ -40,6 +49,8 @@ interface Props {
     id: any;
   } | null;
 }
+
+const ITEMS_PER_PAGE = 5;
 
 async function syncTransactions(
   supabase: SupabaseClient,
@@ -137,6 +148,23 @@ export const Transactions: FunctionComponent<Props> = props => {
   const supabase = createSupabaseBrowserClient();
   const [data, setData] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const formattedData = useMemo(() => data.map(transaction => ({
+    ...transaction,
+    created_at: new Date(transaction.created_at).toLocaleString(),
+    amount: new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(Number(transaction.amount))
+  })), [data]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedData = formattedData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const updateTransactions = async () => {
     try {
@@ -195,25 +223,146 @@ export const Transactions: FunctionComponent<Props> = props => {
   }
 
   return (
-    <Table className="mb-4">
-      <TableHeader>
-        <TableRow>
-          <TableHead>Date</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Amount</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data?.map(transaction => (
-          <TableRow onClick={() => router.push(`/dashboard/transaction/${transaction.circle_transaction_id}`)} className="cursor-pointer" key={transaction.id}>
-            <TableCell>{new Date(transaction.created_at).toLocaleString()}</TableCell>
-            <TableCell>{transaction.transaction_type}</TableCell>
-            <TableCell>{transaction.status}</TableCell>
-            <TableCell className="text-right">{transaction.amount}</TableCell>
+    <>
+      <Table className="mb-4">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Date</TableHead>
+            <TableHead>Amount</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Type</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {paginatedData.map(transaction => (
+            <TableRow onClick={() => router.push(`/dashboard/transaction/${transaction.circle_transaction_id}`)} className="cursor-pointer" key={transaction.id}>
+              <TableCell>{transaction.created_at}</TableCell>
+              <TableCell>{transaction.amount}</TableCell>
+              <TableCell>{transaction.status}</TableCell>
+              <TableCell className="text-right">{transaction.transaction_type}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {totalPages > 1 && (
+        <Pagination className="mt-4">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrentPage((prev) => Math.max(1, prev - 1));
+                }}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+              />
+            </PaginationItem>
+
+            {/* First page */}
+            {currentPage > 2 && (
+              <PaginationItem>
+                <PaginationLink
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage(1);
+                  }}
+                  isActive={currentPage === 1}
+                >
+                  1
+                </PaginationLink>
+              </PaginationItem>
+            )}
+
+            {/* Ellipsis for skipped pages */}
+            {currentPage > 3 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+
+            {/* Previous page (if applicable) */}
+            {currentPage > 1 && currentPage < totalPages && (
+              <PaginationItem>
+                <PaginationLink
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage(currentPage - 1);
+                  }}
+                  isActive={false}
+                >
+                  {currentPage - 1}
+                </PaginationLink>
+              </PaginationItem>
+            )}
+
+            {/* Current page */}
+            <PaginationItem>
+              <PaginationLink
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrentPage(currentPage);
+                }}
+                isActive={true}
+              >
+                {currentPage}
+              </PaginationLink>
+            </PaginationItem>
+
+            {/* Next page (if applicable) */}
+            {currentPage < totalPages && (
+              <PaginationItem>
+                <PaginationLink
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage(currentPage + 1);
+                  }}
+                  isActive={false}
+                >
+                  {currentPage + 1}
+                </PaginationLink>
+              </PaginationItem>
+            )}
+
+            {/* Ellipsis for skipped pages */}
+            {currentPage < totalPages - 2 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+
+            {/* Last page */}
+            {currentPage < totalPages - 1 && (
+              <PaginationItem>
+                <PaginationLink
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentPage(totalPages);
+                  }}
+                  isActive={currentPage === totalPages}
+                >
+                  {totalPages}
+                </PaginationLink>
+              </PaginationItem>
+            )}
+
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+                }}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
+    </>
   )
 }
