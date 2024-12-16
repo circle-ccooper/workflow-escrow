@@ -211,7 +211,7 @@ export const CreateAgreementPage = () => {
           <div className="flex flex-col space-y-1.5">
             {loading
               ? <Skeleton className="w-[76px] h-[14px] rounded-full" />
-              : <Label>Beneficiary</Label>}
+              : <Label>Recipient</Label>}
             {loading
               ? <Skeleton className="w-[434px] h-[40px]" />
               : (
@@ -225,7 +225,7 @@ export const CreateAgreementPage = () => {
                     >
                       {selectedBeneficiary
                         ? selectedBeneficiary.name
-                        : "Select beneficiary..."}
+                        : "Select recipient..."}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
@@ -238,7 +238,7 @@ export const CreateAgreementPage = () => {
                     <Command>
                       <CommandInput
                         className="w-full"
-                        placeholder="Search beneficiary..."
+                        placeholder="Search recipient..."
                       />
                       <CommandList>
                         {beneficiaries.length > 0

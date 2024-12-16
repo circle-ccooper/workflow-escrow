@@ -12,6 +12,7 @@ export interface EscrowAgreementWithDetails extends EscrowAgreement {
     profiles: {
       name: string;
       full_name: string;
+      email: string;
       company_name: string;
       auth_user_id: string;
     }
@@ -22,6 +23,7 @@ export interface EscrowAgreementWithDetails extends EscrowAgreement {
     profiles: {
       name: string;
       full_name: string;
+      email: string;
       company_name: string;
       auth_user_id: string;
     };
