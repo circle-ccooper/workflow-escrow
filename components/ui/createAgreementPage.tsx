@@ -39,6 +39,7 @@ interface Profile {
   id: string;
   name: string;
   auth_user_id: string;
+  email: string;
   wallets: Wallet[];
 }
 
@@ -106,6 +107,7 @@ export const CreateAgreementPage = () => {
             id,
             name,
             auth_user_id,
+            email,
             wallets (
               id,
               wallet_address,
@@ -128,6 +130,7 @@ export const CreateAgreementPage = () => {
             id,
             name,
             auth_user_id,
+            email,
             wallets (
               id,
               wallet_address,
@@ -255,7 +258,7 @@ export const CreateAgreementPage = () => {
                                         : "opacity-0"
                                     )}
                                   />
-                                  {beneficiary.name}
+                                  {beneficiary.name} ({beneficiary.email})
                                 </CommandItem>
                               ))}
                             </CommandGroup>

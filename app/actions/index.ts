@@ -64,8 +64,9 @@ export const signUpAction = async (formData: FormData) => {
 
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
-      .select()
+      .update({ email })
       .eq("auth_user_id", authData.user?.id)
+      .select()
       .single();
 
     if (profileError) {
