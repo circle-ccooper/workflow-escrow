@@ -32,6 +32,18 @@ export default function Signup({ searchParams }: { searchParams: Message }) {
 
         <div className="flex flex-col gap-4 mt-8">
           <div className="space-y-2">
+            <Label htmlFor="full-name">Full Name</Label>
+            <Input
+              id="full-name"
+              name="full-name"
+              placeholder="Please enter your full name"
+              minLength={3}
+              maxLength={255}
+              aria-label="Full Name"
+              required
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
@@ -54,11 +66,11 @@ export default function Signup({ searchParams }: { searchParams: Message }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="company-name">Company Name</Label>
+            <Label htmlFor="company-name">Company Name (optional)</Label>
             <Input
               id="company-name"
               name="company-name"
-              placeholder="Company Name"
+              placeholder="Enter your company name"
               minLength={3}
               maxLength={255}
               aria-label="Company Name"
