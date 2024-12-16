@@ -31,6 +31,7 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
       wallet_address,
       profiles!wallets_profile_id_fkey (
         name,
+        email,
         company_name,
         auth_user_id
       )
@@ -40,6 +41,7 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
       wallet_address,
       profiles!wallets_profile_id_fkey (
         name,
+        email,
         company_name,
         auth_user_id
       )
