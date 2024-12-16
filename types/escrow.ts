@@ -10,7 +10,7 @@ export interface EscrowAgreementWithDetails extends EscrowAgreement {
     profile_id: string;
     wallet_address: string;
     profiles: {
-      name: string;      
+      name: string;
       auth_user_id: string;
     }
   };
