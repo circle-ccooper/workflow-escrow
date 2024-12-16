@@ -13,8 +13,13 @@ export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
   const companyName = formData.get("company-name")?.toString().trim();
+  const fullName = formData.get("full-name")?.toString().trim();  
   const supabase = createClient();
   const origin = headers().get("origin");
+
+  if (fullName && (fullName.length < 3 || fullName.length > 255)) {
+    return { error: "Full name must be between 3 and 255 characters" };
+  }
 
   if (companyName && (companyName.length < 3 || companyName.length > 255)) {
     return { error: "Company name must be between 3 and 255 characters" };
@@ -66,6 +71,7 @@ export const signUpAction = async (formData: FormData) => {
       .from("profiles")
       .update({
         email,
+        full_name: fullName,
         company_name: companyName
       })
       .eq("auth_user_id", authData.user?.id)

@@ -12,6 +12,12 @@ export default async function AuthButton() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("auth_user_id", user?.id)
+    .single();
+    
   if (!hasEnvVars) {
     return (
       <>
@@ -50,7 +56,7 @@ export default async function AuthButton() {
   }
   return user ? (
     <div className="flex items-center gap-4">
-      Hey, {user.user_metadata.name || user.email}!
+      Hey, {profile?.full_name || user.email || 'Guest'}!
       <Button variant={"ghost"}>
         <Link href="/dashboard">Dashboard</Link>
       </Button>
