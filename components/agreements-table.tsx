@@ -135,8 +135,8 @@ export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Company</TableHead>
-                        <TableHead>Creator</TableHead>
+                        <TableHead>Sender</TableHead>
+                        <TableHead>Recipient</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Deliverables</TableHead>
@@ -151,12 +151,11 @@ export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
                             onClick={() => handleRowClick(agreement)}
                           >
                             <TableCell>
-                              {agreement.beneficiary_wallet.profiles.company_name ?? "N/A"}
+                              {agreement.depositor_wallet.profiles.company_name ?? "N/A"}
                             </TableCell>
 
                             <TableCell>
-                              {agreement.depositor_wallet?.profiles?.name ??
-                                "N/A"}
+                              {agreement.beneficiary_wallet?.profiles?.name ?? agreement.beneficiary_wallet.profiles.email}
                             </TableCell>
                             <TableCell>{agreement.status}</TableCell>
                             <TableCell>

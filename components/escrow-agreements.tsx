@@ -2,26 +2,23 @@
 
 import type { PostgrestError, RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
 import type { EscrowListProps, EscrowAgreementWithDetails } from "@/types/escrow";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback } from "react";
 import { RotateCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useEscrowAgreements } from "@/app/hooks/useEscrowAgreements";
-
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { createAgreementService } from "@/app/services/agreement.service";
 import { parseAmount } from "@/lib/utils/amount";
-import { EscrowAgreementItem } from "./escrow-agreements-item";
-import EscrowAgreementsTable from "./agreements-table";
+import EscrowAgreementsTable from "@/components/agreements-table";
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://localhost:3000";
 
 export const EscrowAgreements = (props: EscrowListProps) => {
-  const [depositing, setDepositing] = useState<string>();
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
   const supabase = createSupabaseBrowserClient();
   const agreementService = createAgreementService(supabase);
@@ -37,8 +34,6 @@ export const EscrowAgreements = (props: EscrowListProps) => {
           "Content-Type": "application/json"
         }
       });
-
-      setDepositing(undefined);
 
       const parsedResponse = await response.json();
 
@@ -137,7 +132,6 @@ export const EscrowAgreements = (props: EscrowListProps) => {
 
     if (fundsDepositStatus === "FAILED") {
       refresh();
-      setDepositing(undefined);
       return;
     }
 
@@ -388,9 +382,9 @@ export const EscrowAgreements = (props: EscrowListProps) => {
             <EscrowAgreementsTable
               agreements={agreements}
               profileId={props.profileId}
-              userId={props.userId}              
-              refresh={refresh}            
-            />    
+              userId={props.userId}
+              refresh={refresh}
+            />
           </div>
         )}
       </CardContent>

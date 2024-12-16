@@ -7,9 +7,7 @@ import { getStatusColor } from "@/lib/utils/escrow";
 import { CreateSmartContractButton } from "@/components/deploy-smart-contract-button";
 import { toast } from "sonner";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
-import { Input } from "@/components/ui/input";
-import { CopyButton } from "@/components/copy-button";
-import Confetti from 'react-confetti'
+import Confetti from "react-confetti";
 import { AgreementDeleteDialog } from "./agreement-delete-dialog";
 import { ValidationFailedDialog } from "./validation-failed-dialog";
 import { ValidationSucceededDialog } from "./validation-succeeded-dialog";
@@ -53,7 +51,6 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
   const [validationResult, setValidationResult] = useState([]);
   const [workAccepted, setWorkAccepted] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [deleteDialog, setDeleteDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmitWork = () => {
@@ -197,7 +194,6 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
                   variant="ghost"
                   size="icon"
                   className="text-destructive hover:text-destructive/90"
-                  onClick={() => setDeleteDialog(true)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
