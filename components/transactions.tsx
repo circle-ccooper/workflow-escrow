@@ -236,8 +236,19 @@ export const Transactions: FunctionComponent<Props> = props => {
         <TableBody>
           {paginatedData.map(transaction => (
             <TableRow onClick={() => router.push(`/dashboard/transaction/${transaction.circle_transaction_id}`)} className="cursor-pointer" key={transaction.id}>
-              <TableCell>{transaction.created_at}</TableCell>
-              <TableCell>{transaction.amount}</TableCell>
+              <TableCell>
+                {transaction.created_at}
+              </TableCell>
+              {transaction.transaction_type === "INBOUND" && (
+                <TableCell className="text-green-600">
+                  +{transaction.amount}
+                </TableCell>
+              )}
+              {transaction.transaction_type === "DEPOSIT_PAYMENT" && (
+                <TableCell className="text-red-600">
+                  -{transaction.amount}
+                </TableCell>
+              )}
               <TableCell>{transaction.status}</TableCell>
               <TableCell className="text-right">{transaction.transaction_type}</TableCell>
             </TableRow>
