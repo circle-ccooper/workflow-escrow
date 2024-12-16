@@ -20,8 +20,9 @@ export async function GET(request: Request) {
     if (!error) {
       const { data: user, error: userIdError } = await supabase
         .from("profiles")
-        .select("id")
+        .update({ email: data.user.email })
         .eq("auth_user_id", data.user.id)
+        .select("id")
         .single();
 
       if (userIdError) {

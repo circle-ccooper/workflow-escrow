@@ -12,7 +12,7 @@ const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
-  const companyName = formData.get("company-name")?.toString().trim();  
+  const companyName = formData.get("company-name")?.toString().trim();
   const supabase = createClient();
   const origin = headers().get("origin");
 
@@ -64,7 +64,10 @@ export const signUpAction = async (formData: FormData) => {
 
     const { data: profileData, error: profileError } = await supabase
       .from("profiles")
-      .update({ email })
+      .update({
+        email,
+        company_name: companyName
+      })
       .eq("auth_user_id", authData.user?.id)
       .select()
       .single();
@@ -72,21 +75,6 @@ export const signUpAction = async (formData: FormData) => {
     if (profileError) {
       console.error("Error while attempting to create user:", profileError);
       return { error: "Could not create user" };
-    }
-
-    const { error: profileUpdateError } = await supabase
-      .from("profiles")
-      .update({
-        company_name: companyName,
-      })
-      .eq("id", profileData.id);
-
-    if (profileUpdateError) {
-      console.error(
-        "Error while attempting to update user:",
-        profileUpdateError
-      );
-      return { error: "Could not update user" };
     }
 
     const { error: walletError } = await supabase
