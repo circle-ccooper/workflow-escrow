@@ -53,6 +53,18 @@ export default function Signup({ searchParams }: { searchParams: Message }) {
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="company-name">Company Name</Label>
+            <Input
+              id="company-name"
+              name="company-name"
+              placeholder="Company Name"
+              minLength={3}
+              maxLength={255}
+              aria-label="Company Name"
+            />
+          </div>
+
           <FormMessage message={searchParams} />
 
           <SubmitButton

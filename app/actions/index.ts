@@ -12,8 +12,13 @@ const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
+  const companyName = formData.get("company-name")?.toString().trim();  
   const supabase = createClient();
   const origin = headers().get("origin");
+
+  if (companyName && (companyName.length < 3 || companyName.length > 255)) {
+    return { error: "Company name must be between 3 and 255 characters" };
+  }
 
   if (!email || !password) {
     return { error: "Email and password are required" };
@@ -66,6 +71,21 @@ export const signUpAction = async (formData: FormData) => {
     if (profileError) {
       console.error("Error while attempting to create user:", profileError);
       return { error: "Could not create user" };
+    }
+
+    const { error: profileUpdateError } = await supabase
+      .from("profiles")
+      .update({
+        company_name: companyName,
+      })
+      .eq("id", profileData.id);
+
+    if (profileUpdateError) {
+      console.error(
+        "Error while attempting to update user:",
+        profileUpdateError
+      );
+      return { error: "Could not update user" };
     }
 
     const { error: walletError } = await supabase

@@ -25,35 +25,37 @@ export const createEscrowService = (supabase: SupabaseClient) => ({
       .from("escrow_agreements")
       .select(
         `
-      *,
-      depositor_wallet:wallets!escrow_agreements_depositor_wallet_id_fkey (
-        profile_id,
-        wallet_address,
-        profiles!wallets_profile_id_fkey (
-          name,
-          auth_user_id
-        )
-      ),
-      beneficiary_wallet:wallets!escrow_agreements_beneficiary_wallet_id_fkey (
-        profile_id,
-        wallet_address,
-        profiles!wallets_profile_id_fkey (
-          name,
-          auth_user_id
-        )
-      ),
-      transactions:transactions!escrow_agreements_transaction_id_fkey (
-        amount,
-        currency,
-        status,
-        circle_contract_address
+    *,
+    depositor_wallet:wallets!escrow_agreements_depositor_wallet_id_fkey (
+      profile_id,
+      wallet_address,
+      profiles!wallets_profile_id_fkey (
+        name,
+        company_name,
+        auth_user_id
       )
-    `
+    ),
+    beneficiary_wallet:wallets!escrow_agreements_beneficiary_wallet_id_fkey (
+      profile_id,
+      wallet_address,
+      profiles!wallets_profile_id_fkey (
+        name,
+        company_name,
+        auth_user_id
+      )
+    ),
+    transactions:transactions!escrow_agreements_transaction_id_fkey (
+      amount,
+      currency,
+      status,
+      circle_contract_address
+    )
+  `
       )
       .or(
         `depositor_wallet_id.in.(${profileWallet.id}),beneficiary_wallet_id.in.(${profileWallet.id})`
-      ).order("created_at", { ascending: false });
-
+      )
+      .order("created_at", { ascending: false });
     if (error) {
       throw new Error(`Failed to fetch agreements: ${error.message}`);
     }
