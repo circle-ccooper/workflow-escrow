@@ -11,6 +11,8 @@ import Confetti from "react-confetti";
 import { AgreementDeleteDialog } from "./agreement-delete-dialog";
 import { ValidationFailedDialog } from "./validation-failed-dialog";
 import { ValidationSucceededDialog } from "./validation-succeeded-dialog";
+import { Input } from "@/components/ui/input";
+import { CopyButton } from "@/components/copy-button";
 
 interface EscrowAgreementCardProps {
   agreement: EscrowAgreementWithDetails;
@@ -242,6 +244,17 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
           )}
         </div>
         <Separator className="my-4" />
+        {agreement.transactions.circle_contract_address && (
+          <>
+            <p className="text-sm font-medium leading-none mb-2">
+              Contract address:
+            </p>
+            <div className="flex w-full items-center space-x-2 mb-3">
+              <Input disabled value={agreement.transactions.circle_contract_address} />
+              <CopyButton text={agreement.transactions.circle_contract_address} />
+            </div>
+          </>
+        )}
         {agreement.terms.documentUrl && (
           <a
             href={agreement.terms.documentUrl}
