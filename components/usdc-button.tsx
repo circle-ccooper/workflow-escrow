@@ -25,7 +25,7 @@ export const USDCButton: FunctionComponent<Props> = ({ mode, walletAddress, clas
     setLoading(false);
 
     const parsedUsdcAccessResponse = await usdcAccessResponse.json();
-    window.open(parsedUsdcAccessResponse.url);
+    window.open(parsedUsdcAccessResponse.url, "popup", "width=500,height=600");
   }
 
   return (
