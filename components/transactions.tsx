@@ -231,7 +231,7 @@ export const Transactions: FunctionComponent<Props> = props => {
             <TableHead>Date</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="text-right">Type</TableHead>
+            <TableHead>Type</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -251,7 +251,7 @@ export const Transactions: FunctionComponent<Props> = props => {
                 </TableCell>
               )}
               <TableCell>{transaction.status}</TableCell>
-              <TableCell className="text-right">{transaction.transaction_type}</TableCell>
+              <TableCell>{transaction.transaction_type}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -294,7 +294,7 @@ export const Transactions: FunctionComponent<Props> = props => {
             )}
 
             {/* Previous page (if applicable) */}
-            {currentPage > 1 && currentPage < totalPages && (
+            {currentPage > 1 && currentPage <= totalPages && (
               <PaginationItem>
                 <PaginationLink
                   href="#"
