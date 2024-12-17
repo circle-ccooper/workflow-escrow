@@ -173,7 +173,7 @@ export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
                             onClick={() => handleRowClick(agreement)}
                           >
                             <TableCell>
-                              {agreement.depositor_wallet.profiles.company_name ?? "N/A"}
+                              {agreement.depositor_wallet.profiles.name ?? "N/A"}
                             </TableCell>
 
                             <TableCell>
