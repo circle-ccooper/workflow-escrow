@@ -258,7 +258,9 @@ export const CreateAgreementPage = () => {
                                         : "opacity-0"
                                     )}
                                   />
-                                  {beneficiary.name ? `${beneficiary.name} (${beneficiary.email})` : beneficiary.email}
+                                  {beneficiary.name && beneficiary.email
+                                ? `${beneficiary.name} (${beneficiary.email})`
+                                : beneficiary.name}
                                 </CommandItem>
                               ))}
                             </CommandGroup>
