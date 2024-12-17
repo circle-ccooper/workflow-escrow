@@ -168,7 +168,9 @@ export const CreateAgreementPage = () => {
     const beneficiary = beneficiaries.find((b) => b.name === beneficiaryName);
     setSelectedBeneficiary(beneficiary || null);
     setFormError(
-      beneficiary ? "" : "Please select a recipient before uploading a contract"
+      beneficiary
+        ? ""
+        : "Please select a recipient before uploading a contract"
     );
     setOpen(false);
   };
@@ -200,92 +202,91 @@ export const CreateAgreementPage = () => {
   return (
     <Card className="grow">
       <CardHeader>
-        {loading ? (
-          <Skeleton className="w-[250px] h-[24px] rounded-full" />
-        ) : (
-          <CardTitle>Create new agreement</CardTitle>
-        )}
+        {loading
+          ? <Skeleton className="w-[250px] h-[24px] rounded-full" />
+          : <CardTitle>Create new agreement</CardTitle>}
       </CardHeader>
       <CardContent className={formError ? "pb-2" : ""}>
         <div className="grid w-full items-left gap-4">
           <div className="flex flex-col space-y-1.5">
-            {loading ? (
-              <Skeleton className="w-[76px] h-[14px] rounded-full" />
-            ) : (
-              <Label>Recipient</Label>
-            )}
-            {loading ? (
-              <Skeleton className="w-[434px] h-[40px]" />
-            ) : (
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="w-[300px] justify-between w-full"
-                  >
-                    {selectedBeneficiary
-                      ? selectedBeneficiary.name
-                      : "Select recipient..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                {formError && (
-                  <Label className="text-red-500">{formError}</Label>
-                )}
-                <PopoverContent className="w-[300px] p-0">
-                  <Command>
-                    <CommandInput
-                      className="w-full"
-                      placeholder="Search recipient..."
-                    />
-                    <CommandList>
-                      {beneficiaries.length > 0 ? (
-                        <CommandGroup>
-                          {beneficiaries.map((beneficiary) => (
-                            <CommandItem
-                              key={beneficiary.id}
-                              value={beneficiary.name}
-                              onSelect={handleBeneficiarySelect}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  selectedBeneficiary?.id === beneficiary.id
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {beneficiary.name && beneficiary.email
+            {loading
+              ? <Skeleton className="w-[76px] h-[14px] rounded-full" />
+              : <Label>Recipient</Label>}
+            {loading
+              ? <Skeleton className="w-[434px] h-[40px]" />
+              : (
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="w-[300px] justify-between w-full"
+                    >
+                      {selectedBeneficiary
+                        ? selectedBeneficiary.name
+                        : "Select recipient..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  {formError && (
+                    <Label className="text-red-500">
+                      {formError}
+                    </Label>
+                  )}
+                  <PopoverContent className="w-[300px] p-0">
+                    <Command>
+                      <CommandInput
+                        className="w-full"
+                        placeholder="Search recipient..."
+                      />
+                      <CommandList>
+                        {beneficiaries.length > 0
+                          ? (
+                            <CommandGroup>
+                              {beneficiaries.map(beneficiary => (
+                                <CommandItem
+                                  key={beneficiary.id}
+                                  value={beneficiary.name}
+                                  onSelect={handleBeneficiarySelect}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      selectedBeneficiary?.id === beneficiary.id
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {beneficiary.name && beneficiary.email
                                 ? `${beneficiary.name} (${beneficiary.email})`
                                 : beneficiary.name}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      ) : (
-                        <CommandEmpty>No beneficiaries found.</CommandEmpty>
-                      )}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            )}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          )
+                          : <CommandEmpty>No beneficiaries found.</CommandEmpty>
+                        }
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
           </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
-        {loading ? (
-          <Skeleton className="w-[163px] h-[40px]" />
-        ) : (
-          <UploadContractButton
-            beneficiaryWalletId={selectedBeneficiary?.wallets[0]?.id}
-            depositorWalletId={currentUserProfile?.wallets[0].id}
-            userId={userId!}
-            userProfileId={currentUserProfile?.id}
-            onAnalysisComplete={handleAnalysisComplete}
-          />
-        )}
+        {loading
+          ? <Skeleton className="w-[163px] h-[40px]" />
+          : (
+              <UploadContractButton
+                beneficiaryWalletId={selectedBeneficiary?.wallets[0]?.id}
+                depositorWalletId={currentUserProfile?.wallets[0].id}
+                userId={userId!}
+                userProfileId={currentUserProfile?.id}
+                onAnalysisComplete={handleAnalysisComplete}
+              />
+          )}
       </CardFooter>
     </Card>
   );
