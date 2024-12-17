@@ -263,7 +263,7 @@ export const Transactions: FunctionComponent<Props> = (props) => {
               )}
               {transaction.transaction_type !== "DEPOSIT_PAYMENT" &&
                 transaction.transaction_type !== "INBOUND" && (
-                  <TableCell>N/A</TableCell>
+                  <TableCell>{transaction.amount}</TableCell>
                 )}
               <TableCell>{transaction.status}</TableCell>
               <TableCell>{transaction.transaction_type}</TableCell>
