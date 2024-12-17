@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { WalletTransactionsResponse } from "@/app/api/wallet/transactions/route";
@@ -21,17 +21,17 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"
+} from "@/components/ui/pagination";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Transaction {
-  id: string
-  status: string
-  created_at: string
-  circle_transaction_id: string
-  transaction_type: string
-  amount: string
+  id: string;
+  status: string;
+  created_at: string;
+  circle_transaction_id: string;
+  transaction_type: string;
+  amount: string;
 }
 
 interface CircleTransaction {
@@ -145,27 +145,34 @@ const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
 
 const supabase = createSupabaseBrowserClient();
 
-export const Transactions: FunctionComponent<Props> = props => {
+export const Transactions: FunctionComponent<Props> = (props) => {
   const router = useRouter();
   const [data, setData] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const formattedData = useMemo(() => data.map(transaction => ({
-    ...transaction,
-    created_at: new Date(transaction.created_at).toLocaleString(),
-    amount: new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(Number(transaction.amount))
-  })), [data]);
+  const formattedData = useMemo(
+    () =>
+      data.map((transaction) => ({
+        ...transaction,
+        created_at: new Date(transaction.created_at).toLocaleString(),
+        amount: new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(Number(transaction.amount)),
+      })),
+    [data]
+  );
 
   // Calculate pagination
   const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedData = formattedData.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const paginatedData = formattedData.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
 
   const updateTransactions = async () => {
     try {
@@ -185,7 +192,7 @@ export const Transactions: FunctionComponent<Props> = props => {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     const transactionSubscription = supabase
@@ -196,7 +203,7 @@ export const Transactions: FunctionComponent<Props> = props => {
           event: "UPDATE",
           schema: "public",
           table: "transactions",
-          filter: `profile_id=eq.${props.profile?.id}`
+          filter: `profile_id=eq.${props.profile?.id}`,
         },
         () => updateTransactions()
       )
@@ -206,13 +213,11 @@ export const Transactions: FunctionComponent<Props> = props => {
 
     return () => {
       supabase.removeChannel(transactionSubscription);
-    }
+    };
   }, []);
 
   if (loading) {
-    return (
-      <Skeleton className="w-[206px] h-[28px] rounded-full" />
-    )
+    return <Skeleton className="w-[206px] h-[28px] rounded-full" />;
   }
 
   if (data && data.length < 1) {
@@ -220,7 +225,7 @@ export const Transactions: FunctionComponent<Props> = props => {
       <p className="text-xl text-muted-foreground cursor-pointer">
         No transactions found
       </p>
-    )
+    );
   }
 
   return (
@@ -231,15 +236,21 @@ export const Transactions: FunctionComponent<Props> = props => {
             <TableHead>Date</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="text-right">Type</TableHead>
+            <TableHead>Type</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedData.map(transaction => (
-            <TableRow onClick={() => router.push(`/dashboard/transaction/${transaction.circle_transaction_id}`)} className="cursor-pointer" key={transaction.id}>
-              <TableCell>
-                {transaction.created_at}
-              </TableCell>
+          {paginatedData.map((transaction) => (
+            <TableRow
+              onClick={() =>
+                router.push(
+                  `/dashboard/transaction/${transaction.circle_transaction_id}`
+                )
+              }
+              className="cursor-pointer"
+              key={transaction.id}
+            >
+              <TableCell>{transaction.created_at}</TableCell>
               {transaction.transaction_type === "INBOUND" && (
                 <TableCell className="text-green-600">
                   +{transaction.amount}
@@ -250,8 +261,12 @@ export const Transactions: FunctionComponent<Props> = props => {
                   -{transaction.amount}
                 </TableCell>
               )}
+              {transaction.transaction_type !== "DEPOSIT_PAYMENT" &&
+                transaction.transaction_type !== "INBOUND" && (
+                  <TableCell>N/A</TableCell>
+                )}
               <TableCell>{transaction.status}</TableCell>
-              <TableCell className="text-right">{transaction.transaction_type}</TableCell>
+              <TableCell>{transaction.transaction_type}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -266,7 +281,9 @@ export const Transactions: FunctionComponent<Props> = props => {
                   e.preventDefault();
                   setCurrentPage((prev) => Math.max(1, prev - 1));
                 }}
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                className={
+                  currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                }
               />
             </PaginationItem>
 
@@ -294,7 +311,7 @@ export const Transactions: FunctionComponent<Props> = props => {
             )}
 
             {/* Previous page (if applicable) */}
-            {currentPage > 1 && currentPage < totalPages && (
+            {currentPage > 1 && currentPage <= totalPages && (
               <PaginationItem>
                 <PaginationLink
                   href="#"
@@ -369,12 +386,16 @@ export const Transactions: FunctionComponent<Props> = props => {
                   e.preventDefault();
                   setCurrentPage((prev) => Math.min(totalPages, prev + 1));
                 }}
-                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                className={
+                  currentPage === totalPages
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }
               />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
       )}
     </>
-  )
-}
+  );
+};
