@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +22,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -53,11 +54,13 @@ const tabs: TabData[] = [
   },
 ];
 
+const supabase = createSupabaseBrowserClient();
+
 export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
   const { agreements, loading, error, refresh } = props;
   const [activeTab, setActiveTab] = useState("inProgress");
-  const [selectedAgreement, setSelectedAgreement] =
-    useState<EscrowAgreementWithDetails | null>(null);
+  const [selectedAgreementId, setSelectedAgreementId] =
+    useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [depositing, setDepositing] = useState<string | undefined>(undefined);
 
@@ -77,16 +80,35 @@ export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
   );
 
   const handleRowClick = (agreement: EscrowAgreementWithDetails) => {
-    setSelectedAgreement(
-      selectedAgreement?.id === agreement.id ? null : agreement
-    );
+    setSelectedAgreementId(selectedAgreementId === agreement.id ? null : agreement.id);
   };
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     setCurrentPage(1);
-    setSelectedAgreement(null);
+    setSelectedAgreementId(null);
   };
+
+  useEffect(() => {
+    const agreementsSubscription = supabase
+      .channel("agreements")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "escrow_agreements"
+        },
+        async payload => {
+          setSelectedAgreementId(payload.new.id)
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(agreementsSubscription)
+    }
+  }, []);
 
   if (error) {
     return (
@@ -169,7 +191,7 @@ export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
                               {new Date(agreement.created_at).toLocaleString()}
                             </TableCell>
                           </TableRow>
-                          {selectedAgreement?.id === agreement.id && (
+                          {selectedAgreementId === agreement.id && (
                             <TableRow>
                               <TableCell colSpan={6} className="bg-muted/50">
                                 <EscrowAgreementItem

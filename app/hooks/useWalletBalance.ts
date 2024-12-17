@@ -1,7 +1,7 @@
 "use client";
 
 import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js";
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { toast } from "sonner";
 
@@ -11,8 +11,9 @@ interface UseWalletBalanceResult {
   refreshBalance: () => Promise<void>;
 }
 
+const supabase = createSupabaseBrowserClient()
+
 export function useWalletBalance(walletId: string): UseWalletBalanceResult {
-  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
 
