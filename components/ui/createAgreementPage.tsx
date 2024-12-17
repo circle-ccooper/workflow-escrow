@@ -76,7 +76,7 @@ export const CreateAgreementPage = () => {
   const [selectedBeneficiary, setSelectedBeneficiary] =
     useState<Profile | null>(null);
   const [formError, setFormError] = useState(
-    "Please select a beneficiary before uploading a contract"
+    "Please select a recipient before uploading a contract"
   );
   const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(
     null
@@ -170,7 +170,7 @@ export const CreateAgreementPage = () => {
     setFormError(
       beneficiary
         ? ""
-        : "Please select a beneficiary before uploading a contract"
+        : "Please select a recipient before uploading a contract"
     );
     setOpen(false);
   };
