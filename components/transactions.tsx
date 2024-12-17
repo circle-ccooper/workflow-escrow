@@ -143,9 +143,10 @@ const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://localhost:3000";
 
+const supabase = createSupabaseBrowserClient();
+
 export const Transactions: FunctionComponent<Props> = props => {
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
   const [data, setData] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);

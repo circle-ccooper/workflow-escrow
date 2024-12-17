@@ -5,8 +5,9 @@ import { Loader2 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { Button } from "@/components/ui/button";
 
+const supabase = createSupabaseBrowserClient();
+
 export const GoogleLoginButton = (props: { nextUrl?: string }) => {
-  const supabase = createSupabaseBrowserClient();
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {

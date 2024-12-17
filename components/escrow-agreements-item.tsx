@@ -40,6 +40,8 @@ const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://localhost:3000";
 
+const supabase = createSupabaseBrowserClient();
+
 export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
   agreement,
   profileId,
@@ -48,7 +50,6 @@ export const EscrowAgreementItem: React.FC<EscrowAgreementCardProps> = ({
   refresh,
   preApproveCallback
 }) => {
-  const supabase = createSupabaseBrowserClient();
   const [submittingWork, setSubmittingWork] = useState<string>();
   const [validationResult, setValidationResult] = useState([]);
   const [workAccepted, setWorkAccepted] = useState(false);

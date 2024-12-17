@@ -54,6 +54,8 @@ const tabs: TabData[] = [
   },
 ];
 
+const supabase = createSupabaseBrowserClient();
+
 export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
   const { agreements, loading, error, refresh } = props;
   const [activeTab, setActiveTab] = useState("inProgress");
@@ -61,7 +63,6 @@ export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
     useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [depositing, setDepositing] = useState<string | undefined>(undefined);
-  const supabase = createSupabaseBrowserClient();
 
   const filteredAgreements = agreements.filter(
     (agreement: EscrowAgreementWithDetails) => {

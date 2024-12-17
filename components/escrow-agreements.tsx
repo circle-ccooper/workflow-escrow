@@ -20,10 +20,11 @@ const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
   ? process.env.NEXT_PUBLIC_VERCEL_URL
   : "http://localhost:3000";
 
+const supabase = createSupabaseBrowserClient();
+
 export const EscrowAgreements = (props: EscrowListProps) => {
   const [depositing, setDepositing] = useState<string>();
   const { agreements, loading, error, refresh } = useEscrowAgreements(props);
-  const supabase = createSupabaseBrowserClient();
   const agreementService = createAgreementService(supabase);
 
   const depositFunds = async (agreement: EscrowAgreementWithDetails) => {
