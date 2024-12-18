@@ -136,7 +136,20 @@ async function syncTransactions(
     .eq("wallet_id", walletId)
     .order("created_at", { ascending: false });
 
-  return allTransactions || [];
+  // Filter out duplicates keeping only the latest transaction for each circle_transaction_id
+  const uniqueTransactions =
+    allTransactions?.reduce((acc, current) => {
+      const existingTransaction = acc.find(
+        (item: { circle_transaction_id: any }) =>
+          item.circle_transaction_id === current.circle_transaction_id
+      );
+      if (!existingTransaction) {
+        acc.push(current);
+      }
+      return acc;
+    }, []) || [];
+
+  return uniqueTransactions;
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
