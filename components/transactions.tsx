@@ -253,17 +253,17 @@ export const Transactions: FunctionComponent<Props> = (props) => {
               <TableCell>{transaction.created_at}</TableCell>
               {transaction.transaction_type === "INBOUND" && (
                 <TableCell className="text-green-600">
-                  +{transaction.amount}
+                  {transaction.amount}
                 </TableCell>
               )}
               {transaction.transaction_type === "DEPOSIT_PAYMENT" && (
                 <TableCell className="text-red-600">
-                  -{transaction.amount}
+                  {transaction.amount}
                 </TableCell>
               )}
               {transaction.transaction_type !== "DEPOSIT_PAYMENT" &&
                 transaction.transaction_type !== "INBOUND" && (
-                  <TableCell>N/A</TableCell>
+                  <TableCell>{transaction.amount}</TableCell>
                 )}
               <TableCell>{transaction.status}</TableCell>
               <TableCell>{transaction.transaction_type}</TableCell>
