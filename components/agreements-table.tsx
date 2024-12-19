@@ -63,6 +63,7 @@ export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
     useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [depositing, setDepositing] = useState<string | undefined>(undefined);
+  const [hasOpenedAgreement, setHasOpenedAgreement] = useState(false);
 
   const filteredAgreements = agreements.filter(
     (agreement: EscrowAgreementWithDetails) => {
@@ -109,6 +110,15 @@ export const EscrowAgreementsTable = (props: EscrowAgreementsTableProps) => {
       supabase.removeChannel(agreementsSubscription)
     }
   }, []);
+
+  useEffect(() => {
+    const shouldOpenCreatedAgreement = agreements.length !== 1 || selectedAgreementId !== null || hasOpenedAgreement;
+
+    if (shouldOpenCreatedAgreement) return;
+
+    setSelectedAgreementId(agreements[0].id);
+    setHasOpenedAgreement(true);
+  }, [agreements]);
 
   if (error) {
     return (
