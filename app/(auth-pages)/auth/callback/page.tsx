@@ -8,12 +8,26 @@ export default function AuthCallback() {
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
 
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
+    let mounted = true;
     const handleAuthCallback = async () => {
       try {
         const searchParams = new URLSearchParams(window.location.search);
         const token = searchParams.get('token');
         const type = searchParams.get('type');
+
+        const handleSession = async () => {
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError) throw sessionError;
+          if (mounted) {
+            if (session) {
+              await router.push('/dashboard');
+            } else {
+              await router.push('/auth/sign-in');
+            }
+          }
+        };
 
         if (token && type === 'signup') {
           const { error } = await supabase.auth.verifyOtp({
@@ -21,43 +35,26 @@ export default function AuthCallback() {
             type: 'signup'
           });
 
-          if (error) {
-            throw error;
-          }
-
-          // Check session after verification
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          
-          if (sessionError) {
-            throw sessionError;
-          }
-
-          if (session) {
-            router.push('/dashboard');
-          } else {
-            router.push('/auth/sign-in');
-          }
+          if (error) throw error;
+          await handleSession();
         } else {
-          // Handle general auth callback
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          
-          if (sessionError) {
-            throw sessionError;
-          }
-
-          if (session) {
-            router.push('/dashboard');
-          } else {
-            router.push('/auth/sign-in');
-          }
+          await handleSession();
         }
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
         console.error('Authentication error:', error);
-        router.push('/auth/sign-in?error=Authentication failed');
+        if (mounted) {
+          await router.push(`/auth/sign-in?error=${encodeURIComponent(errorMessage)}`);
+        }
+      } finally {
+        if (mounted) setIsLoading(false);
       }
     };
 
     handleAuthCallback();
+    return () => {
+      mounted = false;
+    };
   }, [router, supabase]);
 
   return (
