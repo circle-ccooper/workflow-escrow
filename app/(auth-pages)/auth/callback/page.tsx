@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
@@ -7,41 +6,39 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 export default function AuthCallback() {
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
-
   const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     let mounted = true;
+
     const handleAuthCallback = async () => {
       try {
         const searchParams = new URLSearchParams(window.location.search);
         const token = searchParams.get("token");
         const type = searchParams.get("type");
 
-        const handleSession = async () => {
-          const {
-            data: { session },
-            error: sessionError,
-          } = await supabase.auth.getSession();
-          if (sessionError) throw sessionError;
-          if (mounted) {
-            if (session) {
-              await router.push("/dashboard");
-            } else {
-              await router.push("/auth/sign-in");
-            }
-          }
-        };
-
+        // Handle token verification if present
         if (token && type === "signup") {
           const { error } = await supabase.auth.verifyOtp({
             token_hash: token,
             type: "signup",
           });
-
           if (error) throw error;
-          await handleSession();
-        } else {
-          await handleSession();
+        }
+
+        // Handle session check 
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+
+        if (mounted) {
+          if (session) {
+            await router.push("/dashboard");
+          } else {
+            await router.push("/auth/sign-in");
+          }
         }
       } catch (error) {
         const errorMessage =
