@@ -110,7 +110,7 @@ export const signUpAction = async (formData: FormData) => {
     return { error: error.message };
   }
 
-  return redirect("/dashboard");
+  return redirect("/auth/confirmation");
 };
 
 export const signInAction = async (formData: FormData) => {
