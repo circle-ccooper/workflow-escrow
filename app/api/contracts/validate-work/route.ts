@@ -7,9 +7,9 @@ import { parseAmount } from "@/lib/utils/amount";
 import { circleDeveloperSdk } from "@/lib/utils/developer-controlled-wallets-client";
 
 interface ImageValidationResult {
-  valid: boolean
-  confidence: "HIGH" | "MEDIUM" | "LOW"
-  reasons: string[]
+  valid: boolean;
+  confidence: "HIGH" | "MEDIUM" | "LOW";
+  reasons: string[];
 }
 
 export async function POST(request: Request) {
@@ -17,11 +17,14 @@ export async function POST(request: Request) {
   const agreementService = createAgreementService(supabase);
 
   const {
-    data: { user }
+    data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "You are not logged in" }, { status: 401 })
+    return NextResponse.json(
+      { error: "You are not logged in" },
+      { status: 401 },
+    );
   }
 
   try {
@@ -30,41 +33,56 @@ export async function POST(request: Request) {
 
     if (!imageFile || !(imageFile instanceof Blob)) {
       console.error("Image file is missing or invalid");
-      return NextResponse.json({ error: "Image file is missing or invalid" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Image file is missing or invalid" },
+        { status: 400 },
+      );
     }
 
     const circleContractId = formData.get("circleContractId");
 
     if (!circleContractId || typeof circleContractId !== "string") {
       console.error("Contract agreement ID is missing or invalid");
-      return NextResponse.json({ error: "Contract agreement ID is missing or invalid" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Contract agreement ID is missing or invalid" },
+        { status: 400 },
+      );
     }
 
     const { data: agreement, error: agreementError } = await supabase
       .from("escrow_agreements")
-      .select(`
+      .select(
+        `
         *,
         beneficiary_wallet:wallets!escrow_agreements_beneficiary_wallet_id_fkey!inner(
           profiles!inner(id,auth_user_id),
           circle_wallet_id
         )
-      `)
+      `,
+      )
       .eq("circle_contract_id", circleContractId)
       .single();
 
     if (agreementError) {
-      console.error("Failed to retrieve agreement requirements", agreementError);
+      console.error(
+        "Failed to retrieve agreement requirements",
+        agreementError,
+      );
       return NextResponse.json(
         { error: "Failed to retrieve agreement requirements" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     const requirements = agreement.terms.tasks
-      .filter((requirement: any) => requirement.responsible_party === "Content Creator")
-      .reduce((requirements: any, requirement: any) =>
-        `${requirements.length > 0 ? `${requirements}\n` : requirements}- ${requirement.description}`,
-        ""
+      .filter(
+        (requirement: any) =>
+          requirement.responsible_party === "ContentCreator",
+      )
+      .reduce(
+        (requirements: any, requirement: any) =>
+          `${requirements.length > 0 ? `${requirements}\n` : requirements}- ${requirement.description}`,
+        "",
       );
 
     const prompt = `
@@ -114,7 +132,7 @@ export async function POST(request: Request) {
           content: [
             {
               type: "text",
-              text: prompt
+              text: prompt,
             },
             {
               type: "image_url",
@@ -125,21 +143,25 @@ export async function POST(request: Request) {
           ],
         },
       ],
-      temperature: 0
+      temperature: 0,
     });
 
     const [promptAnswer] = response.choices;
     const promptAnswerContent = promptAnswer.message.content;
 
     if (!promptAnswerContent) {
-      console.error("Failed to retrieve the work validation result", promptAnswerContent);
+      console.error(
+        "Failed to retrieve the work validation result",
+        promptAnswerContent,
+      );
       return NextResponse.json(
         { error: "Failed to retrieve the work validation result" },
-        { status: 500 }
-      )
+        { status: 500 },
+      );
     }
 
-    const parsedPromptAnswerContent: ImageValidationResult = JSON.parse(promptAnswerContent);
+    const parsedPromptAnswerContent: ImageValidationResult =
+      JSON.parse(promptAnswerContent);
 
     const timestamp = Date.now();
     const originalFileName = imageFile.name || "uploaded-file";
@@ -157,59 +179,74 @@ export async function POST(request: Request) {
       console.error("Failed to upload file:", uploadError);
       return NextResponse.json(
         { error: `Failed to upload file: ${uploadError.message}` },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    const workMeetsRequirements = parsedPromptAnswerContent.valid && parsedPromptAnswerContent.confidence === "HIGH"
+    const workMeetsRequirements =
+      parsedPromptAnswerContent.valid &&
+      parsedPromptAnswerContent.confidence === "HIGH";
 
     if (!workMeetsRequirements) {
-      console.error("Image does not meet all requirements", parsedPromptAnswerContent);
+      console.error(
+        "Image does not meet all requirements",
+        parsedPromptAnswerContent,
+      );
       return NextResponse.json(
         {
           error: "Image does not meet all requirements",
-          reasons: parsedPromptAnswerContent.reasons
+          reasons: parsedPromptAnswerContent.reasons,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Retrieves contract data from Circle's SDK
     const contractData = await circleContractSdk.getContract({
-      id: agreement.circle_contract_id
+      id: agreement.circle_contract_id,
     });
 
     if (!contractData.data) {
       console.error("Could not retrieve contract data");
-      return NextResponse.json({ error: "Could not retrieve contract data" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Could not retrieve contract data" },
+        { status: 500 },
+      );
     }
 
     const contractAddress = contractData.data?.contract.contractAddress;
 
     if (!contractAddress) {
       console.error("Could not retrieve contract address:", contractAddress);
-      return NextResponse.json({ error: "Could not retrieve contract address" }, { status: 500 })
+      return NextResponse.json(
+        { error: "Could not retrieve contract address" },
+        { status: 500 },
+      );
     }
 
     const beneficiaryWalletId = agreement.beneficiary_wallet?.circle_wallet_id;
 
     if (!beneficiaryWalletId) {
       console.error("Could not find a profile linked to the given wallet ID");
-      return NextResponse.json({ error: "Could not find a profile linked to the given wallet ID" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Could not find a profile linked to the given wallet ID" },
+        { status: 500 },
+      );
     }
 
-    const circleReleaseResponse = await circleDeveloperSdk.createContractExecutionTransaction({
-      walletId: process.env.NEXT_PUBLIC_AGENT_WALLET_ID,
-      contractAddress,
-      abiFunctionSignature: "release()",
-      abiParameters: [],
-      fee: {
-        type: "level",
-        config: {
-          feeLevel: "MEDIUM",
+    const circleReleaseResponse =
+      await circleDeveloperSdk.createContractExecutionTransaction({
+        walletId: process.env.NEXT_PUBLIC_AGENT_WALLET_ID,
+        contractAddress,
+        abiFunctionSignature: "release()",
+        abiParameters: [],
+        fee: {
+          type: "level",
+          config: {
+            feeLevel: "MEDIUM",
+          },
         },
-      },
-    });
+      });
 
     const amount = parseAmount((agreement.terms.amounts?.[0] as any).amount);
     await agreementService.createTransaction({
@@ -222,7 +259,10 @@ export async function POST(request: Request) {
       description: "Funds released after beneficiary work validation",
     });
 
-    console.log("Funds release transaction created:", circleReleaseResponse.data);
+    console.log(
+      "Funds release transaction created:",
+      circleReleaseResponse.data,
+    );
 
     await supabase
       .from("escrow_agreements")
@@ -237,7 +277,7 @@ export async function POST(request: Request) {
         error: "Failed to validate image",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
