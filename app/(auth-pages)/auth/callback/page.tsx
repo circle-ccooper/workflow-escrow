@@ -26,7 +26,6 @@ export default function AuthCallback() {
           if (error) throw error;
         }
 
-        // Handle session check 
         const {
           data: { session },
           error: sessionError,
