@@ -20,9 +20,6 @@ export const createRampSession = async (rampType: "BUY" | "SELL", walletAddress:
       country: {
         country: "US"
       },
-      fiatAmount: {
-        currency: "USD"
-      },
       cryptoAmount: {
         currency: "USDC"
       }
