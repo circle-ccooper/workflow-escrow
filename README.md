@@ -54,7 +54,7 @@ Automated escrow agent that facilitates secure transactions.
 
    - `OPENAI_API_KEY` can be found in the [Settings](https://platform.openai.com/settings) of your OpenAI account (Settings > API keys), while `OPENAI_ASSISTANT_ID` is located on the [Assistants](https://platform.openai.com/assistants) page, after selecting the desired assistant, the ID can be seen right below the "Name" input.
 
-   - `NEXT_PUBLIC_USDC_CONTRACT_ADDRESS` is documented [here](https://developers.circle.com/stablecoins/usdc-on-test-networks) alongside other blockchain test networks, like Polygon PoS Amoy (the one used in the project).
+   - `NEXT_PUBLIC_USDC_CONTRACT_ADDRESS` is documented [here](https://developers.circle.com/stablecoins/usdc-on-test-networks) alongside other blockchain test networks, like Polygon PoS Amoy (the one used in the project). This is used for the USDC approval function, which gives permission for a dapp to access and move a specific type of token from your wallet. The address for Polygon PoS Amoy is `0x41e94eb019c0762f9bfcf9fb1e58725bfb0e7582`.
 
    - For development purposes, `NEXT_PUBLIC_AGENT_WALLET_ID` and `NEXT_PUBLIC_AGENT_WALLET_ADDRESS` can be the id and address of the developer controlled wallet registered on [Circle](https://console.circle.com/wallets/dev/wallets) that you want to use for the escrow agent.
 
@@ -138,7 +138,7 @@ If you prefer to use Supabase Cloud instead of running it locally:
    OPENAI_API_KEY=
    ```
 
-   - `VERCEL_URL` and `NEXT_PUBLIC_VERCEL_URL` is the base URL of the project (i.e. `https://your-app.vercel.app`).
+   - `VERCEL_URL` and `NEXT_PUBLIC_VERCEL_URL` is the base URL of the project (i.e. `http://localhost:3000/` when developing locally).
 
    - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api).
 
