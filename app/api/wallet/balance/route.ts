@@ -14,7 +14,7 @@ const ResponseSchema = z.object({
 type WalletBalanceResponse = z.infer<typeof ResponseSchema>;
 
 export async function POST(
-  req: NextRequest
+  req: NextRequest,
 ): Promise<NextResponse<WalletBalanceResponse>> {
   try {
     const body = await req.json();
@@ -23,7 +23,7 @@ export async function POST(
     if (!parseResult.success) {
       return NextResponse.json(
         { error: "Invalid walletId format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -31,10 +31,11 @@ export async function POST(
 
     const response = await circleDeveloperSdk.getWalletTokenBalance({
       id: walletId,
+      includeAll: true,
     });
 
     const balance = response.data?.tokenBalances?.find(
-      ({ token }) => token.symbol === "USDC"
+      ({ token }) => token.symbol === "USDC",
     )?.amount;
 
     return NextResponse.json({ balance: balance || "0" });
@@ -42,7 +43,7 @@ export async function POST(
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid request format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -54,7 +55,7 @@ export async function POST(
 
     return NextResponse.json(
       { error: "Internal server error while fetching balance" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
