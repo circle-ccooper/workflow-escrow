@@ -44,14 +44,25 @@ try {
     name: "Escrow Agent Wallet"
   });
 
+  const walletSetId = createdWalletSetResponse.data.walletSet.id;
+  console.log(`Created wallet set with ID: ${walletSetId}`);
+
   const createdWalletResponse = await circleDeveloperSdk.createWallets({
     accountType: "SCA",
     blockchains: [selectedOption],
-    walletSetId: createdWalletSetResponse.data.walletSet.id
+    walletSetId
   });
 
   const [createdWallet] = createdWalletResponse.data.wallets;
+  if (!createdWallet) {
+    throw new Error('No wallet was created');
+  }
 
+  console.log(`Agent wallet created successfully: ${createdWallet.address}`);
+} catch (error) {
+  console.error("Failed to create agent wallet:", error.message);
+  process.exit(1);
+}
   console.log(`Agent wallet created successfully: ${createdWallet.address}`);
 } catch {
   console.error("Could not create agent wallet");
