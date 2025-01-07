@@ -50,27 +50,35 @@ Automated escrow agent that facilitates secure transactions.
 
    - `CIRCLE_API_KEY` can be found in the [API Keys](https://console.circle.com/api-keys) section of Circle's console, while `CIRCLE_ENTITY_SECRET` must be shared, or rotated [here](https://console.circle.com/wallets/dev/configurator/entity-secret) in case it's lost.
 
-   - `CIRCLE_BLOCKCHAIN` can be set to `MATIC-AMOY` for development purposes
-
    - `OPENAI_API_KEY` can be found in the [Settings](https://platform.openai.com/settings) of your OpenAI account (Settings > API keys), while `OPENAI_ASSISTANT_ID` is located on the [Assistants](https://platform.openai.com/assistants) page, after selecting the desired assistant, the ID can be seen right below the "Name" input.
 
    - `NEXT_PUBLIC_USDC_CONTRACT_ADDRESS` is documented [here](https://developers.circle.com/stablecoins/usdc-on-test-networks) alongside other blockchain test networks, like Polygon PoS Amoy (the one used in the project). This is used for the USDC approval function, which gives permission for a dapp to access and move a specific type of token from your wallet. The address for Polygon PoS Amoy is `0x41e94eb019c0762f9bfcf9fb1e58725bfb0e7582`.
 
-   - For development purposes, `NEXT_PUBLIC_AGENT_WALLET_ID` and `NEXT_PUBLIC_AGENT_WALLET_ADDRESS` can be the id and address of the developer controlled wallet registered on [Circle](https://console.circle.com/wallets/dev/wallets) that you want to use for the escrow agent.
+   Leave the following vars blank. These variables are set automatically by the generate-wallet.mjs script:
 
-3. Then start a local instance of the Supabase server:
+   - `CIRCLE_BLOCKCHAIN` can be left blank. This is the blockchain used by the application.
+
+   - `NEXT_PUBLIC_AGENT_WALLET_ID` and `NEXT_PUBLIC_AGENT_WALLET_ADDRESS` can be left blank. This is the wallet used by the escrow agent.
+
+3. Run the generate-wallet.mjs script to create the agent wallet and update the environment variables:
+
+   ```bash
+   npm run generate-wallet
+   ```
+
+4. Then start a local instance of the Supabase server:
 
    ```bash
    npx supabase start
    ```
 
-4. Initialize the database schema:
+5. Initialize the database schema:
 
    ```bash
    npx supabase migration up
    ```
 
-5. You can now run the Next.js local development server:
+6. You can now run the Next.js local development server:
 
    ```bash
    npm run dev
@@ -78,13 +86,13 @@ Automated escrow agent that facilitates secure transactions.
 
    The starter kit should now be running on [localhost:3000](http://localhost:3000/).
 
-6. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
+7. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
 
    ```bash
    ngrok http 3000
    ```
 
-7. Configure the Circle webhook:
+8. Configure the Circle webhook:
 
    1. Go to [Circle Webhooks Dashboard](https://console.circle.com/webhooks)
    2. Click "Add Webhook"
@@ -94,8 +102,6 @@ Automated escrow agent that facilitates secure transactions.
    4. Save the webhook configuration
 
    Note: The webhook is essential for processing transaction status updates. Ensure it's properly configured before testing transactions.
-
-8. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
 
@@ -144,22 +150,30 @@ If you prefer to use Supabase Cloud instead of running it locally:
 
    - `CIRCLE_API_KEY` can be found in the [API Keys](https://console.circle.com/api-keys) section of Circle's console, while `CIRCLE_ENTITY_SECRET` must be shared, or rotated [here](https://console.circle.com/wallets/dev/configurator/entity-secret) in case it's lost.
 
-   - `CIRCLE_BLOCKCHAIN` can be set to `MATIC-AMOY` for development purposes
-
    - `OPENAI_API_KEY` can be found in the [Settings](https://platform.openai.com/settings) of your OpenAI account (Settings > API keys), while `OPENAI_ASSISTANT_ID` is located on the [Assistants](https://platform.openai.com/assistants) page, after selecting the desired assistant, the ID can be seen right below the "Name" input.
 
    - `NEXT_PUBLIC_USDC_CONTRACT_ADDRESS` is documented [here](https://developers.circle.com/stablecoins/usdc-on-test-networks) alongside other blockchain test networks, like Polygon PoS Amoy (the one used in the project). This is used for the USDC approval function, which gives permission for a dapp to access and move a specific type of token from your wallet. The address for Polygon PoS Amoy is `0x41e94eb019c0762f9bfcf9fb1e58725bfb0e7582`.
 
-   - For development purposes, `NEXT_PUBLIC_AGENT_WALLET_ID` and `NEXT_PUBLIC_AGENT_WALLET_ADDRESS` can be the id and address of the developer controlled wallet registered on [Circle](https://console.circle.com/wallets/dev/wallets) that you want to use for the escrow agent.
+   Leave the following vars blank. These variables are set automatically by the generate-wallet.mjs script:
 
-3. Create a new project on [Supabase](https://app.supabase.com)
+   - `CIRCLE_BLOCKCHAIN` can be left blank. This is the blockchain used by the application.
 
-4. Set up authentication:
+   - `NEXT_PUBLIC_AGENT_WALLET_ID` and `NEXT_PUBLIC_AGENT_WALLET_ADDRESS` can be left blank. This is the wallet used by the escrow agent.
+
+3. Run the generate-wallet.mjs script to create the agent wallet and update the environment variables:
+
+   ```bash
+   npm run generate-wallet
+   ```
+
+4. Create a new project on [Supabase](https://app.supabase.com)
+
+5. Set up authentication:
    - Go to Authentication > Providers
    - Enable Email provider
    - Disable "Confirm Email" to allow immediate sign-ins
 
-5. Link your local project to your Supabase cloud project and push the database schema:
+6. Link your local project to your Supabase cloud project and push the database schema:
    ```bash
    # Install Supabase CLI if you haven't already
    npm install supabase --save-dev
@@ -175,19 +189,19 @@ If you prefer to use Supabase Cloud instead of running it locally:
    ```
    > Note: You can find your project ID in your Supabase project settings under Project Settings > General
 
-5. You can now run the Next.js development server:
+7. You can now run the Next.js development server:
 
    ```bash
    npm run dev
    ```
 
-6. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
+8. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
 
    ```bash
    ngrok http 3000
    ```
 
-7. Configure the Circle webhook:
+9. Configure the Circle webhook:
 
    1. Go to [Circle Webhooks Dashboard](https://console.circle.com/webhooks)
    2. Click "Add Webhook"
