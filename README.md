@@ -21,18 +21,30 @@ Automated escrow agent that facilitates secure transactions.
 2. Rename `.env.example` to `.env.local` and update the following:
 
    ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   NEXT_PUBLIC_USDC_CONTRACT_ADDRESS=[INSERT USDC CONTRACT ADDRESS]
-   NEXT_PUBLIC_AGENT_WALLET_ID=[INSERT AGENT WALLET ID]
-   CIRCLE_API_KEY=[INSERT CIRCLE API KEY]
-   CIRCLE_ENTITY_SECRET=[INSERT CIRCLE ENTITY SECRET]
-   CIRCLE_BLOCKCHAIN=[INSERT CIRCLE BLOCKCHAIN]
-   GOOGLE_CLIENT_ID=[INSERT GOOGLE CLIENT ID]
-   GOOGLE_CLIENT_SECRET=[INSERT GOOGLE CLIENT SECRET]
-   OPENAI_API_KEY=[INSERT OPENAI API KEY]
-   OPENAI_ASSISTANT_ID=[INSERT OPENAI ASSISTANT ID]
+   # Deployment URL (e.g., https://your-app.vercel.app)
+   VERCEL_URL=
+   NEXT_PUBLIC_VERCEL_URL= 
+
+   # Supabase configuration (https://app.supabase.com/project/_/settings/api)
+   NEXT_PUBLIC_SUPABASE_URL=
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+   # USDC Smart Contract configuration
+   NEXT_PUBLIC_USDC_CONTRACT_ADDRESS=
+
+   # Agent Wallet configuration
+   NEXT_PUBLIC_AGENT_WALLET_ID=
+   NEXT_PUBLIC_AGENT_WALLET_ADDRESS=
+
+   # Circle API configuration (https://console.circle.com/apikeys)
+   CIRCLE_API_KEY=
+   CIRCLE_ENTITY_SECRET=
+   CIRCLE_BLOCKCHAIN=
+
+   # OpenAI API configuration (https://platform.openai.com/api-keys)
+   OPENAI_API_KEY=
    ```
+   - `VERCEL_URL` and `NEXT_PUBLIC_VERCEL_URL` is the base URL of the project (i.e. `https://your-app.vercel.app`).
 
    - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api).
 
@@ -40,13 +52,11 @@ Automated escrow agent that facilitates secure transactions.
 
    - `CIRCLE_BLOCKCHAIN` can be set to `MATIC-AMOY` for development purposes
 
-   - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` can be found in the [Google Cloud Developer Console](https://console.cloud.google.com/apis/credentials?project=workflow-escrow) of the project (APIs & Services > Credentials > Web).
-
    - `OPENAI_API_KEY` can be found in the [Settings](https://platform.openai.com/settings) of your OpenAI account (Settings > API keys), while `OPENAI_ASSISTANT_ID` is located on the [Assistants](https://platform.openai.com/assistants) page, after selecting the desired assistant, the ID can be seen right below the "Name" input.
 
    - `NEXT_PUBLIC_USDC_CONTRACT_ADDRESS` is documented [here](https://developers.circle.com/stablecoins/usdc-on-test-networks) alongside other blockchain test networks, like Polygon PoS Amoy (the one used in the project).
 
-   - For development purposes, `NEXT_PUBLIC_AGENT_WALLET_ID` can be the address of any developer controlled wallet registered on [Circle](https://console.circle.com/wallets/dev/wallets), that might change for a production scenario.
+   - For development purposes, `NEXT_PUBLIC_AGENT_WALLET_ID` and `NEXT_PUBLIC_AGENT_WALLET_ADDRESS` can be the id and address of the developer controlled wallet registered on [Circle](https://console.circle.com/wallets/dev/wallets) that you want to use for the escrow agent.
 
 3. Then start a local instance of the Supabase server:
 
@@ -94,27 +104,7 @@ Automated escrow agent that facilitates secure transactions.
 
 If you prefer to use Supabase Cloud instead of running it locally:
 
-1. Create a new project on [Supabase](https://app.supabase.com)
-
-2. Set up authentication:
-   - Go to Authentication > Providers
-   - Enable Email provider
-   - Disable "Confirm Email" to allow immediate sign-ins
-
-3. Link your local project to your Supabase cloud project and push the database schema:
-   ```bash
-   # Install Supabase CLI if you haven't already
-   npm install supabase --save-dev
-
-   # Link to your remote project - you'll need your project ref and database password
-   npx supabase link --project-ref your-project-ref
-
-   # Push the database schema
-   npx supabase db push
-   ```
-   > Note: You can find your project ref in your Supabase project settings under Project Settings > General
-
-4. Clone the repository and install dependencies:
+1. Clone the repository and install dependencies:
 
    ```bash
    git clone https://github.com/[username]/workflow-escrow.git
@@ -122,21 +112,34 @@ If you prefer to use Supabase Cloud instead of running it locally:
    npm install
    ```
 
-5. Rename `.env.example` to `.env.local` and update the following:
+2. Rename `.env.example` to `.env.local` and update the following:
 
    ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   NEXT_PUBLIC_USDC_CONTRACT_ADDRESS=[INSERT USDC CONTRACT ADDRESS]
-   NEXT_PUBLIC_AGENT_WALLET_ID=[INSERT AGENT WALLET ID]
-   CIRCLE_API_KEY=[INSERT CIRCLE API KEY]
-   CIRCLE_ENTITY_SECRET=[INSERT CIRCLE ENTITY SECRET]
-   CIRCLE_BLOCKCHAIN=[INSERT CIRCLE BLOCKCHAIN]
-   GOOGLE_CLIENT_ID=[INSERT GOOGLE CLIENT ID]
-   GOOGLE_CLIENT_SECRET=[INSERT GOOGLE CLIENT SECRET]
-   OPENAI_API_KEY=[INSERT OPENAI API KEY]
-   OPENAI_ASSISTANT_ID=[INSERT OPENAI ASSISTANT ID]
+   # Deployment URL (e.g., https://your-app.vercel.app)
+   VERCEL_URL=
+   NEXT_PUBLIC_VERCEL_URL= 
+
+   # Supabase configuration (https://app.supabase.com/project/_/settings/api)
+   NEXT_PUBLIC_SUPABASE_URL=
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+   # USDC Smart Contract configuration
+   NEXT_PUBLIC_USDC_CONTRACT_ADDRESS=
+
+   # Agent Wallet configuration
+   NEXT_PUBLIC_AGENT_WALLET_ID=
+   NEXT_PUBLIC_AGENT_WALLET_ADDRESS=
+
+   # Circle API configuration (https://console.circle.com/apikeys)
+   CIRCLE_API_KEY=
+   CIRCLE_ENTITY_SECRET=
+   CIRCLE_BLOCKCHAIN=
+
+   # OpenAI API configuration (https://platform.openai.com/api-keys)
+   OPENAI_API_KEY=
    ```
+
+   - `VERCEL_URL` and `NEXT_PUBLIC_VERCEL_URL` is the base URL of the project (i.e. `https://your-app.vercel.app`).
 
    - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api).
 
@@ -144,13 +147,31 @@ If you prefer to use Supabase Cloud instead of running it locally:
 
    - `CIRCLE_BLOCKCHAIN` can be set to `MATIC-AMOY` for development purposes
 
-   - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` can be found in the [Google Cloud Developer Console](https://console.cloud.google.com/apis/credentials?project=workflow-escrow) of the project (APIs & Services > Credentials > Web).
-
    - `OPENAI_API_KEY` can be found in the [Settings](https://platform.openai.com/settings) of your OpenAI account (Settings > API keys), while `OPENAI_ASSISTANT_ID` is located on the [Assistants](https://platform.openai.com/assistants) page, after selecting the desired assistant, the ID can be seen right below the "Name" input.
 
    - `NEXT_PUBLIC_USDC_CONTRACT_ADDRESS` is documented [here](https://developers.circle.com/stablecoins/usdc-on-test-networks) alongside other blockchain test networks, like Polygon PoS Amoy (the one used in the project).
 
-   - For development purposes, `NEXT_PUBLIC_AGENT_WALLET_ID` can be the address of any developer controlled wallet registered on [Circle](https://console.circle.com/wallets/dev/wallets), that might change for a production scenario.
+   - For development purposes, `NEXT_PUBLIC_AGENT_WALLET_ID` and `NEXT_PUBLIC_AGENT_WALLET_ADDRESS` can be the id and address of the developer controlled wallet registered on [Circle](https://console.circle.com/wallets/dev/wallets) that you want to use for the escrow agent.
+
+3. Create a new project on [Supabase](https://app.supabase.com)
+
+4. Set up authentication:
+   - Go to Authentication > Providers
+   - Enable Email provider
+   - Disable "Confirm Email" to allow immediate sign-ins
+
+5. Link your local project to your Supabase cloud project and push the database schema:
+   ```bash
+   # Install Supabase CLI if you haven't already
+   npm install supabase --save-dev
+
+   # Link to your remote project - you'll need your project ID and database password
+   npx supabase link --project-ref <project-id>
+
+   # Push the database schema
+   npx supabase db push
+   ```
+   > Note: You can find your project ID in your Supabase project settings under Project Settings > General
 
 6. You can now run the Next.js development server:
 
@@ -158,7 +179,23 @@ If you prefer to use Supabase Cloud instead of running it locally:
    npm run dev
    ```
 
-7. Follow steps 6-8 from the local setup instructions to configure ngrok and Circle webhook.
+7. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
+
+   ```bash
+   ngrok http 3000
+   ```
+
+8. Configure the Circle webhook:
+
+   a. Go to [Circle Webhooks Dashboard](https://console.circle.com/webhooks)
+   b. Click "Add Webhook"
+   c. Configure the following settings:
+      - Endpoint URL: Your ngrok URL + `/api/webhooks/circle` (e.g., `https://9940-170-239-106-57.ngrok-free.app/api/webhooks/circle`)
+      - Events: Select only `transactions.outbound`
+      - Status: Enabled
+   d. Save the webhook configuration
+
+   Note: The webhook is essential for processing transaction status updates. Ensure it's properly configured before testing transactions.
 
 ## Project Structure
 
