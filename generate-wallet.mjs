@@ -1,6 +1,8 @@
 import { config } from "dotenv";
 import inquirer from "inquirer";
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
+import fs from 'fs';
+import path from 'path';
 
 config({ path: [".env.local"] })
 
@@ -66,7 +68,20 @@ try {
     throw new Error('No wallet was created');
   }
 
-  console.log(`Agent wallet created successfully: ${createdWallet.address}`);
+  console.log(`Agent wallet created successfully. Address: ${createdWallet.address}, ID: ${createdWallet.id}`);
+
+  // Update environment variables in .env.local
+  const envPath = path.resolve('.env.local');
+  let envContent = fs.readFileSync(envPath, 'utf-8');
+
+  // Update the environment variables
+  envContent = envContent.replace(/^NEXT_PUBLIC_AGENT_WALLET_ID=.*$/m, `NEXT_PUBLIC_AGENT_WALLET_ID=${createdWallet.id}`);
+  envContent = envContent.replace(/^NEXT_PUBLIC_AGENT_WALLET_ADDRESS=.*$/m, `NEXT_PUBLIC_AGENT_WALLET_ADDRESS=${createdWallet.address}`);
+  envContent = envContent.replace(/^CIRCLE_BLOCKCHAIN=.*$/m, `CIRCLE_BLOCKCHAIN=${selectedOption}`);
+
+  // Write the updated content back to .env.local
+  fs.writeFileSync(envPath, envContent);
+  console.log('Environment variables updated successfully in .env.local');
 } catch (error) {
   console.error("Failed to create agent wallet:", error.message);
   process.exit(1);
