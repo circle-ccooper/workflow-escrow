@@ -71,7 +71,3 @@ try {
   console.error("Failed to create agent wallet:", error.message);
   process.exit(1);
 }
-  console.log(`Agent wallet created successfully: ${createdWallet.address}`);
-} catch {
-  console.error("Could not create agent wallet");
-}
