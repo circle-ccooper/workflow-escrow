@@ -34,7 +34,7 @@ export async function POST(
     });
 
     const balance = response.data?.tokenBalances?.find(
-      ({ token }) => token.name === "USDC"
+      ({ token }) => token.symbol === "USDC"
     )?.amount;
 
     return NextResponse.json({ balance: balance || "0" });
