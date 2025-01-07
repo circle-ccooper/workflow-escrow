@@ -89,9 +89,8 @@ Automated escrow agent that facilitates secure transactions.
    1. Go to [Circle Webhooks Dashboard](https://console.circle.com/webhooks)
    2. Click "Add Webhook"
    3. Configure the following settings:
-      - Endpoint URL: Your ngrok URL + `/api/webhooks/circle` (e.g., `https://9940-170-239-106-57.ngrok-free.app/api/webhooks/circle`)
-      - Events: Select only `transactions.outbound`
-      - Status: Enabled
+      - URL: Your ngrok URL + `/api/webhooks/circle` (e.g., `https://9940-170-239-106-57.ngrok-free.app/api/webhooks/circle`)
+      - Limit to specific events: Disabled
    4. Save the webhook configuration
 
    Note: The webhook is essential for processing transaction status updates. Ensure it's properly configured before testing transactions.
@@ -190,9 +189,8 @@ If you prefer to use Supabase Cloud instead of running it locally:
    1. Go to [Circle Webhooks Dashboard](https://console.circle.com/webhooks)
    2. Click "Add Webhook"
    3. Configure the following settings:
-      - Endpoint URL: Your ngrok URL + `/api/webhooks/circle` (e.g., `https://9940-170-239-106-57.ngrok-free.app/api/webhooks/circle`)
-      - Events: Select only `transactions.outbound`
-      - Status: Enabled
+      - URL: Your ngrok URL + `/api/webhooks/circle` (e.g., `https://9940-170-239-106-57.ngrok-free.app/api/webhooks/circle`)
+      - Limit to specific events: Disabled
    4. Save the webhook configuration
 
    Note: The webhook is essential for processing transaction status updates. Ensure it's properly configured before testing transactions.
