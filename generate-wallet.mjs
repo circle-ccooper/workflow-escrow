@@ -27,8 +27,6 @@ const choices = [
   "AVAX-FUJI",
   "MATIC",
   "MATIC-AMOY",
-  "SOL",
-  "SOL-DEVNET",
   "ARB",
   "ARB-SEPOLIA",
   "NEAR",
