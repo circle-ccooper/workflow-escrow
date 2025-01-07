@@ -13,7 +13,7 @@ export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
   const companyName = formData.get("company-name")?.toString().trim();
-  const fullName = formData.get("full-name")?.toString().trim();  
+  const fullName = formData.get("full-name")?.toString().trim();
   const supabase = createClient();
   const origin = headers().get("origin");
 
