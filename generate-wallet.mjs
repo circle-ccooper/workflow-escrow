@@ -5,6 +5,14 @@ import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-
 config({ path: [".env.local"] })
 
 // Initialize Circle client
+const requiredEnvVars = ['CIRCLE_API_KEY', 'CIRCLE_ENTITY_SECRET'];
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+}
+
 export const circleDeveloperSdk = initiateDeveloperControlledWalletsClient({
   apiKey: process.env.CIRCLE_API_KEY,
   entitySecret: process.env.CIRCLE_ENTITY_SECRET,
