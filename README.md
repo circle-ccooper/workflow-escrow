@@ -164,6 +164,9 @@ If you prefer to use Supabase Cloud instead of running it locally:
    # Install Supabase CLI if you haven't already
    npm install supabase --save-dev
 
+   # Login with Supabase CLI
+   npx supabase login
+
    # Link to your remote project - you'll need your project ID and database password
    npx supabase link --project-ref <project-id>
 
@@ -172,19 +175,19 @@ If you prefer to use Supabase Cloud instead of running it locally:
    ```
    > Note: You can find your project ID in your Supabase project settings under Project Settings > General
 
-6. You can now run the Next.js development server:
+5. You can now run the Next.js development server:
 
    ```bash
    npm run dev
    ```
 
-7. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
+6. With the project up and running, open an ngrok tunnel on the same port as of the local development server:
 
    ```bash
    ngrok http 3000
    ```
 
-8. Configure the Circle webhook:
+7. Configure the Circle webhook:
 
    1. Go to [Circle Webhooks Dashboard](https://console.circle.com/webhooks)
    2. Click "Add Webhook"
