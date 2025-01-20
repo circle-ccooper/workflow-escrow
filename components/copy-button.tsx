@@ -18,21 +18,19 @@ interface Props {
 export const CopyButton: FunctionComponent<Props> = (props) => {
   const [shouldShowTooltip, setShouldShowTooltip] = useState(false);
 
-  const simulateTooltipOpening = async () => {
+  const handleCopy = async () => {
     setShouldShowTooltip(true);
-    await sleep(700);
-    setShouldShowTooltip(false);
+    await navigator.clipboard.writeText(props.text).then(() => {
+      sleep(700).then(() => setShouldShowTooltip(false));
+    });
   };
 
   return (
     <TooltipProvider>
       <Tooltip open={shouldShowTooltip}>
         <TooltipTrigger asChild>
-          <Button onClick={simulateTooltipOpening}>
-            <Copy
-              className="h-4 w-4"
-              onClick={() => navigator.clipboard.writeText(props.text)}
-            />
+          <Button onClick={handleCopy}>
+            <Copy className="h-4 w-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
