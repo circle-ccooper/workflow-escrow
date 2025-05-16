@@ -41,4 +41,3 @@ COMMENT ON TABLE wallets IS 'RLS disabled and policies dropped in migration.';
 COMMENT ON TABLE transactions IS 'RLS disabled and policies dropped in migration.';
 COMMENT ON TABLE escrow_agreements IS 'RLS disabled and policies dropped in migration.';
 COMMENT ON TABLE dispute_resolutions IS 'RLS disabled and policies dropped in migration.';
-COMMENT ON TABLE storage.objects IS 'Storage policies dropped in migration.';
