@@ -116,7 +116,7 @@ If you prefer to use Supabase Cloud instead of running Supabase locally:
 1. Clone the repository and install dependencies:
 
    ```bash
-   git clone https://github.com/circlefin/workflow-escrow.git
+   git clone https://github.com/[username]/workflow-escrow.git
    cd workflow-escrow
    npm install
    ```
